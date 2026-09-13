@@ -1,0 +1,136 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile containing roles and basic info.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "editor", "user"] },
+        "avatar": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["email", "name", "role", "createdAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "A product listed on the platform.",
+      "type": "object",
+      "properties": {
+        "slug": { "type": "string" },
+        "name": { "type": "string" },
+        "brand": { "type": "string" },
+        "category": { "type": "string" },
+        "shortDescription": { "type": "string" },
+        "description": { "type": "string" },
+        "images": { "type": "array", "items": { "type": "string" }, "maxLength": 10 },
+        "rating": { "type": "number" },
+        "reviewCount": { "type": "number" },
+        "specifications": { "type": "object" },
+        "pros": { "type": "array", "items": { "type": "string" }, "maxLength": 10 },
+        "cons": { "type": "array", "items": { "type": "string" }, "maxLength": 10 },
+        "tags": { "type": "array", "items": { "type": "string" }, "maxLength": 10 },
+        "published": { "type": "boolean" },
+        "featured": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "editorId": { "type": "string" }
+      },
+      "required": ["slug", "name", "brand", "category", "shortDescription", "description", "published", "createdAt", "updatedAt"]
+    },
+    "Store": {
+      "title": "Store",
+      "description": "A retailer store that sells products.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "logo": { "type": "string" },
+        "website": { "type": "string" },
+        "websiteUrl": { "type": "string" },
+        "affiliateNetwork": { "type": "string" },
+        "affiliateTag": { "type": "string" },
+        "affiliateParamKey": { "type": "string" },
+        "defaultAffiliateTag": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "active": { "type": "boolean" },
+        "color": { "type": "string" }
+      },
+      "required": ["name", "slug", "logo", "website", "isActive"]
+    },
+    "PriceOffer": {
+      "title": "Price Offer",
+      "description": "A price offering for a specific product at a specific store.",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string" },
+        "storeId": { "type": "string" },
+        "price": { "type": "number" },
+        "originalPrice": { "type": "number" },
+        "currency": { "type": "string" },
+        "affiliateUrl": { "type": "string" },
+        "availability": { "type": "string", "enum": ["in_stock", "out_of_stock", "pre_order", "limited_stock"] },
+        "lastUpdated": { "type": "string" },
+        "sourceType": { "type": "string", "enum": ["manual", "api", "feed"] },
+        "couponCode": { "type": "string" },
+        "shippingNote": { "type": "string" }
+      },
+      "required": ["productId", "storeId", "price", "currency", "affiliateUrl", "availability", "lastUpdated", "sourceType"]
+    },
+    "Wishlist": {
+      "title": "Wishlist",
+      "description": "User's saved products.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "productIds": { "type": "array", "items": { "type": "string" }, "maxLength": 100 }
+      },
+      "required": ["userId", "productIds"]
+    },
+    "AffiliateClick": {
+      "title": "Affiliate Click",
+      "description": "Log of user clicks to affiliate URLs.",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string" },
+        "productName": { "type": "string" },
+        "storeId": { "type": "string" },
+        "storeName": { "type": "string" },
+        "price": { "type": "number" },
+        "affiliateUrl": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "device": { "type": "string" },
+        "userId": { "type": "string" }
+      },
+      "required": ["productId", "storeId", "affiliateUrl", "timestamp"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles. Contains roles (admin, editor, user). Only admins can update roles."
+    },
+    "products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Products catalog. Admins and Editors can create/update. Public can read if published == true or if they are admin/editor."
+    },
+    "stores/{storeId}": {
+      "schema": { "$ref": "#/entities/Store" },
+      "description": "Stores dictionary. Publicly readable if isActive == true."
+    },
+    "offers/{offerId}": {
+      "schema": { "$ref": "#/entities/PriceOffer" },
+      "description": "Price offers for products. Admins/Editors can update. Publicly readable."
+    },
+    "wishlists/{userId}": {
+      "schema": { "$ref": "#/entities/Wishlist" },
+      "description": "Wishlists for users. Users can only read/write their own."
+    },
+    "clicks/{clickId}": {
+      "schema": { "$ref": "#/entities/AffiliateClick" },
+      "description": "Click analytics for outgoing affiliate links."
+    }
+  }
+}

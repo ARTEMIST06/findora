@@ -1,0 +1,1270 @@
+import React, { useState } from 'react';
+import {
+  LayoutDashboard,
+  Package,
+  Store,
+  Tag,
+  MousePointerClick,
+  Plus,
+  Edit2,
+  Trash2,
+  ExternalLink,
+  TrendingUp,
+  Search,
+  CheckCircle2,
+  XCircle,
+  Sparkles,
+  ArrowRight,
+  ShieldCheck,
+  RefreshCw,
+  Eye,
+  DollarSign,
+} from 'lucide-react';
+import { useFindoraStore } from '../../services/store';
+import { Product, Store as StoreType, PriceOffer } from '../../types';
+import { formatINR, formatRelativeTime } from '../../utils/formatters';
+import { useToast } from '../../components/common/Toast';
+
+interface AdminDashboardProps {
+  onNavigate: (route: string) => void;
+}
+
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
+  const store = useFindoraStore();
+  const { showToast } = useToast();
+
+  const currentUser = store.getCurrentUser();
+  
+  if (!currentUser) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 px-4 text-center">
+        <ShieldCheck className="w-16 h-16 text-slate-300 mb-4" />
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Authentication Required</h2>
+        <p className="text-slate-500 mb-6">You must be logged in to access the admin dashboard.</p>
+        <button
+          onClick={() => onNavigate('/login')}
+          className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+        >
+          Sign In
+        </button>
+      </div>
+    );
+  }
+
+  if (currentUser.role === 'user') {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 px-4 text-center">
+        <XCircle className="w-16 h-16 text-rose-500 mb-4" />
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Access Denied</h2>
+        <p className="text-slate-500 mb-6">Your account does not have permission to access the admin area.</p>
+        <button
+          onClick={() => onNavigate('/')}
+          className="px-6 py-3 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-colors"
+        >
+          Return to Home
+        </button>
+      </div>
+    );
+  }
+
+  const isAdmin = currentUser.role === 'admin';
+  const isEditor = currentUser.role === 'editor' || isAdmin;
+
+  const products = store.getAllProductsWithPrices(false); // including unpublished
+  const stores = store.getStores();
+  const categories = store.getCategories();
+  const clicks = store.getAffiliateClicks();
+
+  // Active admin tab
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'offers' | 'stores' | 'clicks'>(
+    'overview'
+  );
+
+  // Search & filter in tables
+  const [productFilter, setProductFilter] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
+  // Modals state
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
+
+  const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
+  const [editingOffer, setEditingOffer] = useState<Partial<PriceOffer> | null>(null);
+  const [targetProductIdForOffer, setTargetProductIdForOffer] = useState<string>('');
+
+  const [isStoreModalOpen, setIsStoreModalOpen] = useState(false);
+  const [editingStore, setEditingStore] = useState<Partial<StoreType> | null>(null);
+
+  // Role check guard: If shopper, show permission message
+  if (currentUser?.role !== 'admin' && currentUser?.role !== 'editor') {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-20 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-4">
+          <ShieldCheck className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Editor or Admin Access Required</h2>
+        <p className="text-sm text-slate-500 mb-6">
+          Your current account role is <strong>{currentUser?.role || 'Guest'}</strong>. Switch your role to <strong>Admin</strong> or <strong>Editor</strong> to manage products and store pricing.
+        </p>
+        <div className="flex justify-center gap-3">
+          <button
+            onClick={() => {
+              store.switchRole('admin');
+              showToast('Switched role to Admin', 'success');
+            }}
+            className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-semibold hover:bg-blue-700"
+          >
+            Switch to Admin Role Now
+          </button>
+          <button
+            onClick={() => onNavigate('/')}
+            className="px-5 py-2.5 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-50"
+          >
+            Back to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Metrics Calculation ---
+  const totalOffersCount = products.reduce((acc, p) => acc + p.offers.length, 0);
+  const totalClicksCount = clicks.length;
+  const estimatedRevenue = totalClicksCount * 45; // ~₹45 per outbound lead average
+  const featuredCount = products.filter((p) => p.featured).length;
+
+  // --- Product Management Handlers ---
+  const handleOpenNewProduct = () => {
+    setEditingProduct({
+      name: '',
+      slug: '',
+      brand: '',
+      category: categories[0]?.slug || 'smartphones',
+      shortDescription: '',
+      description: '',
+      images: ['https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80'],
+      specifications: { Display: '', Processor: '', Storage: '', Camera: '', Battery: '' },
+      whyFindora: 'Exceptional flagship performance and balanced ergonomics.',
+      pros: ['Premium build quality', 'Long battery life', 'Fast charging'],
+      cons: ['High price tag', 'No headphone jack'],
+      tags: ['electronics', 'flagship'],
+      rating: 4.8,
+      reviewCount: 120,
+      badge: 'New Arrival',
+      published: true,
+      featured: false,
+    });
+    setIsProductModalOpen(true);
+  };
+
+  const handleEditProduct = (p: Product) => {
+    setEditingProduct({ ...p });
+    setIsProductModalOpen(true);
+  };
+
+  const handleSaveProduct = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProduct?.name || !editingProduct.brand) {
+      showToast('Please provide a product title and brand', 'error');
+      return;
+    }
+
+    const slug =
+      editingProduct.slug ||
+      editingProduct.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+
+    if (editingProduct.id) {
+      // Update
+      store.updateProduct(editingProduct.id, {
+        ...editingProduct,
+        slug,
+      });
+      showToast(`Updated "${editingProduct.name}"`, 'success');
+    } else {
+      // Add
+      store.addProduct({
+        ...editingProduct,
+        slug,
+        rating: editingProduct.rating || 4.5,
+        reviewCount: editingProduct.reviewCount || 10,
+        published: editingProduct.published ?? true,
+        featured: editingProduct.featured ?? false,
+      } as Omit<Product, 'id' | 'createdAt' | 'updatedAt'>);
+      showToast(`Added new product "${editingProduct.name}"`, 'success');
+    }
+    setIsProductModalOpen(false);
+  };
+
+  const handleDeleteProduct = (id: string, name: string) => {
+    if (confirm(`Are you sure you want to delete "${name}"?`)) {
+      store.deleteProduct(id);
+      showToast(`Deleted "${name}"`, 'info');
+    }
+  };
+
+  // --- Offers Management Handlers ---
+  const handleOpenAddOffer = (productId: string) => {
+    setTargetProductIdForOffer(productId);
+    setEditingOffer({
+      productId,
+      storeId: stores[0]?.id || 'store-amazon',
+      price: 99999,
+      originalPrice: 109999,
+      affiliateUrl: 'https://amazon.in/?tag=findora-21',
+      inStock: true,
+      shippingNote: 'Free Next-Day Delivery with Prime',
+    });
+    setIsOfferModalOpen(true);
+  };
+
+  const handleSaveOffer = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingOffer || !targetProductIdForOffer || !editingOffer.storeId || !editingOffer.price) {
+      showToast('Please fill out store and price', 'error');
+      return;
+    }
+
+    store.setOffer(targetProductIdForOffer, {
+      storeId: editingOffer.storeId,
+      price: Number(editingOffer.price),
+      originalPrice: editingOffer.originalPrice ? Number(editingOffer.originalPrice) : undefined,
+      affiliateUrl: editingOffer.affiliateUrl || 'https://amazon.in',
+      inStock: editingOffer.inStock ?? true,
+      shippingNote: editingOffer.shippingNote || 'In Stock, Fast Delivery',
+    });
+
+    showToast('Store offer and live price updated!', 'success');
+    setIsOfferModalOpen(false);
+  };
+
+  const handleDeleteOffer = (offerId: string) => {
+    store.deleteOffer(offerId);
+    showToast('Offer removed', 'info');
+  };
+
+  // --- Stores Management Handlers ---
+  const handleOpenNewStore = () => {
+    setEditingStore({
+      name: '',
+      slug: '',
+      logo: '',
+      websiteUrl: 'https://',
+      affiliateParamKey: 'tag',
+      defaultAffiliateTag: 'findora-21',
+      active: true,
+    });
+    setIsStoreModalOpen(true);
+  };
+
+  const handleSaveStore = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingStore?.name) {
+      showToast('Store name is required', 'error');
+      return;
+    }
+    const slug =
+      editingStore.slug ||
+      editingStore.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+
+    if (editingStore.id) {
+      store.updateStore(editingStore.id, { ...editingStore, slug });
+      showToast(`Updated store "${editingStore.name}"`, 'success');
+    } else {
+      store.addStore({
+        ...editingStore,
+        slug,
+        active: editingStore.active ?? true,
+      } as Omit<StoreType, 'id' | 'createdAt'>);
+      showToast(`Added store "${editingStore.name}"`, 'success');
+    }
+    setIsStoreModalOpen(false);
+  };
+
+  const filteredProductsList = products.filter((p) => {
+    const matchesSearch =
+      p.name.toLowerCase().includes(productFilter.toLowerCase()) ||
+      p.brand.toLowerCase().includes(productFilter.toLowerCase());
+    const matchesCat = selectedCategory === 'all' || p.category === selectedCategory;
+    return matchesSearch && matchesCat;
+  });
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
+        <div>
+          <div className="inline-flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">
+            <LayoutDashboard className="w-4 h-4" />
+            <span>Findora Platform Management</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Admin & Pricing Control Center
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            Logged in as <strong className="text-slate-900">{currentUser?.name}</strong> ({currentUser?.role})
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => onNavigate('/')}
+            className="px-3.5 py-2 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5"
+          >
+            <Eye className="w-4 h-4 text-slate-400" />
+            <span>View Public Site</span>
+          </button>
+          <button
+            onClick={handleOpenNewProduct}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add New Product</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-2 border-b border-slate-200 text-xs sm:text-sm font-semibold">
+        <button
+          onClick={() => setActiveTab('overview')}
+          className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 ${
+            activeTab === 'overview'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <LayoutDashboard className="w-4 h-4" />
+          <span>Dashboard Overview</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('products')}
+          className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 ${
+            activeTab === 'products'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <Package className="w-4 h-4" />
+          <span>Products ({products.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('offers')}
+          className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 ${
+            activeTab === 'offers'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <Tag className="w-4 h-4" />
+          <span>Store Pricing & Offers ({totalOffersCount})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('stores')}
+          className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 ${
+            activeTab === 'stores'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <Store className="w-4 h-4" />
+          <span>Stores & Retailers ({stores.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('clicks')}
+          className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 ${
+            activeTab === 'clicks'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <MousePointerClick className="w-4 h-4" />
+          <span>Affiliate Outbound Clicks ({totalClicksCount})</span>
+        </button>
+      </div>
+
+      {/* TAB 1: OVERVIEW */}
+      {activeTab === 'overview' && (
+        <div className="space-y-8">
+          {/* Key Stat Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Total Catalog
+                </span>
+                <Package className="w-4 h-4 text-blue-600" />
+              </div>
+              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">
+                {products.length}
+              </div>
+              <span className="text-xs text-slate-400 mt-1 block">
+                {featuredCount} featured on homepage
+              </span>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Live Store Prices
+                </span>
+                <Tag className="w-4 h-4 text-emerald-600" />
+              </div>
+              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">
+                {totalOffersCount}
+              </div>
+              <span className="text-xs text-emerald-600 font-medium mt-1 block">
+                Across {stores.length} connected retailers
+              </span>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Referral Clicks
+                </span>
+                <MousePointerClick className="w-4 h-4 text-indigo-600" />
+              </div>
+              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">
+                {totalClicksCount}
+              </div>
+              <span className="text-xs text-slate-400 mt-1 block">Outbound store redirects</span>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Est. Affiliate Value
+                </span>
+                <DollarSign className="w-4 h-4 text-amber-600" />
+              </div>
+              <div className="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-2">
+                {formatINR(estimatedRevenue)}
+              </div>
+              <span className="text-xs text-slate-400 mt-1 block">Based on referral transactions</span>
+            </div>
+          </div>
+
+          {/* Quick Actions & Recent Outbound Clicks */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Quick Actions Panel */}
+            <div className="p-6 rounded-2xl bg-white border border-slate-200/80 space-y-4">
+              <h3 className="font-bold text-slate-900 text-sm">Quick Catalog Operations</h3>
+              <div className="grid grid-cols-2 gap-3 text-xs font-semibold">
+                <button
+                  onClick={handleOpenNewProduct}
+                  className="p-4 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/40 transition-colors text-left flex flex-col justify-between"
+                >
+                  <Plus className="w-5 h-5 text-blue-600 mb-2" />
+                  <span className="text-slate-900">Add New Device</span>
+                  <span className="text-[10px] text-slate-400 font-normal">
+                    Create new product entry
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('offers')}
+                  className="p-4 rounded-xl border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/40 transition-colors text-left flex flex-col justify-between"
+                >
+                  <Tag className="w-5 h-5 text-emerald-600 mb-2" />
+                  <span className="text-slate-900">Update Prices</span>
+                  <span className="text-[10px] text-slate-400 font-normal">
+                    Adjust Amazon & Flipkart rates
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('stores')}
+                  className="p-4 rounded-xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/40 transition-colors text-left flex flex-col justify-between"
+                >
+                  <Store className="w-5 h-5 text-indigo-600 mb-2" />
+                  <span className="text-slate-900">Manage Retailers</span>
+                  <span className="text-[10px] text-slate-400 font-normal">
+                    Affiliate tags & domains
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    store.resetToDefaults();
+                    showToast('Catalog reset to initial state with latest pricing', 'success');
+                  }}
+                  className="p-4 rounded-xl border border-slate-200 hover:border-rose-400 hover:bg-rose-50/40 transition-colors text-left flex flex-col justify-between"
+                >
+                  <RefreshCw className="w-5 h-5 text-rose-600 mb-2" />
+                  <span className="text-slate-900">Reset Demo Data</span>
+                  <span className="text-[10px] text-slate-400 font-normal">
+                    Restore mock catalog
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Recent Affiliate Click Stream */}
+            <div className="p-6 rounded-2xl bg-white border border-slate-200/80 space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 className="font-bold text-slate-900 text-sm">Recent Store Referrals</h3>
+                <span className="text-xs text-blue-600 font-medium">Live Feed</span>
+              </div>
+              <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
+                {clicks.length > 0 ? (
+                  clicks.slice(0, 6).map((c) => (
+                    <div key={c.id} className="py-2.5 flex items-center justify-between text-xs">
+                      <div>
+                        <span className="font-bold text-slate-900 block truncate max-w-[240px]">
+                          {c.productName}
+                        </span>
+                        <span className="text-slate-400 text-[11px]">
+                          Clicked <strong className="text-slate-700">{c.storeName}</strong> ({formatINR(c.price)})
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-slate-400">
+                        {formatRelativeTime(c.timestamp)}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-slate-400 py-6 text-center">
+                    No clicks recorded yet. Click "Check Price" on any product to simulate!
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: PRODUCTS TABLE */}
+      {activeTab === 'products' && (
+        <div className="space-y-4">
+          {/* Filter Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="relative flex-1 max-w-sm">
+                <input
+                  type="text"
+                  value={productFilter}
+                  onChange={(e) => setProductFilter(e.target.value)}
+                  placeholder="Filter products..."
+                  className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500"
+                />
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+              </div>
+
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 outline-none"
+              >
+                <option value="all">All Categories</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.slug}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              onClick={handleOpenNewProduct}
+              className="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 flex items-center gap-1.5 shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Product</span>
+            </button>
+          </div>
+
+          {/* Table */}
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200 uppercase tracking-wider">
+                  <tr>
+                    <th className="py-3.5 px-4">Product</th>
+                    <th className="py-3.5 px-3">Brand & Cat</th>
+                    <th className="py-3.5 px-3">Lowest Price</th>
+                    <th className="py-3.5 px-3">Store Offers</th>
+                    <th className="py-3.5 px-3">Status</th>
+                    <th className="py-3.5 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredProductsList.map((prod) => (
+                    <tr key={prod.id} className="hover:bg-slate-50/80">
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={prod.images[0]}
+                            alt={prod.name}
+                            className="w-10 h-10 object-contain rounded-lg p-1 bg-white border border-slate-200"
+                          />
+                          <div>
+                            <span className="font-bold text-slate-900 block line-clamp-1">
+                              {prod.name}
+                            </span>
+                            <span className="text-[10px] text-slate-400">/{prod.slug}</span>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-3">
+                        <span className="font-bold text-slate-700 block">{prod.brand}</span>
+                        <span className="text-[10px] text-slate-400 capitalize">{prod.category}</span>
+                      </td>
+
+                      <td className="py-3.5 px-3">
+                        <span className="font-bold text-slate-900 text-sm">
+                          {formatINR(prod.lowestPrice)}
+                        </span>
+                        {prod.bestStore && (
+                          <span className="text-[10px] text-emerald-600 block">
+                            at {prod.bestStore.name}
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="py-3.5 px-3">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold text-slate-700">
+                            {prod.offers.length} stores
+                          </span>
+                          <button
+                            onClick={() => handleOpenAddOffer(prod.id)}
+                            className="text-blue-600 hover:text-blue-800 p-0.5"
+                            title="Add/Manage store prices"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-3">
+                        <span
+                          className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            prod.published
+                              ? 'bg-emerald-50 text-emerald-700'
+                              : 'bg-slate-100 text-slate-500'
+                          }`}
+                        >
+                          {prod.published ? 'Live' : 'Draft'}
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => onNavigate(`/product/${prod.slug}`)}
+                            className="p-1 text-slate-400 hover:text-blue-600"
+                            title="View product"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleEditProduct(prod)}
+                            className="p-1 text-slate-400 hover:text-indigo-600"
+                            title="Edit details"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProduct(prod.id, prod.name)}
+                            className="p-1 text-slate-400 hover:text-rose-600"
+                            title="Delete product"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: OFFERS / STORE PRICING TABLE */}
+      {activeTab === 'offers' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200">
+            <div>
+              <h3 className="font-bold text-slate-900 text-sm">Store Pricing Matrix</h3>
+              <p className="text-xs text-slate-500">
+                Manage offers from Amazon, Flipkart, Croma, and Reliance Digital for each product.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            {products.map((prod) => (
+              <div
+                key={prod.id}
+                className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs"
+              >
+                <div className="p-4 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={prod.images[0]}
+                      alt={prod.name}
+                      className="w-8 h-8 object-contain rounded-md bg-white border border-slate-200 p-0.5"
+                    />
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-xs sm:text-sm">{prod.name}</h4>
+                      <span className="text-[11px] text-slate-400">
+                        Lowest price: <strong className="text-emerald-600">{formatINR(prod.lowestPrice)}</strong>
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleOpenAddOffer(prod.id)}
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Store Offer</span>
+                  </button>
+                </div>
+
+                <div className="divide-y divide-slate-100 text-xs">
+                  {prod.offers.map((offer) => {
+                    const storeObj = stores.find((s) => s.id === offer.storeId);
+                    return (
+                      <div
+                        key={offer.id}
+                        className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/50"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="font-bold text-slate-900 text-xs w-28">
+                            {storeObj?.name || offer.storeId}
+                          </span>
+                          <div>
+                            <span className="font-extrabold text-slate-900 text-sm">
+                              {formatINR(offer.price)}
+                            </span>
+                            {offer.originalPrice && (
+                              <span className="text-xs text-slate-400 line-through ml-2">
+                                MRP {formatINR(offer.originalPrice)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                          <span className="text-slate-500 text-[11px] hidden md:inline truncate max-w-xs">
+                            {offer.shippingNote || 'Standard'}
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            Updated {formatRelativeTime(offer.lastUpdated)}
+                          </span>
+
+                          <button
+                            onClick={() => {
+                              setTargetProductIdForOffer(prod.id);
+                              setEditingOffer({ ...offer });
+                              setIsOfferModalOpen(true);
+                            }}
+                            className="p-1 text-slate-400 hover:text-blue-600"
+                            title="Edit price"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteOffer(offer.id)}
+                            className="p-1 text-slate-400 hover:text-rose-600"
+                            title="Delete offer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: STORES TABLE */}
+      {activeTab === 'stores' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200">
+            <div>
+              <h3 className="font-bold text-slate-900 text-sm">Partner Retailers</h3>
+              <p className="text-xs text-slate-500">
+                Configure supported ecommerce storefronts, base domains, and affiliate tracking tags.
+              </p>
+            </div>
+            <button
+              onClick={handleOpenNewStore}
+              className="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 flex items-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Partner Store</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {stores.map((s) => (
+              <div
+                key={s.id}
+                className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-start justify-between gap-4"
+              >
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-bold text-slate-900 text-base">{s.name}</h4>
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        s.active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'
+                      }`}
+                    >
+                      {s.active ? 'Active' : 'Disabled'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">{s.websiteUrl}</p>
+                  <div className="mt-3 text-[11px] text-slate-600 space-y-1">
+                    <div>
+                      Tag Parameter: <code className="text-blue-600 font-mono">{s.affiliateParamKey}</code>
+                    </div>
+                    <div>
+                      Default Referral ID:{' '}
+                      <code className="text-emerald-700 font-mono">{s.defaultAffiliateTag || 'N/A'}</code>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => {
+                      setEditingStore({ ...s });
+                      setIsStoreModalOpen(true);
+                    }}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 5: AFFILIATE CLICKS TABLE */}
+      {activeTab === 'clicks' && (
+        <div className="space-y-4">
+          <div className="bg-white p-4 rounded-2xl border border-slate-200">
+            <h3 className="font-bold text-slate-900 text-sm">Affiliate Outbound Referral Log</h3>
+            <p className="text-xs text-slate-500">
+              Live tracking log of every user click on "Check Price" or "Go to Deal" across all stores.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200">
+                <tr>
+                  <th className="py-3.5 px-4">Product</th>
+                  <th className="py-3.5 px-4">Merchant Store</th>
+                  <th className="py-3.5 px-4">Offer Price</th>
+                  <th className="py-3.5 px-4">Timestamp</th>
+                  <th className="py-3.5 px-4 text-right">Destination</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {clicks.length > 0 ? (
+                  clicks.map((click) => (
+                    <tr key={click.id} className="hover:bg-slate-50/80">
+                      <td className="py-3 px-4 font-bold text-slate-900">{click.productName}</td>
+                      <td className="py-3 px-4 text-blue-600 font-semibold">{click.storeName}</td>
+                      <td className="py-3 px-4 font-bold text-slate-900">{formatINR(click.price)}</td>
+                      <td className="py-3 px-4 text-slate-500">
+                        {new Date(click.timestamp).toLocaleString()}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <a
+                          href={click.affiliateUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-slate-400 hover:text-blue-600"
+                        >
+                          <span>Visit</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-slate-400">
+                      No clicks recorded yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: ADD / EDIT PRODUCT */}
+      {isProductModalOpen && editingProduct && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl my-8">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900 text-lg">
+                {editingProduct.id ? 'Edit Product Details' : 'Add New Product'}
+              </h3>
+              <button
+                onClick={() => setIsProductModalOpen(false)}
+                className="p-1 rounded-md text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProduct} className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Product Title *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingProduct.name || ''}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                    placeholder="Apple iPhone 16 Pro (128GB)"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Brand *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingProduct.brand || ''}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, brand: e.target.value })}
+                    placeholder="Apple, Samsung, Sony..."
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Category</label>
+                  <select
+                    value={editingProduct.category || categories[0]?.slug}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500 bg-white"
+                  >
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.slug}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Badge</label>
+                  <input
+                    type="text"
+                    value={editingProduct.badge || ''}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, badge: e.target.value })}
+                    placeholder="Editor's Pick, Best Value, 2026 Flagship..."
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-700">Short Pitch / Subtitle</label>
+                <input
+                  type="text"
+                  value={editingProduct.shortDescription || ''}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, shortDescription: e.target.value })
+                  }
+                  placeholder="Grade 5 Titanium finish with 48MP Fusion Camera..."
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-700">Image URL</label>
+                <input
+                  type="text"
+                  value={editingProduct.images?.[0] || ''}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, images: [e.target.value] })
+                  }
+                  placeholder="https://..."
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-700">Why Findora Picked It</label>
+                <textarea
+                  rows={2}
+                  value={editingProduct.whyFindora || ''}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, whyFindora: e.target.value })
+                  }
+                  placeholder="Objective verdict on why this device delivers genuine value..."
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                ></textarea>
+              </div>
+
+              <div className="flex items-center gap-6 pt-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={editingProduct.published ?? true}
+                    onChange={(e) =>
+                      setEditingProduct({ ...editingProduct, published: e.target.checked })
+                    }
+                    className="rounded text-blue-600"
+                  />
+                  <span className="font-semibold text-slate-700">Published on site</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={editingProduct.featured ?? false}
+                    onChange={(e) =>
+                      setEditingProduct({ ...editingProduct, featured: e.target.checked })
+                    }
+                    className="rounded text-blue-600"
+                  />
+                  <span className="font-semibold text-slate-700">Feature on Homepage</span>
+                </label>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsProductModalOpen(false)}
+                  className="px-4 py-2 border border-slate-200 rounded-xl text-slate-700 font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-xs"
+                >
+                  Save Product
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: ADD / EDIT STORE OFFER */}
+      {isOfferModalOpen && editingOffer && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900 text-base">Configure Store Price</h3>
+              <button
+                onClick={() => setIsOfferModalOpen(false)}
+                className="p-1 rounded-md text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveOffer} className="space-y-4 text-xs">
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-700">Retailer / Store *</label>
+                <select
+                  value={editingOffer.storeId || stores[0]?.id}
+                  onChange={(e) => setEditingOffer({ ...editingOffer, storeId: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500 bg-white"
+                >
+                  {stores.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Current Selling Price (₹) *</label>
+                  <input
+                    type="number"
+                    required
+                    value={editingOffer.price || ''}
+                    onChange={(e) =>
+                      setEditingOffer({ ...editingOffer, price: Number(e.target.value) })
+                    }
+                    placeholder="119900"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Original MRP (₹)</label>
+                  <input
+                    type="number"
+                    value={editingOffer.originalPrice || ''}
+                    onChange={(e) =>
+                      setEditingOffer({ ...editingOffer, originalPrice: Number(e.target.value) })
+                    }
+                    placeholder="129900"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-700">Affiliate Referral URL</label>
+                <input
+                  type="url"
+                  value={editingOffer.affiliateUrl || ''}
+                  onChange={(e) =>
+                    setEditingOffer({ ...editingOffer, affiliateUrl: e.target.value })
+                  }
+                  placeholder="https://amazon.in/dp/...?tag=findora-21"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-700">Shipping & Offer Note</label>
+                <input
+                  type="text"
+                  value={editingOffer.shippingNote || ''}
+                  onChange={(e) =>
+                    setEditingOffer({ ...editingOffer, shippingNote: e.target.value })
+                  }
+                  placeholder="Free Next-Day Prime Delivery, ₹5000 HDFC Card off"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsOfferModalOpen(false)}
+                  className="px-4 py-2 border border-slate-200 rounded-xl text-slate-700 font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold"
+                >
+                  Save Offer
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: ADD / EDIT STORE */}
+      {isStoreModalOpen && editingStore && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900 text-base">Store Settings</h3>
+              <button
+                onClick={() => setIsStoreModalOpen(false)}
+                className="p-1 rounded-md text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveStore} className="space-y-4 text-xs">
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-700">Store Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={editingStore.name || ''}
+                  onChange={(e) => setEditingStore({ ...editingStore, name: e.target.value })}
+                  placeholder="Amazon India, Vijay Sales..."
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-semibold text-slate-700">Domain URL</label>
+                <input
+                  type="url"
+                  value={editingStore.websiteUrl || ''}
+                  onChange={(e) => setEditingStore({ ...editingStore, websiteUrl: e.target.value })}
+                  placeholder="https://vijaysales.com"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Affiliate Tag Key</label>
+                  <input
+                    type="text"
+                    value={editingStore.affiliateParamKey || 'tag'}
+                    onChange={(e) =>
+                      setEditingStore({ ...editingStore, affiliateParamKey: e.target.value })
+                    }
+                    placeholder="tag or ref"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700">Default Tag</label>
+                  <input
+                    type="text"
+                    value={editingStore.defaultAffiliateTag || ''}
+                    onChange={(e) =>
+                      setEditingStore({ ...editingStore, defaultAffiliateTag: e.target.value })
+                    }
+                    placeholder="findora-21"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsStoreModalOpen(false)}
+                  className="px-4 py-2 border border-slate-200 rounded-xl text-slate-700 font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold"
+                >
+                  Save Store
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

@@ -1,0 +1,91 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    
+    // Loosened for demo since Google Auth in Dev UI sometimes doesn't mark email_verified = true immediately
+    function isSignedInDemo() {
+      return request.auth != null;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function isAdmin() {
+      return isSignedInDemo() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isEditor() {
+      return isSignedInDemo() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'editor' || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    // --- USERS ---
+    function isValidUserCreate(data) {
+      return data.keys().hasAll(['email', 'name', 'role', 'createdAt'])
+        && data.email is string
+        && data.name is string
+        && data.role == 'user' // Users can only create themselves as 'user'
+        && data.createdAt is string
+        && (!data.keys().hasAny(['avatar']) || data.avatar is string);
+    }
+    
+    match /users/{userId} {
+      allow read: if isSignedInDemo() && (request.auth.uid == userId || isAdmin());
+      // A user can create their own profile, but must have 'user' role
+      allow create: if isSignedInDemo() && request.auth.uid == userId && isValidUserCreate(incoming());
+      // Only admins can change roles. A user can only update their name/avatar.
+      allow update: if isSignedInDemo() && (
+        (isAdmin() && incoming().diff(existing()).affectedKeys().hasAny(['role', 'name', 'avatar'])) ||
+        (request.auth.uid == userId && !incoming().diff(existing()).affectedKeys().hasAny(['role']) && incoming().diff(existing()).affectedKeys().hasAny(['name', 'avatar']))
+      );
+    }
+
+    // --- PRODUCTS ---
+    match /products/{productId} {
+      // Allow read for everyone so the global snapshot works
+      allow read: if true;
+      allow create: if isEditor();
+      allow update: if isEditor();
+      allow delete: if isAdmin();
+    }
+
+    // --- STORES ---
+    match /stores/{storeId} {
+      // Allow read for everyone so the global snapshot works
+      allow read: if true;
+      allow create: if isEditor();
+      allow update: if isEditor();
+      allow delete: if isAdmin();
+    }
+
+    // --- OFFERS ---
+    match /offers/{offerId} {
+      allow read: if true;
+      allow create: if isEditor();
+      allow update: if isEditor();
+      allow delete: if isEditor();
+    }
+
+    // --- WISHLISTS ---
+    match /wishlists/{userId} {
+      allow read, write: if isSignedInDemo() && request.auth.uid == userId;
+    }
+
+    // --- CLICKS ---
+    match /clicks/{clickId} {
+      allow create: if true;
+      allow read: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Findora",
+  "description": "Find it. Compare it. Buy smarter. Product discovery and price comparison platform with full-featured admin dashboard, multi-store pricing, and deal tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
