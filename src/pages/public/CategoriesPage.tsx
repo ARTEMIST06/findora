@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Layers,
 } from 'lucide-react';
+import { SEOHead } from '../../components/common/SEOHead';
 import { useFindoraStore } from '../../services/store';
 
 interface CategoriesPageProps {
@@ -35,6 +36,10 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ onNavigate }) =>
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <SEOHead 
+        title="Product Categories - Findora"
+        description="Browse our comprehensive taxonomy of premium electronics, including smartphones, laptops, audio gear, and more. Find and compare the best products in each category."
+      />
       <div className="pb-6 border-b border-slate-200">
         <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">
           <Layers className="w-4 h-4" />

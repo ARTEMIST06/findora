@@ -1,5 +1,6 @@
 import React from 'react';
 import { Heart, Trash2, ExternalLink, ArrowRight, ShoppingBag, ShieldCheck } from 'lucide-react';
+import { SEOHead } from '../../components/common/SEOHead';
 import { useFindoraStore } from '../../services/store';
 import { formatINR } from '../../utils/formatters';
 import { useToast } from '../../components/common/Toast';
@@ -32,6 +33,10 @@ export const WishlistPage: React.FC<WishlistPageProps> = ({ onNavigate }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <SEOHead 
+        title="Your Wishlist - Findora"
+        description="Monitor current lowest store prices for your favorite devices and buy when the time is right."
+      />
       <div className="pb-6 border-b border-slate-200">
         <div className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-600 uppercase tracking-wider mb-1">
           <Heart className="w-4 h-4 fill-rose-600" />

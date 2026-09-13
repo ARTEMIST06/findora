@@ -10,6 +10,7 @@ import {
   LogOut,
   Sparkles,
 } from 'lucide-react';
+import { SEOHead } from '../../components/common/SEOHead';
 import { useFindoraStore } from '../../services/store';
 import { formatINR, formatRelativeTime } from '../../utils/formatters';
 import { useToast } from '../../components/common/Toast';
@@ -42,13 +43,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
     );
   }
 
-  const handleRoleChange = (role: 'admin' | 'editor' | 'user') => {
-    store.switchRole(role);
-    showToast(`Switched active role to ${role.toUpperCase()}`, 'success');
-  };
-
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <SEOHead 
+        title="Your Profile - Findora"
+        description="Manage your account, view your wishlist, and track your recent store visits on Findora."
+      />
       {/* User Header Card */}
       <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
@@ -75,38 +75,17 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* Quick Role Switcher */}
-        <div className="flex flex-col items-start sm:items-end gap-2">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            Test Switch Role:
-          </span>
-          <div className="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200">
-            <button
-              onClick={() => handleRoleChange('admin')}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors ${
-                currentUser.role === 'admin' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-700'
-              }`}
-            >
-              Admin
-            </button>
-            <button
-              onClick={() => handleRoleChange('editor')}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors ${
-                currentUser.role === 'editor' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-700'
-              }`}
-            >
-              Editor
-            </button>
-            <button
-              onClick={() => handleRoleChange('user')}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors ${
-                currentUser.role === 'user' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-700'
-              }`}
-            >
-              Shopper
-            </button>
-          </div>
-        </div>
+        <button
+          onClick={() => {
+            store.logout();
+            showToast('Successfully signed out', 'success');
+            onNavigate('/');
+          }}
+          className="text-xs font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-rose-50 transition-colors"
+        >
+          <LogOut className="w-4 h-4" />
+          <span>Sign Out</span>
+        </button>
       </div>
 
       {/* Admin Quick Jump Banner */}

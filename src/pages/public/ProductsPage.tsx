@@ -8,6 +8,7 @@ import {
   Sparkles,
   ChevronDown,
 } from 'lucide-react';
+import { SEOHead } from '../../components/common/SEOHead';
 import { ProductCard } from '../../components/common/ProductCard';
 import { useFindoraStore } from '../../services/store';
 
@@ -142,15 +143,28 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
     (minRating > 0 ? 1 : 0) +
     (searchQuery ? 1 : 0);
 
+  const pageTitle = initialQuery 
+    ? `Search Results for "${initialQuery}"` 
+    : initialCategory && initialCategory !== 'all' 
+      ? `${categories.find(c => c.slug === initialCategory)?.name || 'Products'}` 
+      : 'Explore & Compare Products';
+
+  const seoTitle = `${pageTitle} - Findora`;
+  const seoDescription = initialQuery 
+    ? `Compare prices and find the best deals for ${initialQuery} across multiple stores on Findora.`
+    : `Browse and compare verified prices, deals, and specifications for ${pageTitle.toLowerCase()} across top retailers.`;
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+      <SEOHead title={seoTitle} description={seoDescription} />
+      
       {/* Header with Title & Sort */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b border-slate-200">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-            Explore & Compare Products
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            {pageTitle}
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 mt-0.5">
             Showing <strong className="text-slate-900">{filteredProducts.length}</strong> verified products across all stores
           </p>
         </div>
@@ -159,25 +173,25 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
           {/* Mobile Filter Toggle */}
           <button
             onClick={() => setIsMobileFilterOpen(true)}
-            className="lg:hidden px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-white flex items-center gap-2"
+            className="lg:hidden px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-700 bg-white flex items-center gap-1.5"
           >
-            <SlidersHorizontal className="w-4 h-4 text-blue-600" />
+            <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600" />
             <span>Filters</span>
             {activeFilterCount > 0 && (
-              <span className="bg-blue-600 text-white rounded-full px-1.5 py-0.2 text-[10px] font-bold">
+              <span className="bg-blue-600 text-white rounded-full px-1.5 py-0.2 text-[9px] font-bold">
                 {activeFilterCount}
               </span>
             )}
           </button>
 
           {/* Sort Dropdown */}
-          <div className="flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-2 text-[11px] sm:text-xs">
             <span className="text-slate-500 hidden sm:inline">Sort by:</span>
             <div className="relative">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="appearance-none bg-white border border-slate-200 rounded-xl px-3.5 py-2 pr-8 text-xs font-semibold text-slate-800 outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
+                className="appearance-none bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 pr-7 text-[11px] sm:text-xs font-semibold text-slate-800 outline-none focus:border-blue-500 cursor-pointer shadow-xs"
               >
                 <option value="relevance">Featured & Relevant</option>
                 <option value="price_asc">Lowest Price First</option>
@@ -186,14 +200,14 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
                 <option value="rating">Highest Customer Rating</option>
                 <option value="newest">Newly Listed</option>
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-3 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-2 pointer-events-none" />
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Grid: Sidebar Filters + Products */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 pt-8">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 pt-6">
         {/* Desktop Sidebar Filters */}
         <aside className="hidden lg:block space-y-6">
           <div className="flex items-center justify-between pb-3 border-b border-slate-200">

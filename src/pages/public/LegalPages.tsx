@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Mail, CheckCircle2, Send, HelpCircle, FileText, Globe } from 'lucide-react';
+import { SEOHead } from '../../components/common/SEOHead';
 import { useToast } from '../../components/common/Toast';
 
 interface LegalPageProps {
@@ -23,8 +24,22 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
     }
   };
 
+  const pageTitles: Record<string, string> = {
+    'about': 'About Us',
+    'contact': 'Contact Support',
+    'privacy': 'Privacy Policy',
+    'terms': 'Terms of Service',
+    'affiliate-disclosure': 'Affiliate Disclosure'
+  };
+
+  const title = `${pageTitles[page] || 'Legal'} - Findora`;
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
+      <SEOHead 
+        title={title}
+        description={`Learn more about Findora's ${pageTitles[page]?.toLowerCase() || 'legal policies'}.`}
+      />
       {/* About Page */}
       {page === 'about' && (
         <div className="bg-white rounded-3xl border border-slate-200/80 p-8 sm:p-12 space-y-8 shadow-xs">

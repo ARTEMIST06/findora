@@ -164,8 +164,8 @@ class FindoraStore {
     
     // Temporarily load mock data so the UI isn't completely empty before Firebase loads
     this.products = getFromStorage(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS);
-    this.stores = getFromStorage(STORAGE_KEYS.STORES, INITIAL_STORES);
-    this.offers = getFromStorage(STORAGE_KEYS.OFFERS, INITIAL_PRICE_OFFERS);
+    this.stores = getFromStorage(STORAGE_KEYS.STORES, INITIAL_STORES.filter(s => s.id === 'store-amazon'));
+    this.offers = getFromStorage(STORAGE_KEYS.OFFERS, INITIAL_PRICE_OFFERS.filter(o => o.storeId === 'store-amazon'));
     
     // Initialize real-time Firebase sync
     this.initFirebase();
@@ -588,30 +588,15 @@ class FindoraStore {
   }
 
   logout(): void {
-    this.currentUser = null;
-    saveToStorage(STORAGE_KEYS.CURRENT_USER, null);
-    notifyChange();
-  }
-
-  switchRole(role: UserRole): void {
-    if (this.currentUser) {
-      this.currentUser = { ...this.currentUser, role };
-      const idx = this.users.findIndex((u) => u.id === this.currentUser!.id);
-      if (idx !== -1) {
-        this.users[idx] = this.currentUser;
-        saveToStorage(STORAGE_KEYS.USERS, this.users);
-      }
-      saveToStorage(STORAGE_KEYS.CURRENT_USER, this.currentUser);
-      notifyChange();
-    } else {
-      // Find sample user with that role
-      const sample = this.users.find((u) => u.role === role) || INITIAL_USERS.find((u) => u.role === role);
-      if (sample) {
-        this.currentUser = sample;
-        saveToStorage(STORAGE_KEYS.CURRENT_USER, this.currentUser);
-        notifyChange();
-      }
+    if (typeof window !== 'undefined') {
+      import('../lib/firebase').then(({ auth }) => {
+        import('firebase/auth').then(({ signOut }) => {
+          signOut(auth).catch(console.error);
+        });
+      });
     }
+    this.currentUser = null;
+    notifyChange();
   }
 
   updateUserRole(userId: string, newRole: UserRole): boolean {
@@ -622,6 +607,15 @@ class FindoraStore {
       this.currentUser.role = newRole;
       saveToStorage(STORAGE_KEYS.CURRENT_USER, this.currentUser);
     }
+    
+    if (typeof window !== 'undefined') {
+      import('../lib/firebase').then(({ db }) => {
+        import('firebase/firestore').then(({ doc, updateDoc }) => {
+          updateDoc(doc(db, 'users', userId), { role: newRole }).catch(console.error);
+        });
+      });
+    }
+
     saveToStorage(STORAGE_KEYS.USERS, this.users);
     notifyChange();
     return true;

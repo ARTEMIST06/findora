@@ -12,6 +12,7 @@ import {
   Search,
   X,
 } from 'lucide-react';
+import { SEOHead } from '../../components/common/SEOHead';
 import { useFindoraStore } from '../../services/store';
 import { formatINR } from '../../utils/formatters';
 import { useToast } from '../../components/common/Toast';
@@ -57,6 +58,10 @@ export const ComparePage: React.FC<ComparePageProps> = ({ onNavigate }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <SEOHead 
+        title="Compare Products - Findora"
+        description="Compare prices, specifications, and features side-by-side to make the best purchasing decision."
+      />
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
         <div>

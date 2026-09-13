@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Flame, Tag, ArrowUpDown, Filter, ShieldCheck } from 'lucide-react';
 import { ProductCard } from '../../components/common/ProductCard';
+import { SEOHead } from '../../components/common/SEOHead';
 import { useFindoraStore } from '../../services/store';
 
 interface DealsPageProps {
@@ -19,6 +20,10 @@ export const DealsPage: React.FC<DealsPageProps> = ({ onNavigate }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <SEOHead 
+        title="Best Deals & Verified Price Drops - Findora"
+        description="Discover the highest discounts and verified price drops on premium electronics, smartphones, laptops, and audio gear across top stores."
+      />
       {/* Header */}
       <div className="pb-6 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

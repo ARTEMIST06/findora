@@ -33,26 +33,26 @@ export const PopularCategories: React.FC<PopularCategoriesProps> = ({ onNavigate
   const products = store.getAllProductsWithPrices(true);
 
   return (
-    <section className="py-8 max-w-7xl mx-auto px-4 sm:px-6">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+    <section className="py-6 max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-5">
         <div>
-          <div className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">
+          <div className="text-[10px] font-bold text-blue-600 uppercase tracking-wider mb-1">
             Browse By Category
           </div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
             Popular Product Categories
           </h2>
         </div>
         <button
           onClick={() => onNavigate('/categories')}
-          className="text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 group self-start sm:self-auto"
+          className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 group self-start sm:self-auto"
         >
           <span>View all categories</span>
-          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+          <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
         </button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
         {categories.map((cat) => {
           const count = products.filter((p) => p.category === cat.slug).length;
           return (

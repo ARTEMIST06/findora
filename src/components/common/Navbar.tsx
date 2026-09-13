@@ -92,45 +92,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
             </span>
           </div>
 
-          {/* Quick Role switcher for testing Admin / Editor / Shopper */}
           <div className="flex items-center gap-2 text-[11px]">
-            <span className="text-slate-400 hidden md:inline">Mode:</span>
-            <div className="inline-flex rounded-lg bg-slate-800 p-0.5 border border-slate-700/60">
-              <button
-                onClick={() => store.switchRole('admin')}
-                className={`px-2 py-0.5 rounded-md font-medium transition-colors ${
-                  currentUser?.role === 'admin'
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'text-slate-300 hover:text-white'
-                }`}
-                title="Switch to Admin role with full store & price control"
-              >
-                Admin
-              </button>
-              <button
-                onClick={() => store.switchRole('editor')}
-                className={`px-2 py-0.5 rounded-md font-medium transition-colors ${
-                  currentUser?.role === 'editor'
-                    ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'text-slate-300 hover:text-white'
-                }`}
-                title="Switch to Editor role"
-              >
-                Editor
-              </button>
-              <button
-                onClick={() => store.switchRole('user')}
-                className={`px-2 py-0.5 rounded-md font-medium transition-colors ${
-                  currentUser?.role === 'user'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'text-slate-300 hover:text-white'
-                }`}
-                title="Switch to Shopper (Public) role"
-              >
-                Shopper
-              </button>
-            </div>
-
             {(currentUser?.role === 'admin' || currentUser?.role === 'editor') && (
               <button
                 onClick={() => onNavigate('/admin')}

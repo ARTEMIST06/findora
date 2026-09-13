@@ -20,6 +20,7 @@ import {
   Eye,
   DollarSign,
 } from 'lucide-react';
+import { SEOHead } from '../../components/common/SEOHead';
 import { useFindoraStore } from '../../services/store';
 import { Product, Store as StoreType, PriceOffer } from '../../types';
 import { formatINR, formatRelativeTime } from '../../utils/formatters';
@@ -99,23 +100,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   if (currentUser?.role !== 'admin' && currentUser?.role !== 'editor') {
     return (
       <div className="max-w-xl mx-auto px-4 py-20 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4">
           <ShieldCheck className="w-8 h-8" />
         </div>
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">Editor or Admin Access Required</h2>
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Access Denied</h2>
         <p className="text-sm text-slate-500 mb-6">
-          Your current account role is <strong>{currentUser?.role || 'Guest'}</strong>. Switch your role to <strong>Admin</strong> or <strong>Editor</strong> to manage products and store pricing.
+          Your current account role is <strong>{currentUser?.role || 'Guest'}</strong>. This area requires Admin or Editor privileges.
         </p>
         <div className="flex justify-center gap-3">
-          <button
-            onClick={() => {
-              store.switchRole('admin');
-              showToast('Switched role to Admin', 'success');
-            }}
-            className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-semibold hover:bg-blue-700"
-          >
-            Switch to Admin Role Now
-          </button>
           <button
             onClick={() => onNavigate('/')}
             className="px-5 py-2.5 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-50"
@@ -296,6 +288,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <SEOHead 
+        title="Admin Dashboard - Findora"
+        description="Manage products, store pricing, and track affiliate clicks in the Findora admin dashboard."
+      />
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
         <div>

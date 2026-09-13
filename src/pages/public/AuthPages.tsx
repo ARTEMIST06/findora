@@ -4,6 +4,7 @@ import { Logo } from '../../components/brand/Logo';
 import { useToast } from '../../components/common/Toast';
 import { auth } from '../../lib/firebase';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { SEOHead } from '../../components/common/SEOHead';
 
 interface AuthPageProps {
   mode: 'login' | 'signup';
@@ -35,6 +36,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+      <SEOHead 
+        title={mode === 'login' ? 'Login - Findora' : 'Sign Up - Findora'}
+        description={mode === 'login' ? 'Sign in to access your saved price drops, comparison sheets & personal alerts.' : 'Join Findora to save items, track prices, and discover the best deals.'}
+      />
       <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200/80 p-8 shadow-xl space-y-6">
         <div className="text-center space-y-2">
           <div className="inline-flex justify-center mb-2">

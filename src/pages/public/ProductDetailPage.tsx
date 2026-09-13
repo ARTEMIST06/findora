@@ -17,7 +17,7 @@ import {
   ArrowRight,
   Share2,
 } from 'lucide-react';
-import { Helmet } from 'react-helmet-async';
+import { SEOHead } from '../../components/common/SEOHead';
 import { useFindoraStore } from '../../services/store';
 import { formatINR, formatRelativeTime } from '../../utils/formatters';
 import { useToast } from '../../components/common/Toast';
@@ -128,15 +128,13 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-12">
-      <Helmet>
-        <title>{product.name} - Findora</title>
-        <meta name="description" content={product.shortDescription} />
-        <meta property="og:title" content={`${product.name} - Findora`} />
-        <meta property="og:description" content={product.shortDescription} />
-        <meta property="og:image" content={product.images[0]} />
-        <meta property="og:url" content={currentUrl} />
-        <meta name="twitter:card" content="summary_large_image" />
-      </Helmet>
+      <SEOHead
+        title={`${product.name} - Findora`}
+        description={product.shortDescription}
+        image={product.images[0]}
+        url={currentUrl}
+        type="product"
+      />
 
       {/* Breadcrumbs */}
       <nav className="flex items-center gap-2 text-xs text-slate-500">
