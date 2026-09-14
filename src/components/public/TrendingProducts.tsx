@@ -16,15 +16,15 @@ export const TrendingProducts: React.FC<TrendingProductsProps> = ({ onNavigate }
     <section className="py-6 max-w-7xl mx-auto px-4 sm:px-6">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-5">
         <div>
-          <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-blue-600 uppercase tracking-wider mb-1">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Curated Tech</span>
+          <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
+            <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+            <span>Trending</span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-            Trending & Top-Rated Products
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            What's getting attention
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Hand-picked flagship devices with genuine multi-store price comparisons.
+          <p className="text-sm text-slate-500 mt-1">
+            The most searched and compared products right now.
           </p>
         </div>
         <button

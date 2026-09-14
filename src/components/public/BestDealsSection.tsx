@@ -22,15 +22,15 @@ export const BestDealsSection: React.FC<BestDealsSectionProps> = ({ onNavigate }
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-5">
           <div>
-            <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-600 uppercase tracking-wider mb-1 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/80">
+            <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
               <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-              <span>Verified Price Drops</span>
+              <span>Best Deals</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mt-1">
-              Today's Highest Discount Deals
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
+              Prices worth checking
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Active merchant promotions, card discounts, and seasonal clearance offers.
+            <p className="text-sm text-slate-500 mt-1">
+              The biggest price drops and most aggressive discounts today.
             </p>
           </div>
           <button

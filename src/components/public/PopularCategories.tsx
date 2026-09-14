@@ -52,32 +52,47 @@ export const PopularCategories: React.FC<PopularCategoriesProps> = ({ onNavigate
         </button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
-        {categories.map((cat) => {
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+        {categories.slice(0, 6).map((cat, index) => {
           const count = products.filter((p) => p.category === cat.slug).length;
+          // Generate a subtle placeholder gradient per category
+          const gradients = [
+            'from-blue-50 to-sky-100',
+            'from-purple-50 to-fuchsia-100',
+            'from-emerald-50 to-teal-100',
+            'from-rose-50 to-pink-100',
+            'from-amber-50 to-orange-100',
+            'from-indigo-50 to-blue-100',
+            'from-cyan-50 to-sky-100',
+            'from-slate-100 to-slate-200'
+          ];
+          const bgGradient = gradients[index % gradients.length];
+
           return (
             <div
               key={cat.id}
               onClick={() => onNavigate(`/category/${cat.slug}`)}
-              className="group p-4 sm:p-5 bg-white rounded-2xl border border-slate-200/80 hover:border-blue-300 hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-col justify-between"
+              className={`group relative overflow-hidden rounded-2xl border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col justify-between aspect-square bg-gradient-to-br ${bgGradient}`}
             >
-              <div className="flex items-start justify-between">
-                <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors duration-200">
-                  {iconMap[cat.icon] || <Smartphone className="w-6 h-6" />}
+              {/* Top part with icon and count */}
+              <div className="p-4 flex items-start justify-between z-10">
+                <div className="w-10 h-10 rounded-xl bg-white/70 backdrop-blur-sm text-slate-700 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
+                  {iconMap[cat.icon] || <Smartphone className="w-5 h-5" />}
                 </div>
-                <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-                  {count} {count === 1 ? 'item' : 'items'}
-                </span>
               </div>
 
-              <div className="mt-4">
-                <h3 className="font-bold text-slate-900 text-sm sm:text-base group-hover:text-blue-600 transition-colors">
+              {/* Bottom text */}
+              <div className="p-4 z-10">
+                <h3 className="font-bold text-slate-900 text-sm sm:text-base group-hover:text-blue-700 transition-colors">
                   {cat.name}
                 </h3>
-                <p className="text-xs text-slate-500 line-clamp-1 mt-1">
-                  {cat.popularBrands.slice(0, 3).join(', ')}
+                <p className="text-[10px] sm:text-xs text-slate-600 font-medium mt-0.5">
+                  {count} {count === 1 ? 'Product' : 'Products'}
                 </p>
               </div>
+
+              {/* Decorative background shape */}
+              <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-white/40 rounded-full blur-2xl group-hover:bg-white/60 transition-colors z-0"></div>
             </div>
           );
         })}
