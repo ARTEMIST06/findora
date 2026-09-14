@@ -158,6 +158,7 @@ if (authLoading) {
       published: true,
       featured: false,
     });
+    setEditingProductOffers([{ storeId: '', price: 0, originalPrice: 0, affiliateUrl: '', availability: 'in_stock', currency: 'INR', sourceType: 'manual' }]);
     setIsProductModalOpen(true);
   };
 
@@ -170,7 +171,7 @@ if (authLoading) {
     setIsProductModalOpen(true);
   };
 
-  const handleSaveProduct = (e: React.FormEvent) => {
+  const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProduct?.name || !editingProduct.brand) {
       showToast('Please provide a product title and brand', 'error');
@@ -184,64 +185,72 @@ if (authLoading) {
       return;
     }
 
-    const slug =
-      editingProduct.slug ||
-      editingProduct.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
+    try {
+      const slug =
+        editingProduct.slug ||
+        editingProduct.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
 
-    let savedProductId = editingProduct.id;
+      let savedProductId = editingProduct.id;
 
-    if (editingProduct.id) {
-      // Update
-      store.updateProduct(editingProduct.id, {
-        ...editingProduct,
-        slug,
-      });
-      showToast(`Updated "${editingProduct.name}"`, 'success');
-    } else {
-      // Add
-      const newProd = store.addProduct({
-        ...editingProduct,
-        slug,
-        rating: editingProduct.rating || 4.5,
-        reviewCount: editingProduct.reviewCount || 10,
-        published: editingProduct.published ?? true,
-        featured: editingProduct.featured ?? false,
-      } as Omit<Product, 'id' | 'createdAt' | 'updatedAt'>);
-      savedProductId = newProd.id;
-      showToast(`Added new product "${editingProduct.name}"`, 'success');
-    }
-
-    // Save offers
-    if (savedProductId) {
-      editingProductOffers.forEach(offer => {
-        if (!offer.storeId || !offer.price || offer.price <= 0 || !offer.affiliateUrl) return; // Skip invalid
+      if (editingProduct.id) {
+        // Update
+        await store.updateProduct(editingProduct.id, {
+          ...editingProduct,
+          slug,
+        });
         
-        if (offer.id) {
-          store.updatePriceOffer(offer.id, {
-            ...offer,
-            productId: savedProductId,
-            price: Number(offer.price),
-            originalPrice: offer.originalPrice ? Number(offer.originalPrice) : undefined
-          });
-        } else {
-          store.addPriceOffer({
-            productId: savedProductId,
-            storeId: offer.storeId,
-            price: Number(offer.price),
-            originalPrice: offer.originalPrice ? Number(offer.originalPrice) : undefined,
-            currency: offer.currency || 'INR',
-            affiliateUrl: offer.affiliateUrl,
-            availability: offer.availability || 'in_stock',
-            sourceType: offer.sourceType || 'manual'
-          } as Omit<PriceOffer, 'id' | 'lastUpdated'>);
-        }
-      });
-    }
+      } else {
+        // Add
+        const newProd = await store.addProduct({
+          ...editingProduct,
+          slug,
+          rating: editingProduct.rating || 4.5,
+          reviewCount: editingProduct.reviewCount || 10,
+          published: editingProduct.published ?? true,
+          featured: editingProduct.featured ?? false,
+        } as Omit<Product, 'id' | 'createdAt' | 'updatedAt'>);
+        savedProductId = newProd.id;
+        
+      }
 
-    setIsProductModalOpen(false);
+      // Save offers
+      if (savedProductId) {
+        for (const offer of editingProductOffers) {
+          if (!offer.storeId || !offer.price || offer.price <= 0 || !offer.affiliateUrl) continue; // Skip invalid
+          
+          if (offer.id) {
+            await store.updatePriceOffer(offer.id, {
+              ...offer,
+              productId: savedProductId,
+              price: Number(offer.price),
+              originalPrice: offer.originalPrice ? Number(offer.originalPrice) : undefined
+            });
+          } else {
+            await store.addPriceOffer({
+              productId: savedProductId,
+              storeId: offer.storeId,
+              price: Number(offer.price),
+              originalPrice: offer.originalPrice ? Number(offer.originalPrice) : undefined,
+              currency: offer.currency || 'INR',
+              affiliateUrl: offer.affiliateUrl,
+              availability: offer.availability || 'in_stock',
+              sourceType: offer.sourceType || 'manual'
+            } as Omit<PriceOffer, 'id' | 'lastUpdated'>);
+          }
+        }
+      }
+
+
+      setIsProductModalOpen(false);
+      showToast(editingProduct.id ? `Updated "${editingProduct.name}" and its offers` : `Added new product "${editingProduct.name}" and its offers`, 'success');
+    } catch (err: any) {
+
+      console.error(err);
+      showToast(err.message || 'Error saving product and offers.', 'error');
+    }
   };
 
   const handleDeleteProduct = (id: string, name: string) => {
@@ -1088,9 +1097,7 @@ if (authLoading) {
                           required
                           value={offer.storeId || ''}
                           onChange={(e) => {
-                            const newOffers = [...editingProductOffers];
-                            newOffers[idx].storeId = e.target.value;
-                            setEditingProductOffers(newOffers);
+                            const newOffers = [...editingProductOffers]; newOffers[idx] = { ...newOffers[idx], storeId: e.target.value  }; setEditingProductOffers(newOffers);
                           }}
                           className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500 bg-white"
                         >
@@ -1104,9 +1111,7 @@ if (authLoading) {
                           required
                           value={offer.availability || 'in_stock'}
                           onChange={(e) => {
-                            const newOffers = [...editingProductOffers];
-                            newOffers[idx].availability = e.target.value as any;
-                            setEditingProductOffers(newOffers);
+                            const newOffers = [...editingProductOffers]; newOffers[idx] = { ...newOffers[idx], availability: e.target.value  as any }; setEditingProductOffers(newOffers);
                           }}
                           className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500 bg-white"
                         >
@@ -1124,9 +1129,7 @@ if (authLoading) {
                           min="0"
                           value={offer.price || ''}
                           onChange={(e) => {
-                            const newOffers = [...editingProductOffers];
-                            newOffers[idx].price = Number(e.target.value);
-                            setEditingProductOffers(newOffers);
+                            const newOffers = [...editingProductOffers]; newOffers[idx] = { ...newOffers[idx], price: Number(e.target.value) }; setEditingProductOffers(newOffers);
                           }}
                           className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
                         />
@@ -1138,9 +1141,7 @@ if (authLoading) {
                           min="0"
                           value={offer.originalPrice || ''}
                           onChange={(e) => {
-                            const newOffers = [...editingProductOffers];
-                            newOffers[idx].originalPrice = Number(e.target.value);
-                            setEditingProductOffers(newOffers);
+                            const newOffers = [...editingProductOffers]; newOffers[idx] = { ...newOffers[idx], originalPrice: Number(e.target.value) }; setEditingProductOffers(newOffers);
                           }}
                           className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
                         />
@@ -1152,9 +1153,7 @@ if (authLoading) {
                           required
                           value={offer.affiliateUrl || ''}
                           onChange={(e) => {
-                            const newOffers = [...editingProductOffers];
-                            newOffers[idx].affiliateUrl = e.target.value;
-                            setEditingProductOffers(newOffers);
+                            const newOffers = [...editingProductOffers]; newOffers[idx] = { ...newOffers[idx], affiliateUrl: e.target.value  }; setEditingProductOffers(newOffers);
                           }}
                           placeholder="https://amazon.in/..."
                           className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"

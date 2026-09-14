@@ -95,8 +95,12 @@ class FindoraStore {
             if (!snapshot.empty) {
               this.stores = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Store));
             } else {
-              // We keep the initial stores so the app doesn't break, or we can just empty it.
-              this.stores = [];
+              // If empty, auto-seed Amazon so they can at least add Amazon offers
+              const amazon = INITIAL_STORES.find(s => s.id === 'store-amazon');
+              if (amazon) {
+                setDoc(doc(db, 'stores', amazon.id), amazon).catch(console.error);
+                this.stores = [amazon];
+              }
             }
             notifyChange();
           });
@@ -240,7 +244,7 @@ class FindoraStore {
     return prods.map((p) => this.getProductWithPrices(p.id)!);
   }
 
-  addProduct(product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Product {
+  async addProduct(product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Promise<Product> {
     const now = new Date().toISOString();
     const newProduct: Product = {
       ...product,
@@ -251,18 +255,16 @@ class FindoraStore {
     this.products.unshift(newProduct);
     
     if (typeof window !== 'undefined') {
-      import('../lib/firebase').then(({ db }) => {
-        import('firebase/firestore').then(({ doc, setDoc }) => {
-          setDoc(doc(db, 'products', newProduct.id), newProduct).catch(console.error);
-        });
-      });
+      const { db } = await import('../lib/firebase');
+      const { doc, setDoc } = await import('firebase/firestore');
+      await setDoc(doc(db, 'products', newProduct.id), newProduct);
     }
     saveToStorage(STORAGE_KEYS.PRODUCTS, this.products);
     notifyChange();
     return newProduct;
   }
 
-  updateProduct(id: string, updates: Partial<Product>): Product | undefined {
+  async updateProduct(id: string, updates: Partial<Product>): Promise<Product | undefined> {
     const idx = this.products.findIndex((p) => p.id === id);
     if (idx === -1) return undefined;
     const updated: Product = {
@@ -406,7 +408,7 @@ class FindoraStore {
       .sort((a, b) => a.price - b.price);
   }
 
-  addPriceOffer(offer: Omit<PriceOffer, 'id' | 'lastUpdated'>): PriceOffer {
+  async addPriceOffer(offer: Omit<PriceOffer, 'id' | 'lastUpdated'>): Promise<PriceOffer> {
     const newOffer: PriceOffer = {
       ...offer,
       id: `offer-${Date.now()}`,
@@ -414,18 +416,16 @@ class FindoraStore {
     };
     this.offers.push(newOffer);
     if (typeof window !== 'undefined') {
-      import('../lib/firebase').then(({ db }) => {
-        import('firebase/firestore').then(({ doc, setDoc }) => {
-          setDoc(doc(db, 'offers', newOffer.id), newOffer).catch(console.error);
-        });
-      });
+      const { db } = await import('../lib/firebase');
+      const { doc, setDoc } = await import('firebase/firestore');
+      await setDoc(doc(db, 'offers', newOffer.id), newOffer);
     }
     saveToStorage(STORAGE_KEYS.OFFERS, this.offers);
     notifyChange();
     return newOffer;
   }
 
-  updatePriceOffer(id: string, updates: Partial<PriceOffer>): PriceOffer | undefined {
+  async updatePriceOffer(id: string, updates: Partial<PriceOffer>): Promise<PriceOffer | undefined> {
     const idx = this.offers.findIndex((o) => o.id === id);
     if (idx === -1) return undefined;
     this.offers[idx] = {
