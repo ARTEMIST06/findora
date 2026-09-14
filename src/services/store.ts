@@ -86,26 +86,25 @@ class FindoraStore {
           
           // Products listener
           onSnapshot(collection(db, 'products'), (snapshot) => {
-            if (!snapshot.empty) {
-              this.products = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Product));
-              notifyChange();
-            }
+            this.products = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Product));
+            notifyChange();
           });
 
           // Stores listener
           onSnapshot(collection(db, 'stores'), (snapshot) => {
             if (!snapshot.empty) {
               this.stores = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Store));
-              notifyChange();
+            } else {
+              // We keep the initial stores so the app doesn't break, or we can just empty it.
+              this.stores = [];
             }
+            notifyChange();
           });
 
           // Offers listener
           onSnapshot(collection(db, 'offers'), (snapshot) => {
-            if (!snapshot.empty) {
-              this.offers = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as PriceOffer));
-              notifyChange();
-            }
+            this.offers = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as PriceOffer));
+            notifyChange();
           });
 
           // Auth state listener

@@ -35,9 +35,39 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   const { showToast } = useToast();
 
   const currentUser = store.getCurrentUser();
-  const authLoading = store.isAuthLoading();
 
-  if (authLoading) {
+
+  const isAdmin = true;
+  const isEditor = true;
+
+  const products = store.getAllProductsWithPrices(false); // including unpublished
+  const stores = store.getStores();
+  const categories = store.getCategories();
+  const clicks = store.getAffiliateClicks();
+
+  // Active admin tab
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'offers' | 'stores' | 'clicks'>(
+    'overview'
+  );
+
+  // Search & filter in tables
+  const [productFilter, setProductFilter] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
+  // Modals state
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
+  const [editingProductOffers, setEditingProductOffers] = useState<Partial<PriceOffer>[]>([]);
+
+  const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
+  const [editingOffer, setEditingOffer] = useState<Partial<PriceOffer> | null>(null);
+  const [targetProductIdForOffer, setTargetProductIdForOffer] = useState<string>('');
+
+  const [isStoreModalOpen, setIsStoreModalOpen] = useState(false);
+  const [editingStore, setEditingStore] = useState<Partial<StoreType> | null>(null);
+
+  const authLoading = store.isAuthLoading();
+if (authLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-32 px-4 text-center">
         <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
@@ -77,34 +107,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
       </div>
     );
   }
-
-  const isAdmin = true;
-  const isEditor = true;
-
-  const products = store.getAllProductsWithPrices(false); // including unpublished
-  const stores = store.getStores();
-  const categories = store.getCategories();
-  const clicks = store.getAffiliateClicks();
-
-  // Active admin tab
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'offers' | 'stores' | 'clicks'>(
-    'overview'
-  );
-
-  // Search & filter in tables
-  const [productFilter, setProductFilter] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-
-  // Modals state
-  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
-
-  const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
-  const [editingOffer, setEditingOffer] = useState<Partial<PriceOffer> | null>(null);
-  const [targetProductIdForOffer, setTargetProductIdForOffer] = useState<string>('');
-
-  const [isStoreModalOpen, setIsStoreModalOpen] = useState(false);
-  const [editingStore, setEditingStore] = useState<Partial<StoreType> | null>(null);
 
   // Role check guard: If shopper, show permission message
   if (currentUser?.role !== 'admin' && currentUser?.role !== 'editor') {
@@ -161,6 +163,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
 
   const handleEditProduct = (p: Product) => {
     setEditingProduct({ ...p });
+    const productOffers = store.getOffers().filter(o => o.productId === p.id);
+    setEditingProductOffers(productOffers.length > 0 ? [...productOffers] : [
+      { storeId: stores[0]?.id || '', price: 0, originalPrice: 0, affiliateUrl: '', availability: 'in_stock', currency: 'INR', sourceType: 'manual' }
+    ]);
     setIsProductModalOpen(true);
   };
 
@@ -168,6 +174,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
     e.preventDefault();
     if (!editingProduct?.name || !editingProduct.brand) {
       showToast('Please provide a product title and brand', 'error');
+      return;
+    }
+    
+    // Validate offers if published
+    const validOffers = editingProductOffers.filter(o => o.storeId && o.price && o.price > 0 && o.affiliateUrl);
+    if ((editingProduct.published ?? true) && validOffers.length === 0) {
+      showToast('You must add at least one valid store offer to publish this product.', 'error');
       return;
     }
 
@@ -178,6 +191,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '');
 
+    let savedProductId = editingProduct.id;
+
     if (editingProduct.id) {
       // Update
       store.updateProduct(editingProduct.id, {
@@ -187,7 +202,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
       showToast(`Updated "${editingProduct.name}"`, 'success');
     } else {
       // Add
-      store.addProduct({
+      const newProd = store.addProduct({
         ...editingProduct,
         slug,
         rating: editingProduct.rating || 4.5,
@@ -195,8 +210,37 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
         published: editingProduct.published ?? true,
         featured: editingProduct.featured ?? false,
       } as Omit<Product, 'id' | 'createdAt' | 'updatedAt'>);
+      savedProductId = newProd.id;
       showToast(`Added new product "${editingProduct.name}"`, 'success');
     }
+
+    // Save offers
+    if (savedProductId) {
+      editingProductOffers.forEach(offer => {
+        if (!offer.storeId || !offer.price || offer.price <= 0 || !offer.affiliateUrl) return; // Skip invalid
+        
+        if (offer.id) {
+          store.updatePriceOffer(offer.id, {
+            ...offer,
+            productId: savedProductId,
+            price: Number(offer.price),
+            originalPrice: offer.originalPrice ? Number(offer.originalPrice) : undefined
+          });
+        } else {
+          store.addPriceOffer({
+            productId: savedProductId,
+            storeId: offer.storeId,
+            price: Number(offer.price),
+            originalPrice: offer.originalPrice ? Number(offer.originalPrice) : undefined,
+            currency: offer.currency || 'INR',
+            affiliateUrl: offer.affiliateUrl,
+            availability: offer.availability || 'in_stock',
+            sourceType: offer.sourceType || 'manual'
+          } as Omit<PriceOffer, 'id' | 'lastUpdated'>);
+        }
+      });
+    }
+
     setIsProductModalOpen(false);
   };
 
@@ -941,137 +985,221 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
               </button>
             </div>
 
-            <form onSubmit={handleSaveProduct} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <form onSubmit={handleSaveProduct} className="space-y-6 text-xs">
+              <div className="space-y-4">
+                <h4 className="font-bold text-sm text-slate-900 border-b border-slate-100 pb-2">PRODUCT INFORMATION</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700">Product Title *</label>
+                    <input
+                      type="text"
+                      required
+                      value={editingProduct.name || ''}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                      placeholder="Apple iPhone 16 Pro (128GB)"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700">Brand *</label>
+                    <input
+                      type="text"
+                      required
+                      value={editingProduct.brand || ''}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, brand: e.target.value })}
+                      placeholder="Apple, Samsung, Sony..."
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700">Category</label>
+                    <select
+                      value={editingProduct.category || categories[0]?.slug}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500 bg-white"
+                    >
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.slug}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700">Badge (Optional)</label>
+                    <input
+                      type="text"
+                      value={editingProduct.badge || ''}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, badge: e.target.value })}
+                      placeholder="Editor's Pick, Best Value..."
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-700">Product Title *</label>
+                  <label className="font-semibold text-slate-700">Short Pitch / Subtitle</label>
                   <input
                     type="text"
-                    required
-                    value={editingProduct.name || ''}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
-                    placeholder="Apple iPhone 16 Pro (128GB)"
+                    value={editingProduct.shortDescription || ''}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, shortDescription: e.target.value })}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
                   />
                 </div>
-
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-700">Brand *</label>
+                  <label className="font-semibold text-slate-700">Image URL</label>
                   <input
-                    type="text"
-                    required
-                    value={editingProduct.brand || ''}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, brand: e.target.value })}
-                    placeholder="Apple, Samsung, Sony..."
+                    type="url"
+                    value={editingProduct.images?.[0] || ''}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, images: [e.target.value] })}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-700">Category</label>
-                  <select
-                    value={editingProduct.category || categories[0]?.slug}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500 bg-white"
-                  >
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.slug}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-semibold text-slate-700">Badge</label>
-                  <input
-                    type="text"
-                    value={editingProduct.badge || ''}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, badge: e.target.value })}
-                    placeholder="Editor's Pick, Best Value, 2026 Flagship..."
+                  <label className="font-semibold text-slate-700">Why Findora Picked It</label>
+                  <textarea
+                    rows={2}
+                    value={editingProduct.whyFindora || ''}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, whyFindora: e.target.value })}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
-                  />
+                  ></textarea>
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="font-semibold text-slate-700">Short Pitch / Subtitle</label>
-                <input
-                  type="text"
-                  value={editingProduct.shortDescription || ''}
-                  onChange={(e) =>
-                    setEditingProduct({ ...editingProduct, shortDescription: e.target.value })
-                  }
-                  placeholder="Grade 5 Titanium finish with 48MP Fusion Camera..."
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
-                />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <h4 className="font-bold text-sm text-slate-900">STORE OFFERS & PRICING</h4>
+                  <button type="button" onClick={() => setEditingProductOffers([...editingProductOffers, { storeId: stores[0]?.id || '', price: 0, originalPrice: 0, affiliateUrl: '', availability: 'in_stock', currency: 'INR', sourceType: 'manual' }])} className="text-blue-600 font-semibold hover:text-blue-700">+ Add Offer</button>
+                </div>
+                
+                {editingProductOffers.map((offer, idx) => (
+                  <div key={idx} className="p-4 border border-slate-200 rounded-xl space-y-3 bg-slate-50/50">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-slate-700">Offer {idx + 1}</span>
+                      {editingProductOffers.length > 1 && (
+                        <button type="button" onClick={() => setEditingProductOffers(editingProductOffers.filter((_, i) => i !== idx))} className="text-red-500 hover:text-red-700 font-semibold">Remove</button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="font-semibold text-slate-700">Store *</label>
+                        <select
+                          required
+                          value={offer.storeId || ''}
+                          onChange={(e) => {
+                            const newOffers = [...editingProductOffers];
+                            newOffers[idx].storeId = e.target.value;
+                            setEditingProductOffers(newOffers);
+                          }}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500 bg-white"
+                        >
+                          <option value="">Select Store</option>
+                          {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="font-semibold text-slate-700">Availability *</label>
+                        <select
+                          required
+                          value={offer.availability || 'in_stock'}
+                          onChange={(e) => {
+                            const newOffers = [...editingProductOffers];
+                            newOffers[idx].availability = e.target.value as any;
+                            setEditingProductOffers(newOffers);
+                          }}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500 bg-white"
+                        >
+                          <option value="in_stock">In Stock</option>
+                          <option value="out_of_stock">Out of Stock</option>
+                          <option value="pre_order">Pre-order</option>
+                          <option value="limited_stock">Limited Stock</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="font-semibold text-slate-700">Current Price (₹) *</label>
+                        <input
+                          type="number"
+                          required
+                          min="0"
+                          value={offer.price || ''}
+                          onChange={(e) => {
+                            const newOffers = [...editingProductOffers];
+                            newOffers[idx].price = Number(e.target.value);
+                            setEditingProductOffers(newOffers);
+                          }}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="font-semibold text-slate-700">MRP (₹)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={offer.originalPrice || ''}
+                          onChange={(e) => {
+                            const newOffers = [...editingProductOffers];
+                            newOffers[idx].originalPrice = Number(e.target.value);
+                            setEditingProductOffers(newOffers);
+                          }}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                        />
+                      </div>
+                      <div className="space-y-1 sm:col-span-2">
+                        <label className="font-semibold text-slate-700">Affiliate URL *</label>
+                        <input
+                          type="url"
+                          required
+                          value={offer.affiliateUrl || ''}
+                          onChange={(e) => {
+                            const newOffers = [...editingProductOffers];
+                            newOffers[idx].affiliateUrl = e.target.value;
+                            setEditingProductOffers(newOffers);
+                          }}
+                          placeholder="https://amazon.in/..."
+                          className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              <div className="space-y-1">
-                <label className="font-semibold text-slate-700">Image URL</label>
-                <input
-                  type="text"
-                  value={editingProduct.images?.[0] || ''}
-                  onChange={(e) =>
-                    setEditingProduct({ ...editingProduct, images: [e.target.value] })
-                  }
-                  placeholder="https://..."
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
-                />
+              <div className="space-y-4">
+                <h4 className="font-bold text-sm text-slate-900 border-b border-slate-100 pb-2">PUBLISHING</h4>
+                <div className="flex items-center gap-6">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editingProduct.published ?? true}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, published: e.target.checked })}
+                      className="rounded text-blue-600"
+                    />
+                    <span className="font-semibold text-slate-700">Published on site</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editingProduct.featured ?? false}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, featured: e.target.checked })}
+                      className="rounded text-blue-600"
+                    />
+                    <span className="font-semibold text-slate-700">Feature on Homepage</span>
+                  </label>
+                </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="font-semibold text-slate-700">Why Findora Picked It</label>
-                <textarea
-                  rows={2}
-                  value={editingProduct.whyFindora || ''}
-                  onChange={(e) =>
-                    setEditingProduct({ ...editingProduct, whyFindora: e.target.value })
-                  }
-                  placeholder="Objective verdict on why this device delivers genuine value..."
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
-                ></textarea>
-              </div>
-
-              <div className="flex items-center gap-6 pt-2">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={editingProduct.published ?? true}
-                    onChange={(e) =>
-                      setEditingProduct({ ...editingProduct, published: e.target.checked })
-                    }
-                    className="rounded text-blue-600"
-                  />
-                  <span className="font-semibold text-slate-700">Published on site</span>
-                </label>
-
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={editingProduct.featured ?? false}
-                    onChange={(e) =>
-                      setEditingProduct({ ...editingProduct, featured: e.target.checked })
-                    }
-                    className="rounded text-blue-600"
-                  />
-                  <span className="font-semibold text-slate-700">Feature on Homepage</span>
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              <div className="pt-6 border-t border-slate-100 flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsProductModalOpen(false)}
-                  className="px-4 py-2 border border-slate-200 rounded-xl text-slate-700 font-semibold"
+                  className="px-5 py-2.5 rounded-xl text-slate-600 font-semibold hover:bg-slate-100 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-xs"
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
                 >
                   Save Product
                 </button>

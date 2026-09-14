@@ -54,7 +54,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
       );
       showToast(`Redirecting to ${product.bestStore?.name || 'store offer'}...`, 'info');
       // In real scenario opens affiliateUrl in new tab
-      window.open(bestOffer.affiliateUrl, '_blank', 'noopener,noreferrer');
+      const url = bestOffer.affiliateUrl.startsWith('http') ? bestOffer.affiliateUrl : `https://${bestOffer.affiliateUrl}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
     } else {
       onNavigate(`/product/${product.slug}`);
     }
@@ -157,7 +158,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
               <span className="text-[10px] text-slate-500 block font-medium uppercase tracking-wider mb-0.5">Lowest Price</span>
               <div className="flex items-baseline gap-2">
                 <span className="text-lg font-bold text-slate-900">
-                  {formatINR(product.lowestPrice)}
+                  {product.lowestPrice ? formatINR(product.lowestPrice) : <span className="text-sm text-slate-400">Unavailable</span>}
                 </span>
                 {product.offers[0]?.originalPrice && product.offers[0].originalPrice > (product.lowestPrice || 0) && (
                   <span className="text-xs text-slate-400 line-through font-medium">
@@ -193,7 +194,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
               onClick={handleCheckPrice}
               className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-sm"
             >
-              <span>Check Deal</span>
+              <span>{product.offers.length > 0 ? 'Check Price' : 'View Details'}</span>
             </button>
           </div>
         </div>

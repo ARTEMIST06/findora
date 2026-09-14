@@ -95,7 +95,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
     store.trackAffiliateClick(product.id, offer.storeId, offer.price, offer.affiliateUrl);
     const storeObj = stores.find((s) => s.id === offer.storeId);
     showToast(`Redirecting to ${storeObj?.name || 'store'}...`, 'info');
-    window.open(offer.affiliateUrl, '_blank', 'noopener,noreferrer');
+    const url = offer.affiliateUrl.startsWith('http') ? offer.affiliateUrl : `https://${offer.affiliateUrl}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const handleShare = () => {
@@ -238,9 +239,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                   </div>
                   <div className="flex items-baseline gap-3 mt-1">
                     <span className="text-3xl font-extrabold text-slate-900">
-                      {formatINR(product.lowestPrice)}
+                      {product.lowestPrice ? formatINR(product.lowestPrice) : <span className="text-2xl text-slate-400">Price unavailable</span>}
                     </span>
-                    {bestOffer?.originalPrice && bestOffer.originalPrice > (product.lowestPrice || 0) && (
+                    {bestOffer?.originalPrice && product.lowestPrice && bestOffer.originalPrice > product.lowestPrice && (
                       <span className="text-sm text-slate-400 line-through">
                         MRP {formatINR(bestOffer.originalPrice)}
                       </span>
@@ -327,7 +328,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
             </p>
           </div>
           <span className="text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full self-start sm:self-auto">
-            {product.offers.length} {product.offers.length === 1 ? 'store offer' : 'store offers found'}
+            {product.offers.length > 0 ? `${product.offers.length} ${product.offers.length === 1 ? 'store offer' : 'store offers found'}` : 'No store offers found yet.'}
           </span>
         </div>
 
