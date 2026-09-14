@@ -67,6 +67,7 @@ class FindoraStore {
   private categories: Category[] = [];
   private users: User[] = [];
   private currentUser: User | null = null;
+  private authLoading: boolean = true;
   private wishlist: string[] = []; // product IDs
   private compareIds: string[] = []; // max 4 product IDs
   private clicks: AffiliateClick[] = [];
@@ -116,14 +117,17 @@ class FindoraStore {
               const userSnap = await getDoc(userRef);
               if (userSnap.exists()) {
                 this.currentUser = { ...userSnap.data(), id: userSnap.id } as User;
+                // Update lastLogin
+                setDoc(userRef, { lastLogin: new Date().toISOString() }, { merge: true }).catch(console.error);
               } else {
                 const newUser: User = {
                   id: user.uid,
                   email: user.email || '',
                   name: user.displayName || user.email?.split('@')[0] || 'User',
                   avatar: user.photoURL || undefined,
-                  role: 'user',
-                  createdAt: new Date().toISOString()
+                  role: 'shopper',
+                  createdAt: new Date().toISOString(),
+                  lastLogin: new Date().toISOString(),
                 };
                 await setDoc(userRef, newUser);
                 this.currentUser = newUser;
@@ -132,23 +136,33 @@ class FindoraStore {
               // Wishlist listener
               if (unsubscribeWishlist) unsubscribeWishlist();
               unsubscribeWishlist = onSnapshot(doc(db, 'wishlists', user.uid), (wSnap) => {
+                let remoteWishlist: string[] = [];
                 if (wSnap.exists()) {
-                  this.wishlist = wSnap.data().productIds || [];
-                  notifyChange();
-                } else {
-                  this.wishlist = [];
-                  notifyChange();
+                  remoteWishlist = wSnap.data().productIds || [];
                 }
+                
+                // Merge local wishlist if we have one and it hasn't been merged yet
+                const localWishlist = getFromStorage(STORAGE_KEYS.WISHLIST, []);
+                if (localWishlist.length > 0) {
+                  const merged = Array.from(new Set([...remoteWishlist, ...localWishlist]));
+                  this.wishlist = merged;
+                  setDoc(doc(db, 'wishlists', user.uid), { productIds: merged }, { merge: true }).catch(console.error);
+                  localStorage.removeItem(STORAGE_KEYS.WISHLIST);
+                } else {
+                  this.wishlist = remoteWishlist;
+                }
+                notifyChange();
               });
               
             } else {
               this.currentUser = null;
-              this.wishlist = [];
+              this.wishlist = getFromStorage(STORAGE_KEYS.WISHLIST, []);
               if (unsubscribeWishlist) {
                 unsubscribeWishlist();
                 unsubscribeWishlist = null;
               }
             }
+            this.authLoading = false;
             notifyChange();
           });
           
@@ -161,6 +175,7 @@ class FindoraStore {
     // Keep local categories as they might be static
     this.categories = getFromStorage(STORAGE_KEYS.CATEGORIES, INITIAL_CATEGORIES);
     this.compareIds = getFromStorage(STORAGE_KEYS.COMPARE, []);
+    this.wishlist = getFromStorage(STORAGE_KEYS.WISHLIST, []);
     
     // Temporarily load mock data so the UI isn't completely empty before Firebase loads
     this.products = getFromStorage(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS);
@@ -538,6 +553,10 @@ class FindoraStore {
     return this.currentUser;
   }
 
+  isAuthLoading(): boolean {
+    return this.authLoading;
+  }
+
   getUsers(): User[] {
     return [...this.users];
   }
@@ -555,7 +574,7 @@ class FindoraStore {
       id: `user-${Date.now()}`,
       email,
       name: email.split('@')[0],
-      role: 'user',
+      role: 'shopper',
       createdAt: new Date().toISOString(),
     };
     this.users.push(newUser);
@@ -566,7 +585,7 @@ class FindoraStore {
     return newUser;
   }
 
-  signup(name: string, email: string, role: UserRole = 'user'): User {
+  signup(name: string, email: string, role: UserRole = 'shopper'): User {
     const existing = this.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
     if (existing) {
       this.currentUser = existing;

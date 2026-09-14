@@ -22,16 +22,26 @@ interface ProfilePageProps {
 export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
   const store = useFindoraStore();
   const currentUser = store.getCurrentUser();
+  const authLoading = store.isAuthLoading();
   const wishlist = store.getWishlist();
   const clicks = store.getAffiliateClicks();
   const { showToast } = useToast();
+
+  if (authLoading) {
+    return (
+      <div className="max-w-md mx-auto py-20 px-4 text-center flex flex-col items-center">
+        <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+        <h2 className="text-xl font-bold text-slate-900 mb-2">Authenticating...</h2>
+      </div>
+    );
+  }
 
   if (!currentUser) {
     return (
       <div className="max-w-md mx-auto py-20 px-4 text-center">
         <h2 className="text-xl font-bold text-slate-900 mb-2">Sign In Required</h2>
         <p className="text-sm text-slate-500 mb-6">
-          Please sign in to view your profile and role settings.
+          Please sign in to view your profile .
         </p>
         <button
           onClick={() => onNavigate('/login')}
@@ -63,7 +73,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
               {currentUser.name.charAt(0)}
             </div>
           )}
-
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl sm:text-2xl font-bold text-slate-900">{currentUser.name}</h1>
@@ -72,6 +81,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">{currentUser.email}</p>
+            {currentUser.createdAt && (
+              <p className="text-[10px] text-slate-400 mt-1">Joined {new Date(currentUser.createdAt).toLocaleDateString()}</p>
+            )}
           </div>
         </div>
 
@@ -89,7 +101,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
       </div>
 
       {/* Admin Quick Jump Banner */}
-      {(currentUser.role === 'admin' || currentUser.role === 'editor') && (
+      {currentUser.role === 'admin' && (
         <div className="p-5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-md shadow-blue-500/10">
           <div>
             <h3 className="font-bold text-base flex items-center gap-2">

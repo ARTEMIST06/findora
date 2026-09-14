@@ -35,6 +35,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   const { showToast } = useToast();
 
   const currentUser = store.getCurrentUser();
+  const authLoading = store.isAuthLoading();
+
+  if (authLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 px-4 text-center">
+        <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+        <h2 className="text-xl font-bold text-slate-900 mb-2">Authenticating...</h2>
+      </div>
+    );
+  }
   
   if (!currentUser) {
     return (
@@ -52,7 +62,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
     );
   }
 
-  if (currentUser.role === 'user') {
+  if (currentUser.role !== 'admin') {
     return (
       <div className="flex flex-col items-center justify-center py-32 px-4 text-center">
         <XCircle className="w-16 h-16 text-rose-500 mb-4" />
@@ -68,8 +78,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
     );
   }
 
-  const isAdmin = currentUser.role === 'admin';
-  const isEditor = currentUser.role === 'editor' || isAdmin;
+  const isAdmin = true;
+  const isEditor = true;
 
   const products = store.getAllProductsWithPrices(false); // including unpublished
   const stores = store.getStores();

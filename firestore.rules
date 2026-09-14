@@ -35,19 +35,19 @@ service cloud.firestore {
       return data.keys().hasAll(['email', 'name', 'role', 'createdAt'])
         && data.email is string
         && data.name is string
-        && data.role == 'user' // Users can only create themselves as 'user'
+        && data.role == 'shopper' // Users can only create themselves as 'shopper'
         && data.createdAt is string
         && (!data.keys().hasAny(['avatar']) || data.avatar is string);
     }
     
     match /users/{userId} {
       allow read: if isSignedInDemo() && (request.auth.uid == userId || isAdmin());
-      // A user can create their own profile, but must have 'user' role
+      // A user can create their own profile, but must have 'shopper' role
       allow create: if isSignedInDemo() && request.auth.uid == userId && isValidUserCreate(incoming());
-      // Only admins can change roles. A user can only update their name/avatar.
+      // Only admins can change roles. A user can update their own data except role.
       allow update: if isSignedInDemo() && (
-        (isAdmin() && incoming().diff(existing()).affectedKeys().hasAny(['role', 'name', 'avatar'])) ||
-        (request.auth.uid == userId && !incoming().diff(existing()).affectedKeys().hasAny(['role']) && incoming().diff(existing()).affectedKeys().hasAny(['name', 'avatar']))
+        isAdmin() ||
+        (request.auth.uid == userId && !incoming().diff(existing()).affectedKeys().hasAny(['role', 'email', 'createdAt']))
       );
     }
 

@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'editor' | 'user';
+export type UserRole = 'admin' | 'editor' | 'shopper';
 
 export interface User {
   id: string;
@@ -7,6 +7,7 @@ export interface User {
   role: UserRole;
   avatar?: string;
   createdAt: string;
+  lastLogin?: string;
 }
 
 export interface Store {
@@ -69,6 +70,7 @@ export interface Product {
   featured: boolean;
   badge?: string; // e.g. "Editor's Choice", "Best Value", "Flagship Pick"
   createdAt: string;
+  lastLogin?: string;
   updatedAt: string;
 }
 

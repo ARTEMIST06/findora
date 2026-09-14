@@ -61,4 +61,7 @@ declare global {
     fbq: any;
     _fbq: any;
   }
+  interface ImportMeta {
+    env: Record<string, string>;
+  }
 }

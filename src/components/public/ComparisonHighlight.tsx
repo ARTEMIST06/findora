@@ -12,8 +12,8 @@ export const ComparisonHighlight: React.FC<ComparisonHighlightProps> = ({ onNavi
   const products = store.getAllProductsWithPrices(true);
   
   // Dynamically select two top-tier products for the comparison highlight
-  const p1 = products.find(p => p.price > 80000 && p.category === 'smartphones') || products[0];
-  const p2 = products.find(p => p.id !== p1?.id && p.price > 80000 && p.category === 'smartphones') || products[1];
+  const p1 = products.find(p => p.lowestPrice > 80000 && p.category === 'smartphones') || products[0];
+  const p2 = products.find(p => p.id !== p1?.id && p.lowestPrice > 80000 && p.category === 'smartphones') || products[1];
 
   if (!p1 || !p2) return null;
 
