@@ -20,17 +20,7 @@ export const WishlistPage: React.FC<WishlistPageProps> = ({ onNavigate }) => {
     showToast(`Removed ${name} from wishlist`, 'info');
   };
 
-  const handleCheckDeal = (product: (typeof wishlistProducts)[0]) => {
-    if (product.offers.length > 0) {
-      const best = product.offers[0];
-      store.trackAffiliateClick(product.id, best.storeId, best.price, best.affiliateUrl);
-      showToast(`Redirecting to ${product.bestStore?.name || 'merchant'}...`, 'info');
-      window.open(best.affiliateUrl, '_blank', 'noopener,noreferrer');
-    } else {
-      onNavigate(`/product/${product.slug}`);
-    }
-  };
-
+  
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
       <SEOHead 
@@ -127,13 +117,26 @@ export const WishlistPage: React.FC<WishlistPageProps> = ({ onNavigate }) => {
                 >
                   All {product.offers.length} Offers
                 </button>
-                <button
-                  onClick={() => handleCheckDeal(product)}
-                  className="w-full py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center justify-center gap-1 shadow-xs"
-                >
-                  <span>Go to Deal</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </button>
+                {product.offers.length > 0 && product.offers[0].affiliateUrl ? (
+                  <a
+                    href={product.offers[0].affiliateUrl.startsWith('http') ? product.offers[0].affiliateUrl : `https://${product.offers[0].affiliateUrl}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => store.trackAffiliateClick(product.id, product.offers[0].storeId, product.offers[0].price, product.offers[0].affiliateUrl)}
+                    className="w-full py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center justify-center gap-1 shadow-xs"
+                  >
+                    <span>Go to Deal</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                ) : (
+                  <button
+                    onClick={() => showToast('Merchant link unavailable.', 'error')}
+                    className="w-full py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center justify-center gap-1 shadow-xs opacity-75"
+                  >
+                    <span>Go to Deal</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             </div>
           ))}

@@ -38,29 +38,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
     }
   };
 
-  const handleCheckPrice = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (product.offers.length > 0) {
-      const bestOffer = product.offers[0];
-      if (!bestOffer.affiliateUrl) {
-        showToast('Offer link is currently unavailable.', 'error');
-        return;
-      }
-      store.trackAffiliateClick(
-        product.id,
-        bestOffer.storeId,
-        bestOffer.price,
-        bestOffer.affiliateUrl
-      );
-      showToast(`Redirecting to ${product.bestStore?.name || 'store offer'}...`, 'info');
-      // In real scenario opens affiliateUrl in new tab
-      const url = bestOffer.affiliateUrl.startsWith('http') ? bestOffer.affiliateUrl : `https://${bestOffer.affiliateUrl}`;
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } else {
-      onNavigate(`/product/${product.slug}`);
-    }
-  };
-
+  
   const mainImage = product.images[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600';
 
   return (
@@ -190,12 +168,39 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
             >
               Details
             </button>
-            <button
-              onClick={handleCheckPrice}
-              className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-sm"
-            >
-              <span>{product.offers.length > 0 ? 'Check Price' : 'View Details'}</span>
-            </button>
+            {product.offers.length > 0 && product.offers[0].affiliateUrl ? (
+              <a
+                href={product.offers[0].affiliateUrl.startsWith('http') ? product.offers[0].affiliateUrl : `https://${product.offers[0].affiliateUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  store.trackAffiliateClick(
+                    product.id,
+                    product.offers[0].storeId,
+                    product.offers[0].price,
+                    product.offers[0].affiliateUrl
+                  );
+                }}
+                className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+              >
+                <span>Check Price</span>
+              </a>
+            ) : (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (product.offers.length > 0 && !product.offers[0].affiliateUrl) {
+                    showToast('Merchant link unavailable', 'error');
+                  } else {
+                    onNavigate(`/product/${product.slug}`);
+                  }
+                }}
+                className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+              >
+                <span>View Details</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
