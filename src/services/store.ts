@@ -124,11 +124,13 @@ class FindoraStore {
                   id: user.uid,
                   email: user.email || '',
                   name: user.displayName || user.email?.split('@')[0] || 'User',
-                  avatar: user.photoURL || undefined,
                   role: 'shopper',
                   createdAt: new Date().toISOString(),
                   lastLogin: new Date().toISOString(),
                 };
+                if (user.photoURL) {
+                  newUser.avatar = user.photoURL;
+                }
                 await setDoc(userRef, newUser);
                 this.currentUser = newUser;
               }
@@ -718,7 +720,7 @@ class FindoraStore {
   ): AffiliateClick {
     const product = this.getProductById(productId);
     const store = this.getStoreById(storeId);
-    const click: AffiliateClick = {
+    const click: any = {
       id: `click-${Date.now()}`,
       productId,
       productName: product ? product.name : 'Unknown Product',
@@ -727,10 +729,12 @@ class FindoraStore {
       price,
       affiliateUrl,
       timestamp: new Date().toISOString(),
-      userId: this.currentUser ? this.currentUser.id : undefined,
       device: typeof navigator !== 'undefined' ? (navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop') : 'Web',
     };
-    this.clicks.unshift(click);
+    if (this.currentUser) {
+      click.userId = this.currentUser.id;
+    }
+    this.clicks.unshift(click as AffiliateClick);
     if (this.clicks.length > 500) this.clicks = this.clicks.slice(0, 500); // keep recent
     
     if (typeof window !== 'undefined') {

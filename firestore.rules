@@ -4,7 +4,6 @@ service cloud.firestore {
     match /{document=**} {
       allow read, write: if false;
     }
-
     function isSignedIn() {
       return request.auth != null && request.auth.token.email_verified == true;
     }
@@ -13,19 +12,15 @@ service cloud.firestore {
     function isSignedInDemo() {
       return request.auth != null;
     }
-
     function existing() {
       return resource.data;
     }
-
     function incoming() {
       return request.resource.data;
     }
-
     function isAdmin() {
       return isSignedInDemo() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
-
     function isEditor() {
       return isSignedInDemo() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'editor' || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
     }
@@ -35,25 +30,24 @@ service cloud.firestore {
       return data.keys().hasAll(['email', 'name', 'role', 'createdAt'])
         && data.email is string
         && data.name is string
-        && data.role == 'shopper' // Users can only create themselves as 'shopper'
+        && data.role == 'shopper'
         && data.createdAt is string
-        && (!data.keys().hasAny(['avatar']) || data.avatar is string);
+        && (!data.keys().hasAny(['avatar']) || data.avatar is string)
+        && (!data.keys().hasAny(['lastLogin']) || data.lastLogin is string)
+        && (!data.keys().hasAny(['id']) || data.id is string);
     }
     
     match /users/{userId} {
       allow read: if isSignedInDemo() && (request.auth.uid == userId || isAdmin());
-      // A user can create their own profile, but must have 'shopper' role
       allow create: if isSignedInDemo() && request.auth.uid == userId && isValidUserCreate(incoming());
-      // Only admins can change roles. A user can update their own data except role.
       allow update: if isSignedInDemo() && (
         isAdmin() ||
-        (request.auth.uid == userId && !incoming().diff(existing()).affectedKeys().hasAny(['role', 'email', 'createdAt']))
+        (request.auth.uid == userId && !incoming().diff(existing()).affectedKeys().hasAny(['role', 'email', 'createdAt', 'id']))
       );
     }
 
     // --- PRODUCTS ---
     match /products/{productId} {
-      // Allow read for everyone so the global snapshot works
       allow read: if true;
       allow create: if isEditor();
       allow update: if isEditor();
@@ -62,7 +56,6 @@ service cloud.firestore {
 
     // --- STORES ---
     match /stores/{storeId} {
-      // Allow read for everyone so the global snapshot works
       allow read: if true;
       allow create: if isEditor();
       allow update: if isEditor();
