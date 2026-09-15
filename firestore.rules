@@ -80,5 +80,29 @@ service cloud.firestore {
       allow create: if true;
       allow read: if isAdmin();
     }
+
+    // --- PRICE HISTORY ---
+    match /priceHistory/{docId} {
+      allow read: if true;
+      allow create: if isEditor();
+      allow update: if isEditor();
+      allow delete: if isAdmin();
+    }
+    
+    // --- PRICE ALERTS ---
+    match /priceAlerts/{docId} {
+      allow read, write: if isSignedInDemo() && (request.auth.uid == resource.data.userId || request.auth.uid == request.resource.data.userId);
+    }
+    
+    // --- IMPORT HISTORY ---
+
+    // --- IMPORT HISTORY ---
+    match /importHistory/{docId} {
+      allow read: if isEditor();
+      allow create: if isEditor();
+      allow update: if isEditor();
+      allow delete: if isAdmin();
+    }
   }
 }
+

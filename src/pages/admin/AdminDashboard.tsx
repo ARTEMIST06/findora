@@ -20,6 +20,8 @@ import {
   Eye,
   DollarSign,
 } from 'lucide-react';
+import { BulkImport } from './BulkImport';
+import { FileUp } from 'lucide-react';
 import { SEOHead } from '../../components/common/SEOHead';
 import { useFindoraStore } from '../../services/store';
 import { Product, Store as StoreType, PriceOffer } from '../../types';
@@ -46,7 +48,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   const clicks = store.getAffiliateClicks();
 
   // Active admin tab
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'offers' | 'stores' | 'clicks'>(
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'offers' | 'stores' | 'clicks' | 'bulk-import'>(
     'overview'
   );
 
@@ -61,6 +63,98 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
 
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const [editingOffer, setEditingOffer] = useState<Partial<PriceOffer> | null>(null);
+
+  // Product Fetch State
+  const [fetchMerchantId, setFetchMerchantId] = useState('');
+  const [fetchUrl, setFetchUrl] = useState('');
+  const [isFetching, setIsFetching] = useState(false);
+  const [fetchResult, setFetchResult] = useState<{success?: boolean; message?: string} | null>(null);
+  const [fetchedFields, setFetchedFields] = useState<Record<string, boolean>>({});
+
+  const handleFetchProduct = async () => {
+    if (!fetchMerchantId || !fetchUrl) return;
+    setIsFetching(true);
+    setFetchResult(null);
+    setFetchedFields({});
+    try {
+      const res = await fetch('/api/fetch-product', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: fetchUrl, merchantId: fetchMerchantId })
+      });
+      const data = await res.json();
+      
+      if (!data.success) {
+        setFetchResult({ success: false, message: data.message || 'Error fetching product' });
+        return;
+      }
+      
+      const resData = data.product;
+
+      let duplicateProduct: any = null;
+      if (resData.merchantProductId) {
+        const offers = store.getOffers();
+        const existingOffer = offers.find(o => o.storeId === fetchMerchantId && o.merchantProductId === resData.merchantProductId);
+        if (existingOffer) {
+           const allProds = store.getAllProductsWithPrices(false);
+           duplicateProduct = allProds.find(p => p.id === existingOffer.productId);
+        }
+      }
+
+      if (duplicateProduct) {
+         setFetchResult({ success: false, message: `This merchant product may already exist as "${duplicateProduct.name}". Continue anyway or edit existing.` });
+      } else {
+        // Populate form
+        setEditingProduct({
+          ...editingProduct,
+          name: resData.title || editingProduct?.name || '',
+          brand: resData.brand || editingProduct?.brand || '',
+          category: resData.category || editingProduct?.category || categories[0]?.slug,
+          images: resData.images?.length ? resData.images : (editingProduct?.images || []),
+        });
+        
+        // Update first offer
+        const newOffers = [...editingProductOffers];
+        if (newOffers.length === 0) {
+          newOffers.push({ storeId: fetchMerchantId, price: "" as any, originalPrice: "" as any, affiliateUrl: '', availability: 'in_stock', currency: 'INR', sourceType: 'manual' });
+        }
+        
+        newOffers[0] = {
+          ...newOffers[0],
+          storeId: fetchMerchantId,
+          price: (resData.price !== undefined && resData.price !== null) ? resData.price : (resData.currentPrice !== undefined ? resData.currentPrice : newOffers[0].price),
+          originalPrice: resData.originalPrice || resData.mrp || newOffers[0].originalPrice,
+          availability: resData.availability || newOffers[0].availability,
+          merchantProductId: resData.merchantProductId || newOffers[0].merchantProductId,
+          productUrl: fetchUrl,
+          affiliateUrl: resData.affiliateUrl || newOffers[0].affiliateUrl,
+          syncStatus: resData.isManualCommercial ? 'manual' : (resData.merchantProductId ? 'automatic' : 'manual')
+        };
+        
+        setEditingProductOffers(newOffers);
+        
+        setFetchedFields({
+          name: !!resData.title,
+          brand: !!resData.brand,
+          category: !!resData.category,
+          images: !!(resData.images && resData.images.length),
+          price: !!(resData.price || resData.currentPrice) && !resData.isManualCommercial,
+          originalPrice: !!(resData.originalPrice || resData.mrp) && !resData.isManualCommercial,
+          availability: !!resData.availability && !resData.isManualCommercial,
+          merchantProductId: !!resData.merchantProductId,
+          productUrl: true,
+          affiliateUrl: !!resData.affiliateUrl && !resData.isManualCommercial
+        });
+
+        setFetchResult({ success: true, message: 'Product information fetched automatically.' });
+      }
+    } catch (e: any) {
+      setFetchResult({ success: false, message: e.message || 'Error fetching product' });
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
   const [targetProductIdForOffer, setTargetProductIdForOffer] = useState<string>('');
 
   const [isStoreModalOpen, setIsStoreModalOpen] = useState(false);
@@ -158,7 +252,7 @@ if (authLoading) {
       published: true,
       featured: false,
     });
-    setEditingProductOffers([{ storeId: '', price: 0, originalPrice: 0, affiliateUrl: '', availability: 'in_stock', currency: 'INR', sourceType: 'manual' }]);
+    setEditingProductOffers([{ storeId: '', price: "" as any, originalPrice: "" as any, affiliateUrl: '', availability: 'in_stock', currency: 'INR', sourceType: 'manual' }]);
     setIsProductModalOpen(true);
   };
 
@@ -166,7 +260,7 @@ if (authLoading) {
     setEditingProduct({ ...p });
     const productOffers = store.getOffers().filter(o => o.productId === p.id);
     setEditingProductOffers(productOffers.length > 0 ? [...productOffers] : [
-      { storeId: stores[0]?.id || '', price: 0, originalPrice: 0, affiliateUrl: '', availability: 'in_stock', currency: 'INR', sourceType: 'manual' }
+      { storeId: stores[0]?.id || '', price: "" as any, originalPrice: "" as any, affiliateUrl: '', availability: 'in_stock', currency: 'INR', sourceType: 'manual' }
     ]);
     setIsProductModalOpen(true);
   };
@@ -275,14 +369,14 @@ if (authLoading) {
     setIsOfferModalOpen(true);
   };
 
-  const handleSaveOffer = (e: React.FormEvent) => {
+  const handleSaveOffer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingOffer || !targetProductIdForOffer || !editingOffer.storeId || !editingOffer.price) {
       showToast('Please fill out store and price', 'error');
       return;
     }
 
-    store.setOffer(targetProductIdForOffer, {
+    await store.setOffer(targetProductIdForOffer, {
       storeId: editingOffer.storeId,
       price: Number(editingOffer.price),
       originalPrice: editingOffer.originalPrice ? Number(editingOffer.originalPrice) : undefined,
@@ -995,11 +1089,72 @@ if (authLoading) {
             </div>
 
                         <form onSubmit={handleSaveProduct} className="space-y-6 text-xs">
+
+              {/* FETCH PRODUCT URL */}
+              {!editingProduct.id && (
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
+                  <h4 className="font-bold text-sm text-slate-900 border-b border-slate-200 pb-2">ADD PRODUCT</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="font-semibold text-slate-700">Merchant</label>
+                      <select
+                        value={fetchMerchantId}
+                        onChange={(e) => setFetchMerchantId(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500 bg-white"
+                      >
+                        <option value="">Select Merchant</option>
+                        {stores.map((c) => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="font-semibold text-slate-700">Product URL</label>
+                      <input
+                        type="url"
+                        value={fetchUrl}
+                        onChange={(e) => setFetchUrl(e.target.value)}
+                        placeholder="Paste merchant product URL"
+                        className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleFetchProduct}
+                      disabled={isFetching || !fetchUrl || !fetchMerchantId}
+                      className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold flex items-center justify-center gap-2"
+                    >
+                      {isFetching ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          <span>Fetching...</span>
+                        </>
+                      ) : (
+                        <span>Fetch Product</span>
+                      )}
+                    </button>
+                    {fetchResult && (
+                      <div className={`text-sm font-semibold flex items-center gap-1.5 ${fetchResult.success ? 'text-emerald-600' : 'text-amber-600'}`}>
+                        {fetchResult.success ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                        <span>{fetchResult.message}</span>
+                      </div>
+                    )}
+                  </div>
+                  {fetchResult && !fetchResult.success && (
+                    <div className="text-xs text-slate-500 mt-2">
+                      Please verify/enter the information manually below.
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="space-y-4">
                 <h4 className="font-bold text-sm text-slate-900 border-b border-slate-100 pb-2">PRODUCT INFORMATION</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="font-semibold text-slate-700">Product Title *</label>
+                    <label className="font-semibold text-slate-700">Product Title *{fetchedFields.name && <span className="ml-2 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">✓ AUTO</span>}</label>
                     <input
                       type="text"
                       required
@@ -1010,7 +1165,7 @@ if (authLoading) {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="font-semibold text-slate-700">Brand *</label>
+                    <label className="font-semibold text-slate-700">Brand *{fetchedFields.brand && <span className="ml-2 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">✓ AUTO</span>}</label>
                     <input
                       type="text"
                       required
@@ -1024,7 +1179,7 @@ if (authLoading) {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="font-semibold text-slate-700">Category</label>
+                    <label className="font-semibold text-slate-700">Category{fetchedFields.category && <span className="ml-2 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">✓ AUTO</span>}</label>
                     <select
                       value={editingProduct.category || categories[0]?.slug}
                       onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
@@ -1057,13 +1212,18 @@ if (authLoading) {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-700">Image URL</label>
-                  <input
-                    type="url"
-                    value={editingProduct.images?.[0] || ''}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, images: [e.target.value] })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
-                  />
+                  <label className="font-semibold text-slate-700">Image URL{fetchedFields.images && <span className="ml-2 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">✓ AUTO</span>}</label>
+                  <div className="flex gap-4">
+                    <input
+                      type="url"
+                      value={editingProduct.images?.[0] || ''}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, images: [e.target.value] })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                    />
+                    {editingProduct.images?.[0] && (
+                      <img src={editingProduct.images[0]} alt="Preview" className="w-10 h-10 object-contain rounded-lg border border-slate-200" />
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-1">
                   <label className="font-semibold text-slate-700">Why Findora Picked It</label>
@@ -1079,7 +1239,7 @@ if (authLoading) {
               <div className="space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                   <h4 className="font-bold text-sm text-slate-900">STORE OFFERS & PRICING</h4>
-                  <button type="button" onClick={() => setEditingProductOffers([...editingProductOffers, { storeId: stores[0]?.id || '', price: 0, originalPrice: 0, affiliateUrl: '', availability: 'in_stock', currency: 'INR', sourceType: 'manual' }])} className="text-blue-600 font-semibold hover:text-blue-700">+ Add Offer</button>
+                  <button type="button" onClick={() => setEditingProductOffers([...editingProductOffers, { storeId: stores[0]?.id || '', price: "" as any, originalPrice: "" as any, affiliateUrl: '', availability: 'in_stock', currency: 'INR', sourceType: 'manual' }])} className="text-blue-600 font-semibold hover:text-blue-700">+ Add Offer</button>
                 </div>
                 
                 {editingProductOffers.map((offer, idx) => (
@@ -1106,7 +1266,7 @@ if (authLoading) {
                         </select>
                       </div>
                       <div className="space-y-1">
-                        <label className="font-semibold text-slate-700">Availability *</label>
+                        <label className="font-semibold text-slate-700">Availability *{fetchedFields.availability && idx === 0 ? <span className="ml-2 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">✓ AUTO</span> : (idx === 0 && <span className="ml-2 text-[10px] text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded">✎ MANUAL</span>)}</label>
                         <select
                           required
                           value={offer.availability || 'in_stock'}
@@ -1122,11 +1282,11 @@ if (authLoading) {
                         </select>
                       </div>
                       <div className="space-y-1">
-                        <label className="font-semibold text-slate-700">Current Price (₹) *</label>
+                        <label className="font-semibold text-slate-700">Current Price (₹) *{fetchedFields.price && idx === 0 ? <span className="ml-2 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">✓ AUTO</span> : (idx === 0 && <span className="ml-2 text-[10px] text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded">✎ MANUAL</span>)}</label>
                         <input
                           type="number"
                           required
-                          min="0"
+                          min={0}
                           value={offer.price || ''}
                           onChange={(e) => {
                             const newOffers = [...editingProductOffers]; newOffers[idx] = { ...newOffers[idx], price: Number(e.target.value) }; setEditingProductOffers(newOffers);
@@ -1135,10 +1295,10 @@ if (authLoading) {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="font-semibold text-slate-700">MRP (₹)</label>
+                        <label className="font-semibold text-slate-700">MRP (₹){fetchedFields.price && idx === 0 ? <span className="ml-2 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">✓ AUTO</span> : (idx === 0 && <span className="ml-2 text-[10px] text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded">✎ MANUAL</span>)}</label>
                         <input
                           type="number"
-                          min="0"
+                          min={0}
                           value={offer.originalPrice || ''}
                           onChange={(e) => {
                             const newOffers = [...editingProductOffers]; newOffers[idx] = { ...newOffers[idx], originalPrice: Number(e.target.value) }; setEditingProductOffers(newOffers);
@@ -1146,16 +1306,53 @@ if (authLoading) {
                           className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
                         />
                       </div>
+                      <div className="space-y-1">
+                        <label className="font-semibold text-slate-700">Merchant Product ID{fetchedFields.merchantProductId && idx === 0 && <span className="ml-2 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">✓ AUTO</span>}</label>
+                        <input
+                          type="text"
+                          value={offer.merchantProductId || ''}
+                          onChange={(e) => {
+                            const newOffers = [...editingProductOffers]; newOffers[idx] = { ...newOffers[idx], merchantProductId: e.target.value }; setEditingProductOffers(newOffers);
+                          }}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="font-semibold text-slate-700">Original Product URL{fetchedFields.productUrl && idx === 0 && <span className="ml-2 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">✓ AUTO</span>}</label>
+                        <input
+                          type="url"
+                          value={offer.productUrl || ''}
+                          onChange={(e) => {
+                            const newOffers = [...editingProductOffers]; newOffers[idx] = { ...newOffers[idx], productUrl: e.target.value }; setEditingProductOffers(newOffers);
+                          }}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="font-semibold text-slate-700">Sync Status</label>
+                        <select
+                          value={offer.syncStatus || 'manual'}
+                          onChange={(e) => {
+                            const newOffers = [...editingProductOffers]; newOffers[idx] = { ...newOffers[idx], syncStatus: e.target.value as any }; setEditingProductOffers(newOffers);
+                          }}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500 bg-white"
+                        >
+                          <option value="manual">Manual</option>
+                          <option value="automatic">Automatic Sync</option>
+                          <option value="error">Error</option>
+                          <option value="unavailable">Unavailable</option>
+                        </select>
+                      </div>
                       <div className="space-y-1 sm:col-span-2">
-                        <label className="font-semibold text-slate-700">Affiliate URL *</label>
+                        <label className="font-semibold text-slate-700">Affiliate URL (Tracked Link) *{fetchedFields.affiliateUrl && idx === 0 ? <span className="ml-2 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">✓ AUTO</span> : (idx === 0 && <span className="ml-2 text-[10px] text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded">✎ MANUAL</span>)}</label>
                         <input
                           type="url"
                           required
                           value={offer.affiliateUrl || ''}
+                          placeholder="Paste your affiliate link here"
                           onChange={(e) => {
-                            const newOffers = [...editingProductOffers]; newOffers[idx] = { ...newOffers[idx], affiliateUrl: e.target.value  }; setEditingProductOffers(newOffers);
+                            const newOffers = [...editingProductOffers]; newOffers[idx] = { ...newOffers[idx], affiliateUrl: e.target.value }; setEditingProductOffers(newOffers);
                           }}
-                          placeholder="https://amazon.in/..."
                           className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
                         />
                       </div>

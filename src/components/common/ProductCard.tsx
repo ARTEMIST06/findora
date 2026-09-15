@@ -19,8 +19,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
 
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!store.getCurrentUser()) {
+      showToast('Please log in to save to wishlist', 'info');
+      if (onNavigate) onNavigate('/login');
+      return;
+    }
     const added = store.toggleWishlist(product.id);
-    showToast(added ? `Added ${product.name} to wishlist` : 'Removed from wishlist', 'info');
+    showToast(store.isInWishlist(product.id) ? `Added ${product.name} to wishlist` : 'Removed from wishlist', 'info');
   };
 
   const handleCompareToggle = (e: React.MouseEvent) => {

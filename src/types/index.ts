@@ -24,10 +24,12 @@ export interface Store {
   isActive: boolean;
   active?: boolean;
   color?: string;
+  fetchProvider?: string;
+  syncSupported?: boolean;
 }
 
 export type OfferAvailability = 'in_stock' | 'out_of_stock' | 'pre_order' | 'limited_stock';
-export type OfferSourceType = 'manual' | 'api' | 'feed';
+export type OfferSourceType = 'manual' | 'api' | 'feed' | 'import';
 
 export interface PriceOffer {
   id: string;
@@ -42,6 +44,17 @@ export interface PriceOffer {
   sourceType: OfferSourceType;
   couponCode?: string;
   shippingNote?: string;
+  merchantProductId?: string;
+  productUrl?: string;
+  syncStatus?: 'manual' | 'automatic' | 'error' | 'unavailable';
+  syncError?: string;
+  lastSyncedAt?: string;
+  priceDrop?: {
+    amount: number;
+    percentage: number;
+    previousPrice: number;
+    detectedAt: string;
+  };
 }
 
 export interface PriceHistoryPoint {
@@ -104,4 +117,17 @@ export interface ProductWithPrices extends Product {
   highestPrice?: number;
   maxDiscountPercent?: number;
   bestStore?: Store;
+}
+
+
+export interface ImportHistory {
+  id: string;
+  fileName: string;
+  importedBy: string;
+  importedAt: string;
+  totalRows: number;
+  imported: number;
+  needsReview: number;
+  skipped: number;
+  failed: number;
 }

@@ -1,17 +1,19 @@
-import re
+with open('src/pages/admin/BulkImport.tsx', 'r') as f:
+    lines = f.readlines()
 
-with open('src/pages/public/ProductDetailPage.tsx', 'r') as f:
-    code = f.read()
+new_lines = []
+skip = False
+for line in lines:
+    if "          ) : (" in line:
+        new_lines.append(line)
+        skip = True
+        continue
+    if skip and '<div className="overflow-x-auto">' in line:
+        skip = False
+        new_lines.append(line)
+        continue
+    if not skip:
+        new_lines.append(line)
 
-# Fix the syntax error
-code = code.replace(
-"""                {bestOffer && (
-                  {bestOffer.affiliateUrl ? (""",
-"""                {bestOffer && (
-                  bestOffer.affiliateUrl ? ("""
-)
-
-with open('src/pages/public/ProductDetailPage.tsx', 'w') as f:
-    f.write(code)
-
-print("fixed syntax")
+with open('src/pages/admin/BulkImport.tsx', 'w') as f:
+    f.writelines(new_lines)

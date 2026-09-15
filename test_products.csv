@@ -1,0 +1,4 @@
+merchant,productUrl,affiliateUrl,title,brand,category,currentPrice,mrp,availability
+amazon,https://www.amazon.in/dp/B08N5W4NNB,https://www.amazon.in/dp/B08N5W4NNB?tag=findora-21,MacBook Air M1,Apple,Laptops,80000,99900,in_stock
+flipkart,https://www.flipkart.com/apple-macbook-air-m1/p/itmea55356c6?pid=COMFXEKMTXMX,https://fkr.com/abc,MacBook Air M1,Apple,Laptops,75000,99900,in_stock
+amazon,invalid-url,invalid-aff,Bad Product,Bad Brand,Electronics,10,20,out_of_stock

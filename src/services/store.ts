@@ -61,6 +61,31 @@ function saveToStorage<T>(key: string, value: T): void {
 
 // Store singleton class
 class FindoraStore {
+
+  async getImportHistory(): Promise<any[]> {
+    if (typeof window === 'undefined') return [];
+    try {
+      const { db } = await import('../lib/firebase');
+      const { collection, getDocs, query, orderBy } = await import('firebase/firestore');
+      const q = query(collection(db, 'importHistory'), orderBy('importedAt', 'desc'));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => doc.data());
+    } catch (e) {
+      console.error("Error fetching import history:", e);
+      return [];
+    }
+  }
+
+  async addImportHistory(history: any): Promise<void> {
+    if (typeof window === 'undefined') return;
+    try {
+      const { db } = await import('../lib/firebase');
+      const { doc, setDoc } = await import('firebase/firestore');
+      await setDoc(doc(db, 'importHistory', history.id), history);
+    } catch (e) {
+      console.error("Error adding import history:", e);
+    }
+  }
   private products: Product[] = [];
   private stores: Store[] = [];
   private offers: PriceOffer[] = [];
@@ -160,9 +185,12 @@ class FindoraStore {
               });
               
             } else {
+
               this.currentUser = null;
-              this.wishlist = getFromStorage(STORAGE_KEYS.WISHLIST, []);
+              this.wishlist = [];
+              localStorage.removeItem(STORAGE_KEYS.WISHLIST);
               if (unsubscribeWishlist) {
+
                 unsubscribeWishlist();
                 unsubscribeWishlist = null;
               }
@@ -180,7 +208,8 @@ class FindoraStore {
     // Keep local categories as they might be static
     this.categories = getFromStorage(STORAGE_KEYS.CATEGORIES, INITIAL_CATEGORIES);
     this.compareIds = getFromStorage(STORAGE_KEYS.COMPARE, []);
-    this.wishlist = getFromStorage(STORAGE_KEYS.WISHLIST, []);
+    this.wishlist = [];
+    localStorage.removeItem(STORAGE_KEYS.WISHLIST);
     
     // Temporarily load mock data so the UI isn't completely empty before Firebase loads
     this.products = getFromStorage(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS);
@@ -204,14 +233,16 @@ class FindoraStore {
 
   getProductBySlug(slug: string): Product | undefined {
     return this.products.find((p) => p.slug === slug || p.id === slug);
-  }
-
-  getProductWithPrices(idOrSlug: string): ProductWithPrices | undefined {
+  }getProductWithPrices(idOrSlug: string): ProductWithPrices | undefined {
     const product = this.getProductBySlug(idOrSlug) || this.getProductById(idOrSlug);
     if (!product) return undefined;
 
-    const productOffers = this.offers
-      .filter((o) => o.productId === product.id)
+    const allOffers = this.offers.filter((o) => o.productId === product.id);
+
+    // Filter valid offers
+    const productOffers = allOffers
+      .filter((o) => o.availability === 'in_stock' || o.availability === 'pre_order' || o.availability === 'limited_stock')
+      .filter(o => o.price != null && o.price > 0)
       .sort((a, b) => a.price - b.price);
 
     const lowestPrice = productOffers.length > 0 ? productOffers[0].price : undefined;
@@ -231,7 +262,7 @@ class FindoraStore {
 
     return {
       ...product,
-      offers: productOffers,
+      offers: allOffers, // Return all offers including out of stock
       lowestPrice,
       highestPrice,
       maxDiscountPercent: maxDiscountPercent > 0 ? maxDiscountPercent : undefined,
@@ -299,12 +330,22 @@ class FindoraStore {
       }
       // also remove offers
       this.offers = this.offers.filter((o) => o.productId !== id);
+
       this.wishlist = this.wishlist.filter((pid) => pid !== id);
       this.compareIds = this.compareIds.filter((pid) => pid !== id);
       saveToStorage(STORAGE_KEYS.PRODUCTS, this.products);
       saveToStorage(STORAGE_KEYS.OFFERS, this.offers);
-      saveToStorage(STORAGE_KEYS.WISHLIST, this.wishlist);
       saveToStorage(STORAGE_KEYS.COMPARE, this.compareIds);
+      if (this.currentUser && typeof window !== 'undefined') {
+        import('../lib/firebase').then(({ db }) => {
+          import('firebase/firestore').then(({ doc, setDoc }) => {
+            setDoc(doc(db, 'wishlists', this.currentUser!.id), {
+              productIds: this.wishlist
+            }, { merge: true }).catch(console.error);
+          });
+        });
+      }
+
       notifyChange();
       return true;
     }
@@ -419,6 +460,20 @@ class FindoraStore {
       const { db } = await import('../lib/firebase');
       const { doc, setDoc } = await import('firebase/firestore');
       await setDoc(doc(db, 'offers', newOffer.id), newOffer);
+      
+      // Add initial price history
+      await this.addPriceHistory({
+        id: `ph-${Date.now()}`,
+        productId: newOffer.productId,
+        offerId: newOffer.id,
+        merchantId: newOffer.storeId,
+        price: newOffer.price,
+        mrp: newOffer.originalPrice || null,
+        availability: newOffer.availability,
+        source: newOffer.sourceType || 'manual',
+        recordedAt: newOffer.lastUpdated,
+        createdAt: newOffer.lastUpdated
+      });
     }
     saveToStorage(STORAGE_KEYS.OFFERS, this.offers);
     notifyChange();
@@ -428,24 +483,74 @@ class FindoraStore {
   async updatePriceOffer(id: string, updates: Partial<PriceOffer>): Promise<PriceOffer | undefined> {
     const idx = this.offers.findIndex((o) => o.id === id);
     if (idx === -1) return undefined;
-    this.offers[idx] = {
-      ...this.offers[idx],
+    
+    const existingOffer = this.offers[idx];
+    const now = new Date().toISOString();
+    
+    // Check if price or availability actually changed
+    const priceChanged = updates.price !== undefined && updates.price !== existingOffer.price;
+    const availabilityChanged = updates.availability !== undefined && updates.availability !== existingOffer.availability;
+    
+    let priceDrop = existingOffer.priceDrop;
+    
+    if (priceChanged) {
+      if (updates.price! < existingOffer.price) {
+        const dropAmount = existingOffer.price - updates.price!;
+        priceDrop = {
+          amount: dropAmount,
+          percentage: Math.round((dropAmount / existingOffer.price) * 100),
+          previousPrice: existingOffer.price,
+          detectedAt: now
+        };
+      } else {
+        // Price went up, clear the price drop
+        priceDrop = undefined;
+      }
+    }
+
+    const updatedOffer: PriceOffer = {
+      ...existingOffer,
       ...updates,
-      lastUpdated: new Date().toISOString(),
+      priceDrop,
+      lastUpdated: now,
     };
+    
+    this.offers[idx] = updatedOffer;
+    
     if (typeof window !== 'undefined') {
       import('../lib/firebase').then(({ db }) => {
-        import('firebase/firestore').then(({ doc, updateDoc }) => {
-          updateDoc(doc(db, 'offers', id), {
+        import('firebase/firestore').then(({ doc, updateDoc, setDoc }) => {
+          const updatePayload: any = {
             ...updates,
-            lastUpdated: new Date().toISOString(),
-          }).catch(console.error);
+            lastUpdated: now,
+          };
+          if (priceChanged) {
+             updatePayload.priceDrop = priceDrop || null; // use null for firestore if undefined
+          }
+          
+          updateDoc(doc(db, 'offers', id), updatePayload).catch(console.error);
+          
+          if (priceChanged || availabilityChanged) {
+             const phId = `ph-${Date.now()}`;
+             setDoc(doc(db, 'priceHistory', phId), {
+                id: phId,
+                productId: updatedOffer.productId,
+                offerId: updatedOffer.id,
+                merchantId: updatedOffer.storeId,
+                price: updatedOffer.price,
+                mrp: updatedOffer.originalPrice || null,
+                availability: updatedOffer.availability,
+                source: updatedOffer.sourceType || 'manual',
+                recordedAt: now,
+                createdAt: now
+             }).catch(console.error);
+          }
         });
       });
     }
     saveToStorage(STORAGE_KEYS.OFFERS, this.offers);
     notifyChange();
-    return this.offers[idx];
+    return updatedOffer;
   }
 
   deletePriceOffer(id: string): boolean {
@@ -651,16 +756,18 @@ class FindoraStore {
   isInWishlist(productId: string): boolean {
     return this.wishlist.includes(productId);
   }
-
   toggleWishlist(productId: string): boolean {
+    if (!this.currentUser) {
+      return false;
+    }
     if (this.wishlist.includes(productId)) {
       this.wishlist = this.wishlist.filter((id) => id !== productId);
     } else {
       this.wishlist.push(productId);
     }
     
-    // Save to Firebase if user is logged in
-    if (this.currentUser && typeof window !== 'undefined') {
+    // Save to Firebase
+    if (typeof window !== 'undefined') {
       import('../lib/firebase').then(({ db }) => {
         import('firebase/firestore').then(({ doc, setDoc }) => {
           setDoc(doc(db, 'wishlists', this.currentUser!.id), {
@@ -668,13 +775,12 @@ class FindoraStore {
           }, { merge: true }).catch(console.error);
         });
       });
-    } else {
-      saveToStorage(STORAGE_KEYS.WISHLIST, this.wishlist);
     }
     
     notifyChange();
     return this.isInWishlist(productId);
   }
+
 
   // --- COMPARE (Max 4) ---
   getCompareList(): ProductWithPrices[] {
@@ -754,12 +860,29 @@ class FindoraStore {
   }
 
   // --- PRICE HISTORY ---
-  getPriceHistory(productId: string) {
-    return INITIAL_PRICE_HISTORY[productId] || [
-      { date: 'Jul 2026', price: 99999, storeName: 'Store' },
-      { date: 'Aug 2026', price: 95999, storeName: 'Store' },
-      { date: 'Sep 2026', price: 92999, storeName: 'Store' },
-    ];
+  async getPriceHistory(productId: string): Promise<any[]> {
+    if (typeof window === 'undefined') return [];
+    try {
+      const { db } = await import('../lib/firebase');
+      const { collection, getDocs, query, where, orderBy } = await import('firebase/firestore');
+      const q = query(collection(db, 'priceHistory'), where('productId', '==', productId), orderBy('recordedAt', 'asc'));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => doc.data());
+    } catch (e) {
+      console.error("Error fetching price history:", e);
+      return [];
+    }
+  }
+
+  async addPriceHistory(history: any): Promise<void> {
+    if (typeof window === 'undefined') return;
+    try {
+      const { db } = await import('../lib/firebase');
+      const { doc, setDoc } = await import('firebase/firestore');
+      await setDoc(doc(db, 'priceHistory', history.id), history);
+    } catch (e) {
+      console.error("Error adding price history:", e);
+    }
   }
 
   // --- RESET TO DEFAULTS ---

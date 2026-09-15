@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Heart, Trash2, ExternalLink, ArrowRight, ShoppingBag, ShieldCheck } from 'lucide-react';
 import { SEOHead } from '../../components/common/SEOHead';
 import { useFindoraStore } from '../../services/store';
@@ -12,6 +12,22 @@ interface WishlistPageProps {
 export const WishlistPage: React.FC<WishlistPageProps> = ({ onNavigate }) => {
   const store = useFindoraStore();
   const { showToast } = useToast();
+
+useEffect(() => {
+    if (!store.isAuthLoading() && !store.getCurrentUser()) {
+      onNavigate('/login');
+    }
+  }, [store.isAuthLoading(), store.getCurrentUser()]);
+
+  if (store.isAuthLoading()) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
+      </div>
+    );
+  }
+
+  if (!store.getCurrentUser()) return null;
 
   const wishlistProducts = store.getWishlist();
 
