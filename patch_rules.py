@@ -1,26 +1,39 @@
+import re
+
 with open('firestore.rules', 'r') as f:
     code = f.read()
 
-history_rules = """
-    // --- PRICE HISTORY ---
-    match /priceHistory/{docId} {
-      allow read: if true;
-      allow create: if isEditor();
-      allow update: if isEditor();
-      allow delete: if isAdmin();
-    }
-    
-    // --- PRICE ALERTS ---
-    match /priceAlerts/{docId} {
-      allow read, write: if isSignedInDemo() && (request.auth.uid == resource.data.userId || request.auth.uid == request.resource.data.userId);
-    }
-    
-    // --- IMPORT HISTORY ---
-"""
+users_old = """      allow update: if isSignedInDemo() && (
+        isAdmin() ||
+        (request.auth.uid == userId && !incoming().diff(existing()).affectedKeys().hasAny(['role', 'email', 'createdAt', 'id']))
+      );
+    }"""
 
-code = code.replace("// --- IMPORT HISTORY ---", history_rules.strip() + "\n\n    // --- IMPORT HISTORY ---")
+users_new = """      allow update: if isSignedInDemo() && (
+        isAdmin() ||
+        (request.auth.uid == userId && !incoming().diff(existing()).affectedKeys().hasAny(['role', 'email', 'createdAt', 'id']))
+      );
+      allow delete: if isSignedInDemo() && request.auth.uid == userId;
+    }"""
 
-with open('firestore.rules', 'w') as f:
-    f.write(code)
+sec_old = """    match /securityEvents/{docId} {
+      allow read: if isSignedInDemo() && (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isSignedInDemo() && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if false; // Security events are immutable
+    }"""
 
-print("done patching firestore.rules")
+sec_new = """    match /securityEvents/{docId} {
+      allow read: if isSignedInDemo() && (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isSignedInDemo() && request.auth.uid == request.resource.data.userId;
+      allow update: if false; // Security events are immutable during account lifecycle
+      allow delete: if isSignedInDemo() && request.auth.uid == resource.data.userId && !exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }"""
+
+if "allow delete: if isSignedInDemo() && request.auth.uid == userId;" not in code:
+    code = code.replace(users_old, users_new)
+    code = code.replace(sec_old, sec_new)
+    with open('firestore.rules', 'w') as f:
+        f.write(code)
+    print("Patched firestore.rules")
+else:
+    print("Already patched")

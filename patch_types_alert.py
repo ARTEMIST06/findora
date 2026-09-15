@@ -4,24 +4,24 @@ with open('src/types/index.ts', 'r') as f:
     code = f.read()
 
 new_types = """
-export interface PriceHistory {
+export interface PriceAlert {
   id: string;
+  userId: string;
   productId: string;
   offerId: string;
-  merchantId: string;
-  price: number;
-  mrp?: number;
-  availability: OfferAvailability;
-  recordedAt: string;
-  source: OfferSourceType;
+  targetPrice: number;
+  currency: string;
+  isActive: boolean;
+  triggeredAt?: string;
   createdAt: string;
+  updatedAt: string;
 }
 """
 
-if "export interface PriceHistory" not in code:
+if "export interface PriceAlert" not in code:
     code = code + new_types
     with open('src/types/index.ts', 'w') as f:
         f.write(code)
-    print("Patched types")
+    print("Patched types with PriceAlert")
 else:
     print("Already there")

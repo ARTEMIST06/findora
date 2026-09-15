@@ -12,6 +12,7 @@ import {
   ChevronRight,
   TrendingDown,
   BellRing,
+  RefreshCw,
   Info,
   Layers,
   ArrowRight,
@@ -38,8 +39,22 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
 
 const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<'specs' | 'history' | 'description'>('specs');
-  const [priceAlertEmail, setPriceAlertEmail] = useState('');
-  const [alertSubmitted, setAlertSubmitted] = useState(false);
+  const currentUser = store.getCurrentUser();
+  const [targetPrice, setTargetPrice] = useState('');
+  const [isSettingAlert, setIsSettingAlert] = useState(false);
+  const [existingAlert, setExistingAlert] = useState<any>(null);
+
+  useEffect(() => {
+    if (currentUser && product) {
+       store.getPriceAlerts(currentUser.id).then(alerts => {
+           const alertForProd = alerts.find(a => a.productId === product.id && a.isActive);
+           if (alertForProd) {
+               setExistingAlert(alertForProd);
+               setTargetPrice(alertForProd.targetPrice.toString());
+           }
+       });
+    }
+  }, [currentUser, product?.id]);
   const [priceHistory, setPriceHistory] = useState<any[]>([]);
 
   useEffect(() => {
@@ -119,12 +134,46 @@ const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
 
 
-  const handlePriceAlertSubmit = (e: React.FormEvent) => {
+  const handlePriceAlertSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (priceAlertEmail && priceAlertEmail.includes('@')) {
-      setAlertSubmitted(true);
-      showToast(`Price alert created! We will email ${priceAlertEmail} if price drops further.`, 'success');
+    if (!currentUser) {
+      showToast('Please sign in to set a price alert.', 'error');
+      return;
     }
+    const target = parseFloat(targetPrice);
+    if (isNaN(target) || target <= 0) {
+      showToast('Please enter a valid target price greater than 0.', 'error');
+      return;
+    }
+    const bestOffer = product?.offers[0];
+    if (!bestOffer) return;
+
+    setIsSettingAlert(true);
+    try {
+      if (existingAlert) {
+         await store.updatePriceAlert(existingAlert.id, { targetPrice: target, isActive: true });
+         setExistingAlert({ ...existingAlert, targetPrice: target, isActive: true });
+         showToast(`Alert updated! We will notify you when the price drops below ₹${target}.`, 'success');
+      } else {
+         const newAlert = await store.addPriceAlert({
+           userId: currentUser.id,
+           productId: product!.id,
+           offerId: bestOffer.id,
+           targetPrice: target,
+           currency: bestOffer.currency,
+           isActive: true,
+         });
+         if (newAlert) {
+           setExistingAlert(newAlert);
+           showToast(`Alert created! We will notify you when the price drops below ₹${target}.`, 'success');
+         } else {
+           showToast('Failed to create price alert.', 'error');
+         }
+      }
+    } catch (e) {
+      showToast('An error occurred while setting the alert.', 'error');
+    }
+    setIsSettingAlert(false);
   };
 
   const bestOffer = product.offers[0];
@@ -574,26 +623,37 @@ const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
               {/* Price Alert Signup */}
               <div className="flex items-center gap-2">
-                {alertSubmitted ? (
-                  <div className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
-                    ✓ Price drop alert registered!
-                  </div>
+                {!currentUser ? (
+                  <button
+                    onClick={() => showToast('Please sign in to set price alerts.', 'error')}
+                    className="px-3 py-1.5 bg-slate-100 text-slate-500 rounded-xl text-xs font-semibold hover:bg-slate-200 flex items-center gap-1 shrink-0"
+                  >
+                    <BellRing className="w-3.5 h-3.5" />
+                    <span>Sign in for Alerts</span>
+                  </button>
                 ) : (
                   <form onSubmit={handlePriceAlertSubmit} className="flex items-center gap-2">
-                    <input
-                      type="email"
-                      required
-                      value={priceAlertEmail}
-                      onChange={(e) => setPriceAlertEmail(e.target.value)}
-                      placeholder="Notify when price drops..."
-                      className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 outline-none focus:border-blue-500"
-                    />
+                    <div className="relative">
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-medium">₹</span>
+                      <input
+                        type="number"
+                        required
+                        min="1"
+                        step="0.01"
+                        value={targetPrice}
+                        onChange={(e) => setTargetPrice(e.target.value)}
+                        placeholder="Target price..."
+                        className="pl-6 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 outline-none focus:border-blue-500 w-32"
+                        disabled={isSettingAlert}
+                      />
+                    </div>
                     <button
                       type="submit"
-                      className="px-3 py-1.5 bg-blue-600 text-white rounded-xl text-xs font-semibold hover:bg-blue-700 flex items-center gap-1 shrink-0"
+                      disabled={isSettingAlert}
+                      className="px-3 py-1.5 bg-blue-600 text-white rounded-xl text-xs font-semibold hover:bg-blue-700 flex items-center gap-1 shrink-0 disabled:opacity-50"
                     >
-                      <BellRing className="w-3.5 h-3.5" />
-                      <span>Set Alert</span>
+                      {isSettingAlert ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BellRing className="w-3.5 h-3.5" />}
+                      <span>{existingAlert ? 'Update Alert' : 'Set Alert'}</span>
                     </button>
                   </form>
                 )}
@@ -601,6 +661,25 @@ const [selectedImageIndex, setSelectedImageIndex] = useState(0);
             </div>
 
             {/* Price timeline points visualization */}
+            {priceHistory.length > 0 && (() => {
+               const allPrices = priceHistory.map(ph => ph.price).filter(p => typeof p === 'number' && !isNaN(p) && p > 0);
+               const lowestHistory = allPrices.length > 0 ? Math.min(...allPrices) : null;
+               const highestHistory = allPrices.length > 0 ? Math.max(...allPrices) : null;
+               
+               return (
+                 <div className="grid grid-cols-2 gap-4 mb-6">
+                   <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl">
+                     <p className="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-1">Lowest Recorded</p>
+                     <p className="text-xl font-extrabold text-emerald-900">{lowestHistory ? formatINR(lowestHistory) : 'N/A'}</p>
+                   </div>
+                   <div className="bg-rose-50 border border-rose-100 p-4 rounded-xl">
+                     <p className="text-xs font-bold text-rose-800 uppercase tracking-wider mb-1">Highest Recorded</p>
+                     <p className="text-xl font-extrabold text-rose-900">{highestHistory ? formatINR(highestHistory) : 'N/A'}</p>
+                   </div>
+                 </div>
+               );
+            })()}
+            
             <div className="pt-2 w-full h-64">
               {priceHistory.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">

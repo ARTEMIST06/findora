@@ -77,10 +77,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
         }
         const credential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(credential.user, { displayName: name });
+        await store.logSecurityEvent(credential.user.uid, 'account_creation');
         showToast('Account created successfully!', 'success');
         onNavigate('/');
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
+        const credential = await signInWithEmailAndPassword(auth, email, password);
+        await store.logSecurityEvent(credential.user.uid, 'login', { method: 'email' });
         showToast('Successfully signed in!', 'success');
         onNavigate('/');
       }
@@ -114,7 +116,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
     try {
       setLoading(true);
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      // Determine if new user? Harder with popup, just log login
+      await store.logSecurityEvent(result.user.uid, 'login', { method: 'google' });
       showToast('Successfully signed in with Google!', 'success');
       onNavigate('/');
     } catch (error: any) {

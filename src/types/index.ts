@@ -131,3 +131,29 @@ export interface ImportHistory {
   skipped: number;
   failed: number;
 }
+
+export interface PriceHistory {
+  id: string;
+  productId: string;
+  offerId: string;
+  merchantId: string;
+  price: number;
+  mrp?: number;
+  availability: OfferAvailability;
+  recordedAt: string;
+  source: OfferSourceType;
+  createdAt: string;
+}
+
+export interface PriceAlert {
+  id: string;
+  userId: string;
+  productId: string;
+  offerId: string;
+  targetPrice: number;
+  currency: string;
+  isActive: boolean;
+  triggeredAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}

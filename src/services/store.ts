@@ -8,6 +8,7 @@ import {
   AffiliateClick,
   ProductWithPrices,
   UserRole,
+  PriceAlert,
 } from '../types';
 import {
   INITIAL_PRODUCTS,
@@ -528,7 +529,37 @@ class FindoraStore {
              updatePayload.priceDrop = priceDrop || null; // use null for firestore if undefined
           }
           
-          updateDoc(doc(db, 'offers', id), updatePayload).catch(console.error);
+          
+                    updateDoc(doc(db, 'offers', id), updatePayload).catch(console.error);
+                    
+                    // Check price alerts
+                    if (priceChanged && updates.price! < existingOffer.price) {
+                      import('firebase/firestore').then(async ({ collection, getDocs, query, where }) => {
+                        try {
+                          const alertsQuery = query(collection(db, 'priceAlerts'), 
+                            where('offerId', '==', id),
+                            where('isActive', '==', true)
+                          );
+                          const alertsSnap = await getDocs(alertsQuery);
+                          alertsSnap.forEach(async (alertDoc) => {
+                            const alertData = alertDoc.data();
+                            if (updates.price! <= alertData.targetPrice) {
+                              const { updateDoc, doc } = await import('firebase/firestore');
+                              await updateDoc(doc(db, 'priceAlerts', alertDoc.id), {
+                                isActive: false,
+                                triggeredAt: now,
+                                updatedAt: now
+                              });
+                              // In a real app, send email/push notification here
+                              console.log(`Alert triggered for user ${alertData.userId} on offer ${id}!`);
+                            }
+                          });
+                        } catch (e) {
+                          console.error("Error processing price alerts:", e);
+                        }
+                      });
+                    }
+
           
           if (priceChanged || availabilityChanged) {
              const phId = `ph-${Date.now()}`;
@@ -710,6 +741,70 @@ class FindoraStore {
     saveToStorage(STORAGE_KEYS.CURRENT_USER, this.currentUser);
     notifyChange();
     return this.currentUser;
+  }
+
+  
+  async deleteAccount(): Promise<{ success: boolean; message: string; requiresReauth?: boolean }> {
+    if (!this.currentUser || typeof window === 'undefined') return { success: false, message: 'Not logged in' };
+    
+    try {
+      const { auth, db } = await import('../lib/firebase');
+      const { deleteUser, getIdToken } = await import('firebase/auth');
+      const { collection, query, where, getDocs, deleteDoc, doc, writeBatch } = await import('firebase/firestore');
+      
+      const user = auth.currentUser;
+      if (!user) return { success: false, message: 'Authentication session lost' };
+
+      const uid = user.uid;
+      
+      // 1. Delete price alerts (Client allowed by rules)
+      try {
+        const alertsQuery = query(collection(db, 'priceAlerts'), where('userId', '==', uid));
+        const alertsSnapshot = await getDocs(alertsQuery);
+        const batch = writeBatch(db);
+        alertsSnapshot.docs.forEach(d => batch.delete(d.ref));
+        await batch.commit();
+      } catch (e) {
+        console.error("Failed to delete price alerts:", e);
+      }
+      
+      // 2. Delete wishlist (Client allowed by rules)
+      try {
+        await deleteDoc(doc(db, 'wishlists', uid));
+      } catch (e) {
+        console.error("Failed to delete wishlist:", e);
+      }
+
+      // 3. Trigger backend cleanup for immutable data (users profile and securityEvents)
+      try {
+        const idToken = await getIdToken(user, true);
+        await fetch('/api/delete-account-cleanup', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${idToken}`
+          }
+        });
+      } catch (e) {
+        console.error("Backend cleanup failed, continuing to auth deletion", e);
+      }
+
+      // 4. Finally, delete the Auth account itself
+      try {
+        await deleteUser(user);
+        this.currentUser = null;
+        notifyChange();
+        return { success: true, message: 'Account deleted successfully' };
+      } catch (e: any) {
+        if (e.code === 'auth/requires-recent-login') {
+          return { success: false, message: 'Please re-authenticate to confirm deletion.', requiresReauth: true };
+        }
+        throw e;
+      }
+      
+    } catch (e: any) {
+      console.error("Delete Account Error:", e);
+      return { success: false, message: e.message || 'Failed to delete account' };
+    }
   }
 
   logout(): void {
@@ -901,6 +996,98 @@ class FindoraStore {
     this.init();
     notifyChange();
   }
+
+
+
+  // --- SECURITY EVENTS ---
+  async logSecurityEvent(userId: string, eventType: 'login' | 'logout' | 'password_reset' | 'account_creation' | 'failed_login', details?: any) {
+    if (typeof window === 'undefined') return;
+    try {
+      const { db } = await import('../lib/firebase');
+      const { doc, setDoc } = await import('firebase/firestore');
+      const eventId = `sec-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      await setDoc(doc(db, 'securityEvents', eventId), {
+        id: eventId,
+        userId,
+        eventType,
+        details: details || null,
+        timestamp: new Date().toISOString()
+      });
+    } catch (e) {
+      console.error("Failed to log security event", e);
+    }
+  }
+
+  // --- PRICE ALERTS ---
+  async getPriceAlerts(userId: string): Promise<PriceAlert[]> {
+    if (typeof window === 'undefined') return [];
+    try {
+      const { db } = await import('../lib/firebase');
+      const { collection, getDocs, query, where, orderBy } = await import('firebase/firestore');
+      const q = query(collection(db, 'priceAlerts'), where('userId', '==', userId), orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => doc.data() as PriceAlert);
+    } catch (e) {
+      console.error("Error fetching price alerts:", e);
+      return [];
+    }
+  }
+
+  async addPriceAlert(alert: Omit<PriceAlert, 'id' | 'createdAt' | 'updatedAt'>): Promise<PriceAlert | undefined> {
+    if (typeof window === 'undefined') return undefined;
+    try {
+      const { db } = await import('../lib/firebase');
+      const { doc, setDoc } = await import('firebase/firestore');
+      
+      const now = new Date().toISOString();
+      const newAlert: PriceAlert = {
+        ...alert,
+        id: `alert-${Date.now()}`,
+        createdAt: now,
+        updatedAt: now,
+      };
+      
+      await setDoc(doc(db, 'priceAlerts', newAlert.id), newAlert);
+      return newAlert;
+    } catch (e) {
+      console.error("Error adding price alert:", e);
+      return undefined;
+    }
+  }
+
+  async updatePriceAlert(id: string, updates: Partial<PriceAlert>): Promise<boolean> {
+    if (typeof window === 'undefined') return false;
+    try {
+      const { db } = await import('../lib/firebase');
+      const { doc, updateDoc } = await import('firebase/firestore');
+      
+      const updatePayload = {
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+      
+      await updateDoc(doc(db, 'priceAlerts', id), updatePayload);
+      return true;
+    } catch (e) {
+      console.error("Error updating price alert:", e);
+      return false;
+    }
+  }
+
+  async deletePriceAlert(id: string): Promise<boolean> {
+    if (typeof window === 'undefined') return false;
+    try {
+      const { db } = await import('../lib/firebase');
+      const { doc, deleteDoc } = await import('firebase/firestore');
+      
+      await deleteDoc(doc(db, 'priceAlerts', id));
+      return true;
+    } catch (e) {
+      console.error("Error deleting price alert:", e);
+      return false;
+    }
+  }
+
 }
 
 export const findoraStore = new FindoraStore();

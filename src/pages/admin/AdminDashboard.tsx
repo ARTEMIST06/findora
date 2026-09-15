@@ -9,6 +9,7 @@ import {
   Edit2,
   Trash2,
   ExternalLink,
+  Download,
   TrendingUp,
   Search,
   CheckCircle2,
@@ -27,6 +28,7 @@ import { useFindoraStore } from '../../services/store';
 import { Product, Store as StoreType, PriceOffer } from '../../types';
 import { formatINR, formatRelativeTime } from '../../utils/formatters';
 import { useToast } from '../../components/common/Toast';
+import * as XLSX from 'xlsx';
 
 interface AdminDashboardProps {
   onNavigate: (route: string) => void;
@@ -70,6 +72,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   const [isFetching, setIsFetching] = useState(false);
   const [fetchResult, setFetchResult] = useState<{success?: boolean; message?: string} | null>(null);
   const [fetchedFields, setFetchedFields] = useState<Record<string, boolean>>({});
+  const [isExporting, setIsExporting] = useState(false);
 
   const handleFetchProduct = async () => {
     if (!fetchMerchantId || !fetchUrl) return;
@@ -232,6 +235,54 @@ if (authLoading) {
   const featuredCount = products.filter((p) => p.featured).length;
 
   // --- Product Management Handlers ---
+    const handleExportExcel = () => {
+    setIsExporting(true);
+    try {
+      const allProducts = store.getAllProductsWithPrices(false); // get all including drafts
+      const allStores = store.getStores();
+      
+      const exportData = allProducts.map(p => {
+        const primaryOffer = p.offers && p.offers.length > 0 ? p.offers[0] : null;
+        let merchantName = '';
+        if (primaryOffer) {
+           const st = allStores.find(s => s.id === primaryOffer.storeId);
+           if (st) merchantName = st.name;
+        }
+
+        return {
+          merchant: merchantName,
+          productUrl: primaryOffer?.productUrl || '',
+          affiliateUrl: primaryOffer?.affiliateUrl || '',
+          title: p.name || '',
+          brand: p.brand || '',
+          category: p.category || '',
+          image: p.images && p.images.length > 0 ? p.images[0] : '',
+          currentPrice: primaryOffer?.price || '',
+          mrp: primaryOffer?.originalPrice || '',
+          availability: primaryOffer?.availability || 'in_stock',
+          badge: p.badge || '',
+          shortPitch: p.shortDescription || '',
+          whyFindoraPickedIt: p.whyFindora || '',
+          published: p.published !== false,
+          featured: !!p.featured,
+          productId: p.id,
+          merchantProductId: primaryOffer?.merchantProductId || ''
+        };
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
+      XLSX.writeFile(workbook, "Findora_Products_Export.xlsx");
+      showToast('success', 'Products exported successfully!');
+    } catch (err: any) {
+      console.error("Export Error: ", err);
+      showToast('error', err.message || 'Failed to export products');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleOpenNewProduct = () => {
     setEditingProduct({
       name: '',
@@ -473,6 +524,23 @@ if (authLoading) {
             <span>View Public Site</span>
           </button>
           <button
+            onClick={() => setActiveTab('bulk-import')}
+            className="px-3.5 py-2 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 transition-colors"
+          >
+            <FileUp className="w-4 h-4 text-slate-400" />
+            <span className="hidden sm:inline">Import Products</span>
+            <span className="sm:hidden">Import</span>
+          </button>
+          <button
+            onClick={handleExportExcel}
+            disabled={isExporting}
+            className="px-3.5 py-2 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 transition-colors disabled:opacity-50"
+          >
+            {isExporting ? <RefreshCw className="w-4 h-4 animate-spin text-slate-400" /> : <Download className="w-4 h-4 text-slate-400" />}
+            <span className="hidden sm:inline">{isExporting ? 'Exporting...' : 'Export Products'}</span>
+            <span className="sm:hidden">{isExporting ? 'Wait' : 'Export'}</span>
+          </button>
+          <button
             onClick={handleOpenNewProduct}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
           >
@@ -543,7 +611,24 @@ if (authLoading) {
           <MousePointerClick className="w-4 h-4" />
           <span>Affiliate Outbound Clicks ({totalClicksCount})</span>
         </button>
+        <button
+          onClick={() => setActiveTab('bulk-import')}
+          className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 ${
+            activeTab === 'bulk-import'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <FileUp className="w-4 h-4" />
+          <span>Bulk Import</span>
+        </button>
       </div>
+
+
+            {/* TAB: BULK IMPORT */}
+      {activeTab === 'bulk-import' && (
+        <BulkImport onImportComplete={() => setActiveTab('products')} />
+      )}
 
       {/* TAB 1: OVERVIEW */}
       {activeTab === 'overview' && (

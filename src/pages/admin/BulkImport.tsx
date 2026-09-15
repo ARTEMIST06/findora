@@ -135,6 +135,7 @@ export function BulkImport() {
           category: row.category || row.Category || '',
           shortDescription: row.shortPitch || '',
           whyFindora: row.whyFindoraPickedIt || '',
+          badge: row.badge || '',
           images: row.image ? [row.image] : [],
           published: row.published === 'true' || row.published === true || false,
           featured: row.featured === 'true' || row.featured === true || false,
@@ -142,8 +143,10 @@ export function BulkImport() {
         offerData: {
           price: parseFloat(row.currentPrice || row.Price || 0) || 0,
           originalPrice: parseFloat(row.mrp || row.MRP || 0) || undefined,
+          merchantProductId: row.merchantProductId || '',
           availability: (row.availability || 'in_stock') as any
-        }
+        },
+        existingProductId: row.productId || undefined
       };
 
       if (isValid) {
@@ -175,13 +178,26 @@ export function BulkImport() {
             
             // Check Duplicates
             let foundExistingOffer = false;
-            if (pd.merchantProductId) {
+            
+            if (pRow.existingProductId) {
+               // We have an explicit productId from the imported CSV
+               const existOff = existingOffers.find(o => o.storeId === merchantId && o.productId === pRow.existingProductId);
+               if (existOff) {
+                 pRow.duplicateStatus = 'duplicate_offer';
+                 pRow.existingOfferId = existOff.id;
+                 pRow.overallStatus = 'ready'; // ready for update
+                 foundExistingOffer = true;
+               } else {
+                 pRow.duplicateStatus = 'duplicate_product'; // product exists, but no offer
+                 pRow.overallStatus = 'ready';
+               }
+            } else if (pd.merchantProductId) {
                const existOff = existingOffers.find(o => o.storeId === merchantId && o.merchantProductId === pd.merchantProductId);
                if (existOff) {
                  pRow.duplicateStatus = 'duplicate_offer';
                  pRow.existingOfferId = existOff.id;
                  pRow.existingProductId = existOff.productId;
-                 pRow.overallStatus = 'needs_review';
+                 pRow.overallStatus = 'ready'; // ready for update
                  foundExistingOffer = true;
                }
             } else {
@@ -190,16 +206,17 @@ export function BulkImport() {
                  pRow.duplicateStatus = 'duplicate_offer';
                  pRow.existingOfferId = existOffUrl.id;
                  pRow.existingProductId = existOffUrl.productId;
-                 pRow.overallStatus = 'needs_review';
+                 pRow.overallStatus = 'ready'; // ready for update
                  foundExistingOffer = true;
                }
             }
 
-            if (!foundExistingOffer && pRow.productData.name) {
+            if (!foundExistingOffer && !pRow.existingProductId && pRow.productData.name) {
                const existProd = existingProducts.find(p => p.name.toLowerCase() === (pRow.productData.name || '').toLowerCase());
                if (existProd) {
                  pRow.duplicateStatus = 'duplicate_product';
                  pRow.existingProductId = existProd.id;
+                 pRow.overallStatus = 'ready';
                }
             }
           }
@@ -438,7 +455,7 @@ export function BulkImport() {
                            {row.autoFetchStatus === 'pending' && <span className="text-blue-500 text-xs">...</span>}
                         </td>
                         <td className="px-4 py-3">
-                           {row.duplicateStatus === 'duplicate_offer' && <span className="text-amber-500 text-xs font-bold">Duplicate</span>}
+                           {row.duplicateStatus === 'duplicate_offer' && <span className="text-amber-500 text-xs font-bold">Update</span>}
                            {row.duplicateStatus === 'duplicate_product' && <span className="text-blue-500 text-xs font-bold">Add Offer</span>}
                            {row.duplicateStatus === 'new' && <span className="text-emerald-500 text-xs font-bold">New</span>}
                         </td>

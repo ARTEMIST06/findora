@@ -91,7 +91,17 @@ service cloud.firestore {
     
     // --- PRICE ALERTS ---
     match /priceAlerts/{docId} {
-      allow read, write: if isSignedInDemo() && (request.auth.uid == resource.data.userId || request.auth.uid == request.resource.data.userId);
+      allow read: if isSignedInDemo() && request.auth.uid == resource.data.userId;
+      allow create: if isSignedInDemo() && request.auth.uid == request.resource.data.userId;
+      allow update: if isSignedInDemo() && request.auth.uid == resource.data.userId && request.auth.uid == request.resource.data.userId;
+      allow delete: if isSignedInDemo() && request.auth.uid == resource.data.userId;
+    }
+    
+    // --- LOGIN HISTORY ---
+    match /securityEvents/{docId} {
+      allow read: if isSignedInDemo() && (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isSignedInDemo() && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if false; // Security events are immutable
     }
     
     // --- IMPORT HISTORY ---
