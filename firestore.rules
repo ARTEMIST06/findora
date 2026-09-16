@@ -4,12 +4,7 @@ service cloud.firestore {
     match /{document=**} {
       allow read, write: if false;
     }
-    function isSignedIn() {
-      return request.auth != null && request.auth.token.email_verified == true;
-    }
-    
-    // Loosened for demo since Google Auth in Dev UI sometimes doesn't mark email_verified = true immediately
-    function isSignedInDemo() {
+    function isAuthenticated() {
       return request.auth != null;
     }
     function existing() {
@@ -19,10 +14,10 @@ service cloud.firestore {
       return request.resource.data;
     }
     function isAdmin() {
-      return isSignedInDemo() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return isAuthenticated() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     function isEditor() {
-      return isSignedInDemo() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'editor' || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      return isAuthenticated() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'editor' || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
     }
 
     // --- USERS ---
@@ -38,9 +33,9 @@ service cloud.firestore {
     }
     
     match /users/{userId} {
-      allow read: if isSignedInDemo() && (request.auth.uid == userId || isAdmin());
-      allow create: if isSignedInDemo() && request.auth.uid == userId && isValidUserCreate(incoming());
-      allow update: if isSignedInDemo() && (
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow create: if isAuthenticated() && request.auth.uid == userId && isValidUserCreate(incoming());
+      allow update: if isAuthenticated() && (
         isAdmin() ||
         (request.auth.uid == userId && !incoming().diff(existing()).affectedKeys().hasAny(['role', 'email', 'createdAt', 'id']))
       );
@@ -72,7 +67,7 @@ service cloud.firestore {
 
     // --- WISHLISTS ---
     match /wishlists/{userId} {
-      allow read, write: if isSignedInDemo() && request.auth.uid == userId;
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
     }
 
     // --- CLICKS ---
@@ -91,16 +86,16 @@ service cloud.firestore {
     
     // --- PRICE ALERTS ---
     match /priceAlerts/{docId} {
-      allow read: if isSignedInDemo() && request.auth.uid == resource.data.userId;
-      allow create: if isSignedInDemo() && request.auth.uid == request.resource.data.userId;
-      allow update: if isSignedInDemo() && request.auth.uid == resource.data.userId && request.auth.uid == request.resource.data.userId;
-      allow delete: if isSignedInDemo() && request.auth.uid == resource.data.userId;
+      allow read: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId;
+      allow update: if isAuthenticated() && request.auth.uid == resource.data.userId && request.auth.uid == request.resource.data.userId;
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.userId;
     }
     
     // --- LOGIN HISTORY ---
     match /securityEvents/{docId} {
-      allow read: if isSignedInDemo() && (request.auth.uid == resource.data.userId || isAdmin());
-      allow create: if isSignedInDemo() && request.auth.uid == request.resource.data.userId;
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId;
       allow update, delete: if false; // Security events are immutable
     }
     
@@ -109,6 +104,30 @@ service cloud.firestore {
     // --- IMPORT HISTORY ---
     match /importHistory/{docId} {
       allow read: if isEditor();
+      allow create: if isEditor();
+      allow update: if isEditor();
+      allow delete: if isAdmin();
+    }
+
+    // --- PRODUCT DRAFTS ---
+    match /productDrafts/{draftId} {
+      allow read: if isEditor();
+      allow create: if isEditor();
+      allow update: if isEditor();
+      allow delete: if isAdmin();
+    }
+    
+    // --- BRANDS ---
+    match /brands/{brandId} {
+      allow read: if true;
+      allow create: if isEditor();
+      allow update: if isEditor();
+      allow delete: if isAdmin();
+    }
+    
+    // --- CATEGORIES ---
+    match /categories/{categoryId} {
+      allow read: if true;
       allow create: if isEditor();
       allow update: if isEditor();
       allow delete: if isAdmin();

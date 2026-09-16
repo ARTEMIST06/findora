@@ -1,104 +1,96 @@
-import React, { useState } from 'react';
-import { ShieldCheck, Mail, CheckCircle2, Send, HelpCircle, FileText, Globe } from 'lucide-react';
-import { SEOHead } from '../../components/common/SEOHead';
-import { useToast } from '../../components/common/Toast';
+import React, { useState, useEffect } from 'react';
+import { ChevronRight, ShieldCheck, Mail, AlertCircle, FileText, Lock, Cookie, Scale, Send, CheckCircle2 } from 'lucide-react';
 
 interface LegalPageProps {
-  page: 'about' | 'contact' | 'privacy' | 'terms' | 'affiliate-disclosure';
-  onNavigate: (route: string) => void;
+  page: 'about' | 'contact' | 'privacy' | 'terms' | 'affiliate-disclosure' | 'cookie-disclosure';
+  onNavigate: (path: string) => void;
 }
 
 export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
-  const { showToast } = useToast();
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactSubject, setContactSubject] = useState('');
   const [contactMessage, setContactMessage] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    // Update Meta Tags for SEO
+    let title = 'Findora';
+    let desc = 'Findora Legal & Information';
+    switch (page) {
+      case 'about': title = 'About Us | Findora'; desc = 'Learn about Findora\'s mission to help you find the best prices across multiple stores.'; break;
+      case 'contact': title = 'Contact Us | Findora'; desc = 'Get in touch with the Findora team for support, partnerships, or feedback.'; break;
+      case 'privacy': title = 'Privacy Policy | Findora'; desc = 'Read Findora\'s privacy policy and understand how we protect your data.'; break;
+      case 'terms': title = 'Terms & Conditions | Findora'; desc = 'Review the terms and conditions for using the Findora price comparison platform.'; break;
+      case 'affiliate-disclosure': title = 'Affiliate Disclosure | Findora'; desc = 'Findora affiliate and FTC disclosure regarding merchant commissions.'; break;
+      case 'cookie-disclosure': title = 'Cookie & Analytics Disclosure | Findora'; desc = 'Information about how Findora uses cookies and analytics.'; break;
+    }
+    document.title = title;
+    
+    // Find or create meta description tag
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.setAttribute('name', 'description');
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.setAttribute('content', desc);
+  }, [page]);
+
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (contactEmail && contactMessage) {
-      setIsSubmitted(true);
-      showToast('Thank you! Your message has been sent to the Findora team.', 'success');
-    }
+    setIsSubmitted(true);
+    setContactName('');
+    setContactSubject('');
+    setContactMessage('');
   };
 
-  const pageTitles: Record<string, string> = {
-    'about': 'About Us',
-    'contact': 'Contact Support',
-    'privacy': 'Privacy Policy',
-    'terms': 'Terms of Service',
-    'affiliate-disclosure': 'Affiliate Disclosure'
-  };
-
-  const title = `${pageTitles[page] || 'Legal'} - Findora`;
+  const Breadcrumb = ({ title }: { title: string }) => (
+    <div className="flex items-center gap-2 text-xs text-slate-500 mb-6">
+      <button onClick={() => onNavigate('/')} className="hover:text-blue-600 transition-colors">Home</button>
+      <ChevronRight className="w-3 h-3" />
+      <span className="text-slate-900 font-medium">{title}</span>
+    </div>
+  );
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
-      <SEOHead 
-        title={title}
-        description={`Learn more about Findora's ${pageTitles[page]?.toLowerCase() || 'legal policies'}.`}
-      />
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 pt-24 min-h-[80vh]">
+      {page === 'about' && <Breadcrumb title="About Findora" />}
+      {page === 'contact' && <Breadcrumb title="Contact Us" />}
+      {page === 'privacy' && <Breadcrumb title="Privacy Policy" />}
+      {page === 'terms' && <Breadcrumb title="Terms & Conditions" />}
+      {page === 'affiliate-disclosure' && <Breadcrumb title="Affiliate Disclosure" />}
+      {page === 'cookie-disclosure' && <Breadcrumb title="Cookie & Analytics" />}
+
       {/* About Page */}
       {page === 'about' && (
         <div className="bg-white rounded-3xl border border-slate-200/80 p-8 sm:p-12 space-y-8 shadow-xs">
           <div className="border-b border-slate-100 pb-6">
-            <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">About Findora</span>
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
-              Find it. Compare it. Buy smarter.
-            </h1>
-            <p className="text-sm text-slate-500 mt-2 leading-relaxed">
-              Findora is an independent consumer technology intelligence and price comparison platform built to empower Indian shoppers to make fully informed, cost-effective buying choices.
-            </p>
-          </div>
-
-          <div className="prose prose-slate max-w-none text-sm leading-relaxed text-slate-700 space-y-4">
-            <h3 className="text-lg font-bold text-slate-900">Our Mission</h3>
-            <p>
-              In today's fragmented online marketplace, identical tech products are sold simultaneously across Amazon, Flipkart, Croma, Reliance Digital, and brand stores at widely fluctuating prices. Consumers waste hours comparing deals across multiple tabs, or worse, miss out on thousands of rupees in bank discounts and limited-time price drops.
-            </p>
-            <p>
-              Findora solves this by aggregating authentic prices, identifying true historical price drops, and presenting objective hardware comparisons without artificial sponsored clutter.
-            </p>
-
-            <h3 className="text-lg font-bold text-slate-900 mt-6">How We Ensure Unbiased Comparison</h3>
-            <p>
-              Our editorial picks and "Why Findora Picked It" verdicts are crafted independently. We clearly point out shortcomings alongside standout advantages so you never experience buyer remorse.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Affiliate Disclosure Page */}
-      {page === 'affiliate-disclosure' && (
-        <div className="bg-white rounded-3xl border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-xs">
-          <div className="border-b border-slate-100 pb-6">
-            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
-              <ShieldCheck className="w-4 h-4" />
-              <span>FTC & Consumer Protection Compliance</span>
-            </div>
+            <span className="text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4" /> About Us
+            </span>
             <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-2">
-              Affiliate Disclosure
+              Findora: Intelligent Price Discovery
             </h1>
-            <p className="text-xs text-slate-500 mt-1">Last Updated: September 2026</p>
+            <p className="text-sm text-slate-500 mt-2">
+              Empowering shoppers with transparent, unbiased price tracking across top retailers.
+            </p>
           </div>
-
+          
           <div className="text-sm text-slate-700 leading-relaxed space-y-4">
             <p>
-              Transparency is our core foundation at <strong>Findora</strong>. We believe you should always know how this platform is maintained, operated, and monetized.
+              Findora was built to solve a simple problem: the frustration of overpaying for products when a better deal exists on another trusted store. We aggregate product pricing, historical price drops, and live offers from major retailers like Amazon, Flipkart, Croma, and Reliance Digital.
             </p>
-            <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 font-medium">
-              Findora is a participant in merchant affiliate programs, including the <strong>Amazon Associates Program</strong>, <strong>Flipkart Affiliate Program</strong>, and direct retail partnerships with Croma and Reliance Digital.
-            </div>
-            <h3 className="text-base font-bold text-slate-900 pt-2">What Does This Mean For You?</h3>
+            <h3 className="text-lg font-bold text-slate-900 pt-4">Our Mission</h3>
             <p>
-              When you click on a store offer button (such as "Check Price" or "Check Deal") on Findora, you are redirected to the merchant website using a special referral tracking link. If you decide to make a purchase, Findora may receive a small percentage commission from the retailer.
+              Our mission is to bring transparency to online retail. We believe every shopper deserves access to the lowest price without having to manually check a dozen different websites. Our platform continuously syncs merchant data so that you can make informed purchasing decisions.
             </p>
+            <h3 className="text-lg font-bold text-slate-900 pt-4">How We Operate</h3>
             <ul className="list-disc pl-5 space-y-2">
-              <li><strong>Zero Added Cost to You:</strong> You pay the exact same price (or lower, if applying verified coupon codes) as you would by going directly to the merchant.</li>
-              <li><strong>Editorial Independence:</strong> Our rankings, product ratings, and price comparison displays are dictated strictly by objective market data, not by which retailer pays the highest commission.</li>
-              <li><strong>No Artificial Bias:</strong> We list merchants regardless of whether they offer an active affiliate program whenever their price is the genuine lowest option for our users.</li>
+              <li><strong>Real-Time Alerts:</strong> Users can set price alerts and receive notifications when a product drops to their desired price.</li>
+              <li><strong>Historical Tracking:</strong> We log price history data to show you if today's "deal" is genuinely a discount or a marketing tactic.</li>
+              <li><strong>Zero Added Markup:</strong> The prices you see on Findora are the same prices you will find on the retailer's official website. We never add our own markup.</li>
             </ul>
           </div>
         </div>
@@ -108,13 +100,15 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
       {page === 'contact' && (
         <div className="bg-white rounded-3xl border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-xs">
           <div className="border-b border-slate-100 pb-6">
-            <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">Get in touch</span>
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1">Contact Findora</h1>
-            <p className="text-sm text-slate-500 mt-1">
+            <span className="text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center gap-2">
+              <Mail className="w-4 h-4" /> Get in touch
+            </span>
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-2">Contact Findora</h1>
+            <p className="text-sm text-slate-500 mt-2">
               Have feedback, a store partnership inquiry, or a price discrepancy to report? We'd love to hear from you.
             </p>
           </div>
-
+          
           {isSubmitted ? (
             <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-2">
               <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
@@ -139,7 +133,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
                     required
                     value={contactName}
                     onChange={(e) => setContactName(e.target.value)}
-                    placeholder="Arya Singh"
+                    placeholder="John Doe"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-blue-500 text-xs text-slate-900"
                   />
                 </div>
@@ -155,7 +149,6 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
                   />
                 </div>
               </div>
-
               <div className="space-y-1">
                 <label className="font-semibold text-slate-700">Subject</label>
                 <input
@@ -167,7 +160,6 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-blue-500 text-xs text-slate-900"
                 />
               </div>
-
               <div className="space-y-1">
                 <label className="font-semibold text-slate-700">Your Message</label>
                 <textarea
@@ -179,7 +171,6 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-blue-500 text-xs text-slate-900"
                 ></textarea>
               </div>
-
               <button
                 type="submit"
                 className="py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-colors flex items-center gap-2"
@@ -196,23 +187,55 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
       {page === 'privacy' && (
         <div className="bg-white rounded-3xl border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-xs">
           <div className="border-b border-slate-100 pb-6">
-            <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">Legal</span>
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
+            <span className="text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center gap-2">
+              <Lock className="w-4 h-4" /> Legal
+            </span>
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-2">
               Privacy Policy
             </h1>
-            <p className="text-xs text-slate-500 mt-1">Effective Date: September 2026</p>
+            <p className="text-xs text-slate-500 mt-2">Last Updated: September 16, 2026</p>
           </div>
-          <div className="text-sm text-slate-700 leading-relaxed space-y-3">
+          
+          <div className="text-sm text-slate-700 leading-relaxed space-y-4">
             <p>
-              Findora ("we", "us", or "our") respects your privacy. This policy outlines how information is collected, stored, and protected when you use the Findora discovery engine.
+              Findora ("we", "us", or "our") is committed to respecting your privacy. This policy outlines how information is collected, stored, and protected when you use our platform.
             </p>
-            <h4 className="font-bold text-slate-900 pt-2">1. Information We Collect</h4>
+            
+            <h3 className="text-lg font-bold text-slate-900 pt-4">1. Data We Collect</h3>
+            <p>When you create an account using Email or Google Sign-In, we collect and store the following data using Firebase Authentication and Firestore:</p>
+            <ul className="list-disc pl-5 space-y-2">
+              <li><strong>Profile Data:</strong> Your name, email address, account role, and account creation timestamps.</li>
+              <li><strong>Security & Access Logs:</strong> We maintain a secure, immutable log of authentication events (such as logins and account creations) associated with your User ID for security and auditing purposes.</li>
+              <li><strong>User Preferences:</strong> Your saved products (wishlist) and customized price alerts.</li>
+            </ul>
+
+            <h3 className="text-lg font-bold text-slate-900 pt-4">2. How We Use Your Data</h3>
+            <ul className="list-disc pl-5 space-y-2">
+              <li>To provide core platform functionality, including allowing you to save favorite products and synchronize them across devices.</li>
+              <li>To trigger automated price alert emails or notifications when merchant prices drop.</li>
+              <li>To detect unauthorized access or fraudulent account activity via our security event logging.</li>
+            </ul>
+
+            <h3 className="text-lg font-bold text-slate-900 pt-4">3. Data Sharing & Security</h3>
             <p>
-              We only collect information necessary to personalize your shopping experience, such as saved wishlist items, active product comparisons, and anonymized referral click counters. We do not sell your personal data.
+              Your data is stored securely using Google Cloud infrastructure (Firebase Firestore). We do <strong>not</strong> sell your personal data to third parties. We enforce strict Role-Based Access Control (RBAC) meaning your wishlist, price alerts, and security history are strictly private to you and cannot be accessed by other users. 
             </p>
-            <h4 className="font-bold text-slate-900 pt-2">2. Outbound Links</h4>
+
+            <h3 className="text-lg font-bold text-slate-900 pt-4">4. Account and Data Deletion</h3>
             <p>
-              Findora links to external third-party merchant platforms. We recommend checking each merchant's respective privacy policy before conducting financial transactions.
+              You have full control over your data. You may request account deletion at any time via your Profile page. When you delete your account, we programmatically purge the following records:
+            </p>
+            <ul className="list-disc pl-5 space-y-2">
+              <li>Your Firebase Authentication credentials.</li>
+              <li>Your user profile document.</li>
+              <li>All active price alerts associated with your ID.</li>
+              <li>Your saved wishlist items.</li>
+              <li>Your historical security and login event logs.</li>
+            </ul>
+
+            <h3 className="text-lg font-bold text-slate-900 pt-4">5. Outbound Third-Party Links</h3>
+            <p>
+              Findora links to external third-party merchant platforms. When you click an external link, you leave our platform. We strongly recommend reviewing each merchant's respective privacy policy before providing them with payment details or personal data, as we do not control their privacy practices.
             </p>
           </div>
         </div>
@@ -222,19 +245,120 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
       {page === 'terms' && (
         <div className="bg-white rounded-3xl border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-xs">
           <div className="border-b border-slate-100 pb-6">
-            <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">Terms</span>
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
+            <span className="text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center gap-2">
+              <Scale className="w-4 h-4" /> Legal
+            </span>
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-2">
               Terms & Conditions
             </h1>
-            <p className="text-xs text-slate-500 mt-1">Effective Date: September 2026</p>
+            <p className="text-xs text-slate-500 mt-2">Last Updated: September 16, 2026</p>
           </div>
-          <div className="text-sm text-slate-700 leading-relaxed space-y-3">
+          
+          <div className="text-sm text-slate-700 leading-relaxed space-y-4">
             <p>
-              By accessing Findora, you agree to these Terms and Conditions. Findora is a price comparison and discovery tool and is not the direct merchant or seller of items listed on third-party stores.
+              By accessing Findora, you agree to these Terms and Conditions. If you do not agree with any part of these terms, please do not use our services.
             </p>
-            <h4 className="font-bold text-slate-900 pt-2">Pricing Accuracy</h4>
+
+            <h3 className="text-lg font-bold text-slate-900 pt-4">1. Nature of the Service</h3>
             <p>
-              While Findora makes every reasonable effort to keep merchant pricing updated in near real-time, prices, promotional vouchers, and inventory availability are controlled directly by merchants and are subject to immediate change without notice.
+              Findora is an informational price comparison and discovery tool. We are <strong>not</strong> the merchant, manufacturer, or seller of the items listed. We merely aggregate public pricing data and offers from third-party retailers.
+            </p>
+
+            <h3 className="text-lg font-bold text-slate-900 pt-4">2. Pricing & Availability Disclaimer</h3>
+            <p>
+              While Findora utilizes automated backend synchronization (via editorial tools and data fetching endpoints) to keep merchant pricing updated in near real-time, <strong>we cannot guarantee the absolute accuracy of prices or inventory.</strong> Prices, promotional vouchers, shipping costs, and inventory availability are controlled directly by merchants and are subject to immediate change without notice. The final price and terms of sale are determined strictly on the merchant's checkout page.
+            </p>
+
+            <h3 className="text-lg font-bold text-slate-900 pt-4">3. No Guarantees on Fulfillment</h3>
+            <p>
+              Because we are not the seller, Findora makes no warranties or guarantees regarding merchant fulfillment, delivery times, product quality, returns, or refunds. All disputes regarding a purchase must be resolved directly with the retailer from whom you bought the item.
+            </p>
+
+            <h3 className="text-lg font-bold text-slate-900 pt-4">4. Acceptable Use</h3>
+            <p>
+              You agree to use Findora for personal, non-commercial purposes. You may not attempt to reverse engineer, scrape, or overwhelm our API (including our `/api/fetch-product` endpoints) using automated bots. We employ rate limiting and security headers (such as Helmet and Content Security Policies) to protect our infrastructure, and any attempt to bypass these restrictions will result in immediate account termination.
+            </p>
+
+            <h3 className="text-lg font-bold text-slate-900 pt-4">5. User Accounts</h3>
+            <p>
+              You are responsible for maintaining the confidentiality of your login credentials. We are not liable for any loss or damage arising from your failure to protect your account.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Affiliate Disclosure */}
+      {page === 'affiliate-disclosure' && (
+        <div className="bg-white rounded-3xl border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-xs">
+          <div className="border-b border-slate-100 pb-6">
+            <span className="text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" /> Transparency
+            </span>
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-2">
+              Affiliate Disclosure
+            </h1>
+            <p className="text-xs text-slate-500 mt-2">Last Updated: September 16, 2026</p>
+          </div>
+          
+          <div className="text-sm text-slate-700 leading-relaxed space-y-4">
+            <p>
+              Findora believes in absolute transparency regarding our revenue models. We provide our price comparison, product tracking, and alert services completely free of charge to you. 
+            </p>
+            
+            <h3 className="text-lg font-bold text-slate-900 pt-4">How We Earn Revenue</h3>
+            <p>
+              Findora participates in various affiliate marketing programs. This means that when you click on a store offer button (such as "Check Price", "Go to Store", or merchant logos) on our website and make a qualifying purchase, we may receive a small commission from the retailer.
+            </p>
+            <p>
+              The merchants we may track or link to include, but are not limited to, Amazon India, Flipkart, Croma, and Reliance Digital.
+            </p>
+
+            <h3 className="text-lg font-bold text-slate-900 pt-4">What This Means For You</h3>
+            <ul className="list-disc pl-5 space-y-2">
+              <li><strong>Zero Added Cost:</strong> You pay the exact same price (or lower, if you use coupons) as you would by going directly to the merchant. The commission is paid by the retailer out of their own margin.</li>
+              <li><strong>Strict Editorial Independence:</strong> Our rankings, product details, price history graphs, and lowest-price tags are generated strictly by objective data. We do not artificially boost prices or hide cheaper stores simply because they pay a lower commission.</li>
+              <li><strong>Unbiased Discovery:</strong> We list the genuine lowest options available from our tracked merchants, regardless of affiliate program status.</li>
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* Cookie Disclosure */}
+      {page === 'cookie-disclosure' && (
+        <div className="bg-white rounded-3xl border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-xs">
+          <div className="border-b border-slate-100 pb-6">
+            <span className="text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center gap-2">
+              <Cookie className="w-4 h-4" /> Transparency
+            </span>
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-2">
+              Cookie & Analytics Policy
+            </h1>
+            <p className="text-xs text-slate-500 mt-2">Last Updated: September 16, 2026</p>
+          </div>
+          
+          <div className="text-sm text-slate-700 leading-relaxed space-y-4">
+            <p>
+              Findora uses essential browser storage mechanisms to ensure the platform functions securely and seamlessly. This policy explains what we use and why.
+            </p>
+
+            <h3 className="text-lg font-bold text-slate-900 pt-4">1. Essential Authentication Storage</h3>
+            <p>
+              We utilize Google Firebase Authentication to manage user sign-ins and protect accounts. Firebase utilizes localized browser storage (such as IndexedDB and LocalStorage) to securely store your session tokens. These tokens ensure that you remain logged in as you navigate across the application and interact with your wishlists or price alerts. This storage is strictly necessary for the platform to operate.
+            </p>
+
+            <h3 className="text-lg font-bold text-slate-900 pt-4">2. Security & Rate Limiting</h3>
+            <p>
+              Our backend employs in-memory analytics to monitor API usage (via `express-rate-limit`) to prevent automated bots from abusing our data-fetching endpoints. This does not involve tracking individual humans via cookies, but rather involves temporarily logging IP addresses at the network level strictly for infrastructural security.
+            </p>
+
+            <h3 className="text-lg font-bold text-slate-900 pt-4">3. Performance Analytics (If Enabled)</h3>
+            <p>
+              Currently, Findora minimizes the use of invasive third-party tracking. We do not utilize marketing retargeting cookies. If analytical scripts (like Google Analytics) are integrated to monitor page load times or aggregated traffic statistics, they are configured strictly to analyze overall platform health and usage trends, not to build individual profiles of you.
+            </p>
+
+            <h3 className="text-lg font-bold text-slate-900 pt-4">4. Managing Your Preferences</h3>
+            <p>
+              Because the local storage utilized by Findora is classified as "strictly necessary" for core user functionality (like maintaining a logged-in state), we do not offer an opt-out toggle. If you wish to clear this storage, you may simply click "Sign Out", or manually clear your browser's cookies and site data.
             </p>
           </div>
         </div>

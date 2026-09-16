@@ -29,75 +29,7 @@ dotenv.config();
 
 
 
-async function safeExtractMetadata(url: string) {
-  try {
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9'
-      }
-    });
-    
-    if (!res.ok) {
-       return null;
-    }
-    
-    const html = await res.text();
-    
-    // Fallback regex parsing since we don't want to install huge DOM parsers
-    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-    let title = titleMatch ? titleMatch[1].trim() : '';
-    
-    const ogTitleMatch = html.match(/<meta\s+property="og:title"\s+content="([^"]+)"/i);
-    if (ogTitleMatch) title = ogTitleMatch[1];
-    
-    const ogImageMatch = html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/i);
-    let image = ogImageMatch ? ogImageMatch[1] : '';
-    
-    if (!image) {
-       // Amazon specific image fallback if og:image fails
-       const landingImage = html.match(/"large":"([^"]+)"/);
-       if (landingImage) image = landingImage[1];
-    }
-    
-    // Clean amazon title (e.g. "Buy Apple iPhone 16 Pro (128GB) Online at Best Price - Amazon.in")
-    title = title.replace(/Buy\s+/i, '').replace(/\s+Online at Best Price.*/i, '').replace(/\s+at Amazon.*/i, '').replace(/\s*:\s*Amazon.*/i, '');
-    
-    // Basic Brand extraction (guess from title if it's typical format)
-    let brand = '';
-    const firstWord = title.split(' ')[0];
-    if (firstWord && firstWord.length > 2) {
-       brand = firstWord; // Weak guess, but safe
-    }
-    
-    return {
-      title,
-      image,
-      brand,
-      isMetadataFallback: true
-    };
-  } catch (e) {
-    console.error("Metadata extraction error:", e);
-    return null;
-  }
-}
 
-function extractASIN(url: string): string | null {
-  const match = url.match(/(?:dp|o|ASIN|gp\/product|gp\/offer-listing|gp\/product\/ajax)\/([A-Z0-9]{10})/i);
-  if (match) return match[1];
-  
-  try {
-    const urlObj = new URL(url);
-    const pathParts = urlObj.pathname.split('/');
-    for (let i = 0; i < pathParts.length; i++) {
-      if (pathParts[i].match(/^[A-Z0-9]{10}$/)) {
-        return pathParts[i];
-      }
-    }
-  } catch(e) {}
-  return null;
-}
 
 async function startServer() {
   const app = express();
@@ -116,7 +48,9 @@ async function startServer() {
           "'unsafe-inline'", 
           "'unsafe-eval'", 
           "https://apis.google.com", 
-          "https://www.gstatic.com"
+          "https://www.gstatic.com",
+          "https://*.firebaseapp.com",
+          "https://www.google.com"
         ],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         imgSrc: ["'self'", "data:", "blob:", "*"], // allow external product images
@@ -128,18 +62,20 @@ async function startServer() {
           "ws://localhost:*", // Vite HMR
           "http://localhost:*", // Vite HMR
           "https://identitytoolkit.googleapis.com",
-          "https://securetoken.googleapis.com"
+          "https://securetoken.googleapis.com",
+          "https://*.firebaseapp.com"
         ],
         fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
-        frameSrc: ["'self'", "https://*.firebaseapp.com", "https://accounts.google.com"],
+        frameSrc: ["'self'", "https://*.firebaseapp.com", "https://accounts.google.com",
+          "https://www.google.com"],
         objectSrc: ["'none'"],
         upgradeInsecureRequests: [],
         frameAncestors: ["'self'", "https://aistudio.google.com", "https://*.googleusercontent.com"], // Allow AI Studio iframe preview
       },
     },
     xFrameOptions: false, // Disable X-Frame-Options to allow framing in AI Studio preview
-    crossOriginEmbedderPolicy: false, // Prevents loading external product images if enabled
-    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }, // Required for Firebase Google Auth popup
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }, // Prevents loading external product images if enabled
   }));
 
   // Add Permissions-Policy (Helmet v7 removed it from default, we add it manually)
@@ -152,19 +88,7 @@ async function startServer() {
   app.use(express.json());
 
   // Configure rate limiter for external API fetches
-  const fetchProductLimiter = rateLimit({
-    windowMs: 5 * 60 * 1000, // 5 minutes window
-    max: 200, // Allow up to 200 requests per 5 minutes per IP (supports editor bulk imports)
-    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-    handler: (req, res, next, options) => {
-      console.warn(`[SECURITY] Rate limit exceeded for IP: ${req.ip} on /api/fetch-product`);
-      res.status(429).json({ 
-        success: false, 
-        message: 'Too many product fetch requests from this IP. Please try again in a few minutes.' 
-      });
-    }
-  });
+
 
   // API routes
   
@@ -223,217 +147,117 @@ async function startServer() {
     }
   });
 
-  app.post("/api/fetch-product", fetchProductLimiter, async (req, res) => {
+
+  // --- DRAFT PUBLISH API ---
+  app.post("/api/publish-draft", async (req, res) => {
     try {
-      const { url, merchantId } = req.body;
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ success: false, message: "Unauthorized" });
+      }
+
+      const token = authHeader.split("Bearer ")[1];
+      const decodedToken = await getAuth(adminApp).verifyIdToken(token);
+      const uid = decodedToken.uid;
+
+      // Verify User Role
       
-      if (!url || !merchantId) {
-        return res.status(400).json({ success: false, message: "URL and merchantId are required" });
+      const userDoc = await adminDb.collection("users").doc(uid).get();
+      if (!userDoc.exists) {
+        return res.status(403).json({ success: false, message: "User not found" });
+      }
+      const role = userDoc.data()?.role;
+      if (role !== "admin" && role !== "editor") {
+        return res.status(403).json({ success: false, message: "Insufficient permissions" });
       }
 
-      // Check for credentials
-      if (merchantId === 'amazon') {
-        const credentialId = process.env.AMAZON_CREATORS_API_CREDENTIAL_ID;
-        const secret = process.env.AMAZON_CREATORS_API_SECRET;
-        const partnerTag = process.env.AMAZON_PARTNER_TAG || 'findora-21';
-        
-        const asin = extractASIN(url);
-        if (!asin) {
-          return res.status(400).json({ success: false, message: "Could not extract ASIN from the provided Amazon URL." });
-        }
-
-        let apiError = false;
-        let errorMessage = "";
-
-        if (!credentialId || !secret || !partnerTag) {
-          apiError = true;
-          errorMessage = "Amazon API keys not configured";
-        } else {
-          try {
-            // 1. Fetch OAuth Token
-            const tokenRes = await fetch("https://api.amazon.com/auth/o2/token", {
-              method: "POST",
-              headers: { "Content-Type": "application/x-www-form-urlencoded" },
-              body: new URLSearchParams({
-                grant_type: "client_credentials",
-                client_id: credentialId,
-                client_secret: secret,
-                scope: "creatorsapi::default"
-              })
-            });
-            const tokenData = await tokenRes.json();
-            
-            // Check for AssociateNotEligible
-            if (!tokenRes.ok || !tokenData.access_token) {
-              console.error("Amazon API Authentication Error:", JSON.stringify(tokenData));
-              apiError = true;
-              errorMessage = "Amazon API Error: " + (tokenData.error_description || tokenData.error || "AssociateNotEligible");
-            } else {
-              // 2. Fetch Product from Creators API
-              const payload = {
-                itemIds: [asin],
-                itemIdType: "ASIN",
-                marketplace: "www.amazon.in",
-                partnerTag: partnerTag,
-                resources: [
-                  "itemInfo.title",
-                  "itemInfo.byLineInfo",
-                  "itemInfo.classifications",
-                  "offersV2.listings.price",
-                  "offersV2.listings.availability",
-                  "images.primary.large"
-                ]
-              };
-
-              const apiRes = await fetch("https://creatorsapi.amazon/catalog/v1/getItems", {
-                method: "POST",
-                headers: {
-                  "Authorization": "Bearer " + tokenData.access_token,
-                  "Content-Type": "application/json",
-                  "x-marketplace": "www.amazon.in"
-                },
-                body: JSON.stringify(payload)
-              });
-              
-              const apiData = await apiRes.json();
-              if (!apiRes.ok || apiData.Errors) {
-                console.error("Amazon API Error:", JSON.stringify(apiData));
-                const errMsg = apiData.message || apiData.Errors?.[0]?.Message || apiRes.statusText;
-                apiError = true;
-                errorMessage = "Amazon API Error: " + errMsg;
-              } else {
-                const item = apiData.itemsResult?.items?.[0] || apiData.ItemsResult?.Items?.[0];
-                if (!item) {
-                  return res.status(404).json({ success: false, message: "Product not found on Amazon." });
-                }
-                
-                const title = item.itemInfo?.title?.displayValue || item.ItemInfo?.Title?.DisplayValue || "";
-                const brand = item.itemInfo?.byLineInfo?.brand?.displayValue || item.ItemInfo?.ByLineInfo?.Brand?.DisplayValue || "";
-                const category = item.itemInfo?.classifications?.binding?.displayValue || item.ItemInfo?.Classifications?.Binding?.DisplayValue || "";
-                const images = item.images?.primary?.large?.url ? [item.images.primary.large.url] : (item.Images?.Primary?.Large?.URL ? [item.Images.Primary.Large.URL] : []);
-                
-                const listing = item.offersV2?.listings?.[0] || item.Offers?.Listings?.[0] || item.offers?.listings?.[0];
-                const price = listing?.price?.amount || listing?.Price?.Amount || null;
-                let mrp = listing?.price?.savings?.amount ? price + listing.price.savings.amount : null;
-                if (mrp === null && listing?.Price?.Savings?.Amount) mrp = price + listing.Price.Savings.Amount;
-                
-                let availabilityMessage = listing?.availability?.message || listing?.Availability?.Message || '';
-                let availability = 'out_of_stock';
-                if (availabilityMessage.toLowerCase().includes('in stock') || price > 0) {
-                   availability = 'in_stock';
-                }
-                
-                const affiliateUrl = item.detailPageURL || item.DetailPageURL || "";
-                
-                return res.json({
-                  success: true,
-                  product: {
-                    merchantProductId: asin,
-                    title,
-                    brand,
-                    category,
-                    images,
-                    price: price,
-                    originalPrice: mrp,
-                    availability: availability,
-                    affiliateUrl: affiliateUrl,
-                    isManualCommercial: false
-                  }
-                });
-              }
-            }
-          } catch (e: any) {
-            console.error("Amazon API Exception:", e);
-            apiError = true;
-            errorMessage = "Internal server error contacting Amazon.";
-          }
-        }
-        
-        // --- SAFE FALLBACK TO METADATA ---
-        if (apiError) {
-           console.log(`Amazon API failed (${errorMessage}). Falling back to safe metadata extraction...`);
-           const meta = await safeExtractMetadata(url);
-           
-           if (!meta) {
-              return res.status(400).json({ success: false, message: "API Failed and Could not safely fetch product page metadata." });
-           }
-           
-           return res.json({
-              success: true,
-              message: `API Unavailable (${errorMessage}). Safely extracted page metadata. Commercial fields require manual entry.`,
-              product: {
-                merchantProductId: asin,
-                title: meta.title || '',
-                brand: meta.brand || '',
-                images: meta.image ? [meta.image] : [],
-                price: null,
-                originalPrice: null,
-                availability: null,
-                affiliateUrl: '',
-                isManualCommercial: true,
-                warning: errorMessage
-              }
-           });
-        }
+      const { draft } = req.body;
+      if (!draft || !draft.id) {
+        return res.status(400).json({ success: false, message: "Draft data required" });
       }
+
+      // Server-side validation
+      const requiredFields = [
+        'title', 'brand', 'category', 'merchantId', 'productUrl', 
+        'image', 'currentPrice', 'availability', 'affiliateUrl'
+      ];
       
-if (merchantId === 'flipkart') {
-        const apiKey = process.env.FLIPKART_API_KEY;
-        if (!apiKey) {
-          const meta = await safeExtractMetadata(url);
-          if (meta) {
-             return res.json({
-                success: true,
-                message: `Flipkart API not configured. Safely extracted page metadata. Commercial fields require manual entry.`,
-                product: {
-                  merchantProductId: '',
-                  title: meta.title || '',
-                  brand: meta.brand || '',
-                  images: meta.image ? [meta.image] : [],
-                  price: null,
-                  originalPrice: null,
-                  availability: null,
-                  affiliateUrl: '',
-                  isManualCommercial: true
-                }
-             });
-          }
-          return res.status(400).json({ success: false, message: "Flipkart automatic product data is not configured yet. (Missing FLIPKART_API_KEY)" });
-        }
+      const missingFields = requiredFields.filter(f => {
+        const val = draft[f];
+        return val === null || val === undefined || val === '';
+      });
+
+      if (missingFields.length > 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `Missing required fields: ${missingFields.join(', ')}` 
+        });
       }
 
-      if (merchantId === 'croma') {
-        const apiKey = process.env.CROMA_API_KEY;
-        if (!apiKey) {
-          const meta = await safeExtractMetadata(url);
-          if (meta) {
-             return res.json({
-                success: true,
-                message: `Croma API not configured. Safely extracted page metadata. Commercial fields require manual entry.`,
-                product: {
-                  merchantProductId: '',
-                  title: meta.title || '',
-                  brand: meta.brand || '',
-                  images: meta.image ? [meta.image] : [],
-                  price: null,
-                  originalPrice: null,
-                  availability: null,
-                  affiliateUrl: '',
-                  isManualCommercial: true
-                }
-             });
-          }
-          return res.status(400).json({ success: false, message: "Croma automatic product data is not configured yet. (Missing CROMA_API_KEY)" });
-        }
-      }
+      const productId = `prod_${Date.now()}`;
+      const offerId = `off_${Date.now()}`;
 
-      return res.status(400).json({ success: false, message: `Automatic product data is not configured for this merchant yet.` });
+      const product = {
+        id: productId,
+        slug: draft.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString().slice(-4),
+        name: draft.title,
+        brand: draft.brand,
+        category: draft.category,
+        shortDescription: (draft.shortPitch || '').replace('[AI suggestion — review before saving]', '').trim(),
+        description: (draft.whyFindora || '').replace('[AI suggestion — review before saving]', '').trim(),
+        images: [draft.image],
+        specifications: draft.specifications || {},
+        pros: draft.pros || [],
+        cons: draft.cons || [],
+        whyFindora: (draft.whyFindora || '').replace('[AI suggestion — review before saving]', '').trim(),
+        tags: [],
+        published: true,
+        featured: draft.featured || false,
+        badge: draft.badge || '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      const offer = {
+        id: offerId,
+        productId,
+        storeId: draft.merchantId,
+        price: draft.currentPrice,
+        originalPrice: draft.mrp || draft.currentPrice,
+        currency: 'INR',
+        affiliateUrl: draft.affiliateUrl,
+        availability: draft.availability,
+        lastUpdated: new Date().toISOString(),
+        sourceType: 'manual',
+        merchantProductId: draft.merchantProductId || '',
+        productUrl: draft.productUrl || ''
+      };
+
+      const finalDraft = {
+        ...draft,
+        draftStatus: 'published',
+        published: true,
+        publishedAt: new Date().toISOString(),
+        publishedBy: uid,
+        updatedAt: new Date().toISOString()
+      };
+
+      const batch = adminDb.batch();
       
-    } catch (error: any) {
-      console.error("Fetch Product Error:", error);
+      batch.set(adminDb.collection("products").doc(productId), product);
+      batch.set(adminDb.collection("offers").doc(offerId), offer);
+      batch.set(adminDb.collection("productDrafts").doc(draft.id), finalDraft, { merge: true });
+      
+      await batch.commit();
+
+      res.json({ success: true, message: "Draft published successfully!" });
+    } catch (error) {
+      console.error("[SERVER] Publish draft error:", error);
       res.status(500).json({ success: false, message: "Internal server error" });
     }
   });
+
+  
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {

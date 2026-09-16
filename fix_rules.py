@@ -1,18 +1,36 @@
 import re
 
-with open('firestore.rules', 'r') as f:
-    code = f.read()
+with open("firestore.rules", "r") as f:
+    content = f.read()
 
-replacement = """
-    // Users can read and write only their own wishlist
-    match /wishlists/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+# Append rules before the last closing brace
+new_rules = """
+    // --- PRODUCT DRAFTS ---
+    match /productDrafts/{draftId} {
+      allow read: if isEditor();
+      allow create: if isEditor();
+      allow update: if isEditor();
+      allow delete: if isAdmin();
+    }
+    
+    // --- BRANDS ---
+    match /brands/{brandId} {
+      allow read: if true;
+      allow create: if isEditor();
+      allow update: if isEditor();
+      allow delete: if isAdmin();
+    }
+    
+    // --- CATEGORIES ---
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow create: if isEditor();
+      allow update: if isEditor();
+      allow delete: if isAdmin();
     }
 """
 
-if 'match /wishlists' not in code:
-    code = code.replace("    match /users/{userId} {", replacement + "\n    match /users/{userId} {")
-    with open('firestore.rules', 'w') as f:
-        f.write(code)
+content = content.replace("  }\n}", new_rules + "  }\n}")
 
-print("done rules")
+with open("firestore.rules", "w") as f:
+    f.write(content)

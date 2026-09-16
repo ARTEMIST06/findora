@@ -101,6 +101,43 @@ export interface AffiliateClick {
   device?: string;
 }
 
+export interface Brand {
+  id: string;
+  name: string;
+  logo?: string;
+  description?: string;
+}
+
+export interface ProductDraft {
+  id: string;
+  draftStatus?: 'incomplete' | 'in_progress' | 'almost_ready' | 'ready_to_publish' | 'published';
+  title: string;
+  brand: string;
+  category: string;
+  productUrl: string;
+  affiliateUrl: string;
+  merchantId: string;
+  merchantProductId: string;
+  image: string;
+  currentPrice: number | null;
+  mrp: number | null;
+  availability: OfferAvailability;
+  badge: string;
+  shortPitch: string;
+  whyFindora: string;
+  pros: string[];
+  cons: string[];
+  specifications: Record<string, string>;
+  published: boolean;
+  featured: boolean;
+  addedBy: 'Arya' | 'Ananya' | 'Khushi' | string;
+  addedByUserId: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt?: string;
+  publishedBy?: string;
+}
+
 export interface Category {
   id: string;
   slug: string;

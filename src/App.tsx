@@ -152,6 +152,9 @@ export default function App() {
     if (pathPart === '/affiliate-disclosure') {
       return <LegalPage page="affiliate-disclosure" onNavigate={handleNavigate} />;
     }
+    if (pathPart === '/cookie-disclosure') {
+      return <LegalPage page="cookie-disclosure" onNavigate={handleNavigate} />;
+    }
 
     // Fallback: 404
     return (

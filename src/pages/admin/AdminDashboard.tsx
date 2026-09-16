@@ -22,6 +22,9 @@ import {
   DollarSign,
 } from 'lucide-react';
 import { BulkImport } from './BulkImport';
+import { DraftsDashboard } from './DraftsDashboard';
+import { CategoriesDashboard } from './CategoriesDashboard';
+import { BrandsDashboard } from './BrandsDashboard';
 import { FileUp } from 'lucide-react';
 import { SEOHead } from '../../components/common/SEOHead';
 import { useFindoraStore } from '../../services/store';
@@ -50,7 +53,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   const clicks = store.getAffiliateClicks();
 
   // Active admin tab
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'offers' | 'stores' | 'clicks' | 'bulk-import'>(
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'drafts' | 'categories' | 'brands' | 'offers' | 'stores' | 'clicks' | 'bulk-import'>(
     'overview'
   );
 
@@ -577,6 +580,42 @@ if (authLoading) {
         </button>
 
         <button
+          onClick={() => setActiveTab('drafts')}
+          className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 ${
+            activeTab === 'drafts'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <Edit2 className="w-4 h-4" />
+          <span>Drafts</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('categories')}
+          className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 ${
+            activeTab === 'categories'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <LayoutDashboard className="w-4 h-4" />
+          <span>Categories</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('brands')}
+          className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 ${
+            activeTab === 'brands'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <Tag className="w-4 h-4" />
+          <span>Brands</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('offers')}
           className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 ${
             activeTab === 'offers'
@@ -626,6 +665,10 @@ if (authLoading) {
 
 
             {/* TAB: BULK IMPORT */}
+      {activeTab === 'drafts' && <DraftsDashboard />}
+      {activeTab === 'categories' && <CategoriesDashboard />}
+      {activeTab === 'brands' && <BrandsDashboard />}
+
       {activeTab === 'bulk-import' && (
         <BulkImport onImportComplete={() => setActiveTab('products')} />
       )}

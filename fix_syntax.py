@@ -1,19 +1,21 @@
-with open('src/pages/admin/BulkImport.tsx', 'r') as f:
-    lines = f.readlines()
+with open("server.ts", "r") as f:
+    content = f.read()
 
-new_lines = []
-skip = False
-for line in lines:
-    if "          ) : (" in line:
-        new_lines.append(line)
-        skip = True
-        continue
-    if skip and '<div className="overflow-x-auto">' in line:
-        skip = False
-        new_lines.append(line)
-        continue
-    if not skip:
-        new_lines.append(line)
+# I see a dangling catch block around line 32:
+# dotenv.config();
+# catch (e) {
+#    console.error("Metadata extraction error:", e);
+#    return null;
+#  }
+# }
+# This is left over from safeExtractMetadata removal (we probably only removed the function signature).
 
-with open('src/pages/admin/BulkImport.tsx', 'w') as f:
-    f.writelines(new_lines)
+content = content.replace('''catch (e) {
+    console.error("Metadata extraction error:", e);
+    return null;
+  }
+}''', '')
+
+with open("server.ts", "w") as f:
+    f.write(content)
+

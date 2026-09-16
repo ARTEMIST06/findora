@@ -1,0 +1,4 @@
+[PAGE LOG] DEBUG: [vite] connecting...
+[PAGE LOG] DEBUG: [vite] connected.
+[PAGE LOG] INFO: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[PAGE LOG] ERROR: Failed to log security event FirebaseError: Missing or insufficient permissions.
