@@ -6,6 +6,7 @@ import { createServer as createViteServer } from "vite";
 import { initializeApp, applicationDefault } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
+import { Firestore } from '@google-cloud/firestore';
 import fs from 'fs';
 
 let adminApp;
@@ -17,7 +18,10 @@ try {
     credential: applicationDefault(),
     projectId: firebaseConfig.projectId,
   });
-  adminDb = getFirestore(adminApp, firebaseConfig.firestoreDatabaseId);
+  adminDb = new Firestore({
+    projectId: firebaseConfig.projectId,
+    databaseId: firebaseConfig.firestoreDatabaseId,
+  });
 } catch (e) {
   console.error("Firebase Admin initialization failed:", e);
 }
@@ -148,7 +152,20 @@ async function startServer() {
   });
 
 
+
+  app.get("/api/dump-products", async (req, res) => {
+    try {
+      const snapshot = await adminDb.collection("products").get();
+      const products = [];
+      snapshot.forEach(doc => products.push({ id: doc.id, ...doc.data() }));
+      res.json(products);
+    } catch(e) {
+      res.status(500).json({error: e.toString()});
+    }
+  });
+
   // --- DRAFT PUBLISH API ---
+
   app.post("/api/publish-draft", async (req, res) => {
     try {
       const authHeader = req.headers.authorization;
@@ -184,7 +201,7 @@ async function startServer() {
       
       const missingFields = requiredFields.filter(f => {
         const val = draft[f];
-        return val === null || val === undefined || val === '';
+        return val === null || val === undefined || val === '' || Number.isNaN(val);
       });
 
       if (missingFields.length > 0) {

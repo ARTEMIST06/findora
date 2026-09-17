@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import {
   Product,
   Store,
@@ -33,7 +33,9 @@ const STORAGE_KEYS = {
 
 // Event bus for reactivity across components
 const EVENT_NAME = 'findora_store_change';
+let storeVersion = 0;
 function notifyChange() {
+  storeVersion++;
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent(EVENT_NAME));
   }
@@ -1205,13 +1207,12 @@ export const findoraStore = new FindoraStore();
 
 // React hook for observing changes to the store
 export function useFindoraStore() {
-  const [, setTick] = useState(0);
-
-  useEffect(() => {
-    const handleStoreChange = () => setTick((prev) => prev + 1);
-    window.addEventListener(EVENT_NAME, handleStoreChange);
-    return () => window.removeEventListener(EVENT_NAME, handleStoreChange);
-  }, []);
-
+  useSyncExternalStore(
+    (listener) => {
+      window.addEventListener(EVENT_NAME, listener);
+      return () => window.removeEventListener(EVENT_NAME, listener);
+    },
+    () => storeVersion
+  );
   return findoraStore;
 }

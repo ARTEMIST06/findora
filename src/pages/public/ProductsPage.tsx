@@ -122,7 +122,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
         if (sortBy === 'newest') {
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         }
-        return 0; // relevance / default
+        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime(); // default to newest
       });
   }, [
     allProducts,

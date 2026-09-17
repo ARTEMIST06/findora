@@ -83,7 +83,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
     // Auto-set Amazon merchant
     if (field === 'productUrl' && typeof value === 'string') {
       if (value.includes('amazon.in') || value.includes('amazon.com')) {
-        updates.merchantId = 'amazon';
+        updates.merchantId = 'store-amazon';
       }
     }
     
@@ -388,7 +388,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
                 <input
                   type="number"
                   value={draft.currentPrice || ''}
-                  onChange={(e) => handleChange('currentPrice', Number(e.target.value))}
+                  onChange={(e) => handleChange('currentPrice', e.target.value === '' ? null : Number(e.target.value))}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 outline-none"
                 />
               </div>
@@ -397,7 +397,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
                 <input
                   type="number"
                   value={draft.mrp || ''}
-                  onChange={(e) => handleChange('mrp', Number(e.target.value))}
+                  onChange={(e) => handleChange('mrp', e.target.value === '' ? null : Number(e.target.value))}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 outline-none"
                 />
               </div>
@@ -411,7 +411,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
                   value={draft.merchantId || ''}
                   onChange={(e) => handleChange('merchantId', e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 outline-none"
-                  placeholder="amazon, flipkart..."                />
+                  placeholder="store-amazon, store-flipkart..."                />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1">Availability</label>

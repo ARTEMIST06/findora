@@ -15,7 +15,7 @@ export const REQUIRED_DRAFT_FIELDS = [
 export function getMissingDraftFields(draft: Partial<ProductDraft>) {
   return REQUIRED_DRAFT_FIELDS.filter(f => {
     const val = (draft as any)[f.key];
-    return val === null || val === undefined || val === '';
+    return val === null || val === undefined || val === '' || Number.isNaN(val);
   });
 }
 

@@ -10,7 +10,14 @@ interface TrendingProductsProps {
 export const TrendingProducts: React.FC<TrendingProductsProps> = ({ onNavigate }) => {
   const store = useFindoraStore();
   const products = store.getAllProductsWithPrices(true);
-  const featured = products.filter((p) => p.featured).slice(0, 4);
+  
+  let featured = products.filter((p) => p.featured);
+  if (featured.length < 4) {
+    const others = products.filter((p) => !p.featured).sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+    featured = [...featured, ...others].slice(0, 4);
+  } else {
+    featured = featured.slice(0, 4);
+  }
 
   return (
     <section className="py-6 max-w-7xl mx-auto px-4 sm:px-6">
@@ -37,6 +44,13 @@ export const TrendingProducts: React.FC<TrendingProductsProps> = ({ onNavigate }
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* DEBUG OVERLAY */}
+        <div style={{gridColumn: '1 / -1', background: '#fee', padding: 10, fontSize: 12}}>
+          <strong>DEBUG:</strong> 
+          Firestore Products Loaded: {products.length}. 
+          Featured Array: {featured.length}.
+          Products: {products.map(p => p.name).join(', ')}
+        </div>
         {featured.map((product) => (
           <ProductCard key={product.id} product={product} onNavigate={onNavigate} />
         ))}
