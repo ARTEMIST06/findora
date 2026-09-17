@@ -17,6 +17,8 @@ export const BestDealsSection: React.FC<BestDealsSectionProps> = ({ onNavigate }
     .sort((a, b) => (b.maxDiscountPercent || 0) - (a.maxDiscountPercent || 0))
     .slice(0, 4);
 
+  if (deals.length === 0) return null;
+
   return (
     <section className="py-6 sm:py-8 bg-gradient-to-b from-slate-100/60 to-white border-y border-slate-200/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">

@@ -44,7 +44,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
   };
 
   
-  const mainImage = product.images[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600';
+  const mainImage = (product.images && product.images[0]) || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600';
 
   return (
     <div

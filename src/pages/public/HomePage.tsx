@@ -6,6 +6,7 @@ import { TrendingProducts } from '../../components/public/TrendingProducts';
 import { BestDealsSection } from '../../components/public/BestDealsSection';
 import { WhyFindoraSection } from '../../components/public/WhyFindoraSection';
 import { ComparisonHighlight } from '../../components/public/ComparisonHighlight';
+import { RecentlyAdded } from '../../components/public/RecentlyAdded';
 
 interface HomePageProps {
   onNavigate: (route: string) => void;
@@ -21,6 +22,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
       <HeroSection onNavigate={onNavigate} />
       <PopularCategories onNavigate={onNavigate} />
       <TrendingProducts onNavigate={onNavigate} />
+      <RecentlyAdded onNavigate={onNavigate} />
       <BestDealsSection onNavigate={onNavigate} />
       <ComparisonHighlight onNavigate={onNavigate} />
       <WhyFindoraSection />
