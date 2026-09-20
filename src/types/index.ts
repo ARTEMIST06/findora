@@ -132,6 +132,9 @@ export interface ProductDraft {
   featured: boolean;
   addedBy: 'Arya' | 'Ananya' | 'Khushi' | string;
   addedByUserId: string;
+  manualEdits?: Record<string, boolean>;
+  lastGeneratedHash?: string;
+  generatedAt?: string;
   createdAt: string;
   updatedAt: string;
   publishedAt?: string;

@@ -26,8 +26,62 @@ try {
 }
 
 import dotenv from "dotenv";
+import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
+
+let geminiClient: GoogleGenAI | null = null;
+function getGeminiClient(): GoogleGenAI | null {
+  if (!geminiClient && process.env.GEMINI_API_KEY) {
+    try {
+      geminiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    } catch (e) {
+      console.error("Failed to initialize GoogleGenAI client:", e);
+    }
+  }
+  return geminiClient;
+}
+
+function generateFallbackContent(brand: string, title: string, shortPitch: string, category: string) {
+  const cleanTitle = (title || '').trim();
+  const cleanBrand = (brand || 'Findora Featured Brand').trim();
+  const cleanCat = (category || 'Lifestyle & Tech').trim();
+
+  const whyWePickedIt = `Findora selected the ${cleanTitle} by ${cleanBrand} because it strikes an outstanding balance between premium build quality and everyday value in the ${cleanCat} space. We actively track live price drops to ensure you secure the most competitive deal available.`;
+
+  const shortSeoDescription = `${cleanTitle} from ${cleanBrand} combines dependable everyday performance with exceptional value in ${cleanCat}.`;
+
+  const pros = [
+    `Trusted craftsmanship and design from ${cleanBrand}`,
+    `Excellent feature-to-price ratio in the ${cleanCat} segment`,
+    `Positive consumer sentiment and high verified satisfaction`,
+    `Seamless everyday reliability with proven durability`,
+  ];
+
+  const cons = [
+    `Pricing can fluctuate frequently across online retailer sales`,
+    `Verify technical dimensions and specifications before purchasing`,
+  ];
+
+  let topPick = 'Editor\'s Choice';
+  const lowerTitle = cleanTitle.toLowerCase();
+  if (lowerTitle.includes('pro') || lowerTitle.includes('ultra') || lowerTitle.includes('flagship')) {
+    topPick = 'Flagship Pick';
+  } else if (lowerTitle.includes('lite') || lowerTitle.includes('budget') || lowerTitle.includes('mini')) {
+    topPick = 'Best Value';
+  } else {
+    topPick = 'Top Pick';
+  }
+
+  return {
+    whyWePickedIt,
+    topPick,
+    pros,
+    cons,
+    shortSeoDescription,
+    suggestedCategory: cleanCat,
+  };
+}
 
 
 
@@ -152,6 +206,96 @@ async function startServer() {
   });
 
 
+
+  app.post("/api/generate-product-content", async (req, res) => {
+    try {
+      const { brand = '', title = '', shortPitch = '', category = '' } = req.body || {};
+
+      if (!title || typeof title !== 'string' || title.trim().length < 3) {
+        return res.status(400).json({
+          success: false,
+          message: "Product title is required and must be at least 3 characters",
+        });
+      }
+
+      const cleanTitle = title.trim();
+      const cleanBrand = (brand || '').trim();
+      const cleanShortPitch = (shortPitch || '').trim();
+      const cleanCategory = (category || '').trim();
+
+      const ai = getGeminiClient();
+      if (ai) {
+        const prompt = `You are a product curator and deal editor for Findora (a smart Indian product discovery and price comparison platform).
+Analyze this product:
+- Brand: ${cleanBrand || 'Not specified'}
+- Title: ${cleanTitle}
+- User Notes / Description: ${cleanShortPitch || 'None'}
+- Category: ${cleanCategory || 'General'}
+
+Generate a structured JSON object containing all of the following fields:
+{
+  "whyWePickedIt": "A concise, compelling 2-3 sentence editorial explanation of why Findora recommends this product and what makes it a smart buy for shoppers.",
+  "topPick": "A punchy badge label such as 'Top Pick', 'Editor\\'s Choice', 'Best Value', 'Flagship Pick', or 'Budget King'.",
+  "pros": ["An array of 3 to 4 specific, genuine advantages of this product."],
+  "cons": ["An array of 1 to 2 honest trade-offs or considerations shoppers should know."],
+  "shortSeoDescription": "A punchy 1-sentence product summary (25-45 words).",
+  "suggestedCategory": "The most appropriate category name for this product (e.g., Electronics, Home & Kitchen, Audio, Beauty, etc.)"
+}
+Return ONLY valid JSON, without any markdown codeblock markers or extra commentary.`;
+
+        // Try fast, robust candidate models in priority order with resilience against temporary 503 high-demand spikes
+        const candidateModels = ['gemini-flash-latest', 'gemini-3.1-flash-lite', 'gemini-3.8-flash'];
+        
+        for (const candidateModel of candidateModels) {
+          try {
+            const geminiResponse = await ai.models.generateContent({
+              model: candidateModel,
+              contents: prompt,
+              config: {
+                responseMimeType: 'application/json',
+              },
+            });
+
+            const rawText = geminiResponse.text?.trim();
+            if (rawText) {
+              const parsed = JSON.parse(rawText);
+              return res.json({
+                success: true,
+                data: {
+                  whyWePickedIt: parsed.whyWePickedIt || '',
+                  topPick: parsed.topPick || 'Top Pick',
+                  pros: Array.isArray(parsed.pros) ? parsed.pros : [],
+                  cons: Array.isArray(parsed.cons) ? parsed.cons : [],
+                  shortSeoDescription: parsed.shortSeoDescription || '',
+                  suggestedCategory: parsed.suggestedCategory || cleanCategory,
+                },
+                source: 'gemini',
+                modelUsed: candidateModel,
+              });
+            }
+          } catch (geminiError: any) {
+            // If the model is experiencing temporary high demand (503) or rate limits (429), try the next candidate model
+            const status = geminiError?.status || geminiError?.code;
+            if (status === 503 || status === 429) {
+              // Try next model without treating as fatal error
+              continue;
+            }
+          }
+        }
+      }
+
+      // Fallback rule-based generator
+      const fallbackData = generateFallbackContent(cleanBrand, cleanTitle, cleanShortPitch, cleanCategory);
+      return res.json({
+        success: true,
+        data: fallbackData,
+        source: 'fallback',
+      });
+    } catch (e: any) {
+      console.error("[API] Error in /api/generate-product-content:", e);
+      return res.status(500).json({ success: false, message: e?.message || "Internal server error" });
+    }
+  });
 
   app.get("/api/dump-products", async (req, res) => {
     try {

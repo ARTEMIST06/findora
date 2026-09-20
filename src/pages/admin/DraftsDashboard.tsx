@@ -6,6 +6,7 @@ import { DraftEditor } from './DraftEditor';
 import { useToast } from '../../components/common/Toast';
 import { TEAM_MEMBERS } from '../../config/teamMembers';
 import { calculateDraftStatus, formatDraftStatus } from '../../utils/drafts';
+import { OpenAmazonButton } from '../../components/admin/OpenAmazonButton';
 
 export const DraftsDashboard: React.FC = () => {
   const store = useFindoraStore();
@@ -184,37 +185,46 @@ export const DraftsDashboard: React.FC = () => {
                     {new Date(d.updatedAt || d.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {d.draftStatus === 'published' ? (
-                      <button
-                        className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-slate-200 ml-auto"
-                      >
-                        View <ExternalLink className="w-3 h-3" />
-                      </button>
-                    ) : (
-                      <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-end gap-2">
+                      <OpenAmazonButton 
+                        url={d.productUrl || (d.affiliateUrl?.includes('amazon') ? d.affiliateUrl : undefined)} 
+                        size="compact" 
+                      />
+                      
+                      {d.draftStatus === 'published' ? (
                         <button
                           onClick={() => setEditingDraftId(d.id)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
-                            d.draftStatus === 'ready_to_publish' 
-                              ? 'bg-slate-900 text-white hover:bg-slate-800'
-                              : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
-                          }`}
+                          className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-slate-200"
                         >
-                          {d.draftStatus === 'ready_to_publish' ? 'Review & Publish' : 'Continue Editing'}
+                          View / Edit <ExternalLink className="w-3 h-3" />
                         </button>
-                        <button
-                          onClick={async () => {
-                            if (confirm('Delete this draft?')) {
-                              await store.deleteDraft(d.id);
-                              loadDrafts();
-                            }
-                          }}
-                          className="p-1.5 text-slate-400 hover:text-red-600 transition-colors rounded-md hover:bg-red-50"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => setEditingDraftId(d.id)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                              d.draftStatus === 'ready_to_publish' 
+                                ? 'bg-slate-900 text-white hover:bg-slate-800'
+                                : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                            }`}
+                          >
+                            {d.draftStatus === 'ready_to_publish' ? 'Review & Publish' : 'Continue Editing'}
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (confirm('Delete this draft?')) {
+                                await store.deleteDraft(d.id);
+                                loadDrafts();
+                              }
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-red-600 transition-colors rounded-md hover:bg-red-50"
+                            title="Delete draft"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
             ))}

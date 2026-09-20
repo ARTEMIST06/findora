@@ -28,6 +28,8 @@ import { BrandsDashboard } from './BrandsDashboard';
 import { FileUp } from 'lucide-react';
 import { SEOHead } from '../../components/common/SEOHead';
 import { useFindoraStore } from '../../services/store';
+import { OpenAmazonButton } from '../../components/admin/OpenAmazonButton';
+import { getAmazonProductUrl } from '../../utils/amazon';
 import { Product, Store as StoreType, PriceOffer } from '../../types';
 import { formatINR, formatRelativeTime } from '../../utils/formatters';
 import { useToast } from '../../components/common/Toast';
@@ -942,6 +944,7 @@ if (authLoading) {
 
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-2">
+                          <OpenAmazonButton url={getAmazonProductUrl(prod)} size="compact" />
                           <button
                             onClick={() => onNavigate(`/product/${prod.slug}`)}
                             className="p-1 text-slate-400 hover:text-blue-600"
@@ -1446,7 +1449,10 @@ if (authLoading) {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="font-semibold text-slate-700">Original Product URL{fetchedFields.productUrl && idx === 0 && <span className="ml-2 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">✓ AUTO</span>}</label>
+                        <div className="flex items-center justify-between">
+                          <label className="font-semibold text-slate-700">Original Product URL{fetchedFields.productUrl && idx === 0 && <span className="ml-2 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">✓ AUTO</span>}</label>
+                          <OpenAmazonButton url={offer.productUrl || offer.affiliateUrl} size="compact" />
+                        </div>
                         <input
                           type="url"
                           value={offer.productUrl || ''}
