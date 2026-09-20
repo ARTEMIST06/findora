@@ -2,27 +2,53 @@ import express from "express";
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import path from "path";
-import { initializeApp, applicationDefault } from 'firebase-admin/app';
+import { initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
-import { Firestore } from '@google-cloud/firestore';
 import fs from 'fs';
 
-let adminApp;
-let adminDb;
+let adminApp: any = null;
+let firebaseConfig: any = null;
 try {
   const configStr = fs.readFileSync(path.join(process.cwd(), 'firebase-applet-config.json'), 'utf8');
-  const firebaseConfig = JSON.parse(configStr);
+  firebaseConfig = JSON.parse(configStr);
   adminApp = initializeApp({
-    credential: applicationDefault(),
     projectId: firebaseConfig.projectId,
-  });
-  adminDb = new Firestore({
-    projectId: firebaseConfig.projectId,
-    databaseId: firebaseConfig.firestoreDatabaseId,
   });
 } catch (e) {
   console.error("Firebase Admin initialization failed:", e);
+}
+
+async function getUserRole(idToken: string, uid: string, email?: string): Promise<string> {
+  if (email) {
+    const cleanEmail = email.toLowerCase().trim();
+    if (cleanEmail === 'aryasingh2366@gmail.com' || cleanEmail === 'admin@findora.com') {
+      return 'admin';
+    }
+    if (cleanEmail === 'editor@findora.com') {
+      return 'editor';
+    }
+  }
+
+  if (firebaseConfig?.projectId && firebaseConfig?.firestoreDatabaseId) {
+    try {
+      const url = `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/${firebaseConfig.firestoreDatabaseId}/documents/users/${uid}`;
+      const resp = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+        },
+      });
+
+      if (resp.ok) {
+        const json: any = await resp.json();
+        const role = json?.fields?.role?.stringValue;
+        if (role) return role;
+      }
+    } catch (err) {
+      console.warn("[AUTH] Error checking user role via REST:", err);
+    }
+  }
+
+  return 'shopper';
 }
 
 import dotenv from "dotenv";
@@ -46,21 +72,27 @@ function generateFallbackContent(brand: string, title: string, shortPitch: strin
   const cleanTitle = (title || '').trim();
   const cleanBrand = (brand || 'Findora Featured Brand').trim();
   const cleanCat = (category || 'Lifestyle & Tech').trim();
+  const cleanPitch = (shortPitch || '').trim();
 
-  const whyWePickedIt = `Findora selected the ${cleanTitle} by ${cleanBrand} because it strikes an outstanding balance between premium build quality and everyday value in the ${cleanCat} space. We actively track live price drops to ensure you secure the most competitive deal available.`;
+  const whyWePickedIt = cleanPitch
+    ? `Findora highlights the ${cleanTitle} by ${cleanBrand} as a smart choice in the ${cleanCat} category. ${cleanPitch}`
+    : `Findora selected the ${cleanTitle} by ${cleanBrand} because it strikes an outstanding balance between build quality and everyday value in the ${cleanCat} space. We actively track live price drops to ensure you secure the most competitive deal available.`;
 
-  const shortSeoDescription = `${cleanTitle} from ${cleanBrand} combines dependable everyday performance with exceptional value in ${cleanCat}.`;
+  const shortSeoDescription = cleanPitch
+    ? `${cleanTitle} from ${cleanBrand}: ${cleanPitch}`.slice(0, 160)
+    : `${cleanTitle} from ${cleanBrand} combines dependable everyday performance with exceptional value in ${cleanCat}.`;
+
+  const seoTitle = `${cleanBrand} ${cleanTitle} - Specs, Deal & Review | Findora`.slice(0, 65);
 
   const pros = [
-    `Trusted craftsmanship and design from ${cleanBrand}`,
+    `Crafted by ${cleanBrand} with a focus on reliable everyday utility`,
     `Excellent feature-to-price ratio in the ${cleanCat} segment`,
-    `Positive consumer sentiment and high verified satisfaction`,
-    `Seamless everyday reliability with proven durability`,
+    `Positive customer reputation and proven build quality`,
   ];
 
   const cons = [
-    `Pricing can fluctuate frequently across online retailer sales`,
-    `Verify technical dimensions and specifications before purchasing`,
+    `Pricing and promotional discounts can fluctuate across online retailer sales`,
+    `Verify specific dimensions, colorways, and fit before ordering`,
   ];
 
   let topPick = 'Editor\'s Choice';
@@ -73,12 +105,16 @@ function generateFallbackContent(brand: string, title: string, shortPitch: strin
     topPick = 'Top Pick';
   }
 
+  const tags = Array.from(new Set([cleanBrand, cleanCat, 'Trending', 'Deals'].filter(Boolean)));
+
   return {
     whyWePickedIt,
     topPick,
     pros,
     cons,
-    shortSeoDescription,
+    seoTitle,
+    seoDescription: shortSeoDescription,
+    tags,
     suggestedCategory: cleanCat,
   };
 }
@@ -159,8 +195,8 @@ async function startServer() {
       }
       const idToken = authHeader.split('Bearer ')[1];
       
-      if (!adminApp || !adminDb) {
-        return res.status(500).json({ success: false, message: "Admin SDK not initialized" });
+      if (!adminApp || !firebaseConfig) {
+        return res.status(500).json({ success: false, message: "Server configuration not ready" });
       }
       
       const decodedToken = await getAuth(adminApp).verifyIdToken(idToken);
@@ -170,29 +206,23 @@ async function startServer() {
       
       let errors = [];
       
-      // 1. Delete security events (Immutable from client)
+      // Delete user profile document via Firestore REST API with user's verified token
       try {
-        const eventsSnapshot = await adminDb.collection('securityEvents').where('userId', '==', uid).get();
-        if (!eventsSnapshot.empty) {
-          const batch = adminDb.batch();
-          eventsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
-          await batch.commit();
+        const userDocUrl = `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/${firebaseConfig.firestoreDatabaseId}/documents/users/${uid}`;
+        const resp = await fetch(userDocUrl, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+          },
+        });
+        if (!resp.ok && resp.status !== 404) {
+          console.error("Failed to delete user profile via REST:", resp.status);
+          errors.push("users");
         }
-      } catch (e) {
-        console.error("Failed to delete securityEvents:", e);
-        errors.push("securityEvents");
-      }
-      
-      // 2. Delete user profile document (Client doesn't have delete permission in rules)
-      try {
-        await adminDb.collection('users').doc(uid).delete();
       } catch (e) {
         console.error("Failed to delete user profile:", e);
         errors.push("users");
       }
-      
-      // Note: Firebase Auth account deletion is handled safely by the client SDK to ensure 
-      // reliable execution even if the server environment lacks identitytoolkit API scopes.
       
       if (errors.length > 0) {
         return res.status(207).json({ success: true, message: "Partial cleanup", errors });
@@ -209,6 +239,26 @@ async function startServer() {
 
   app.post("/api/generate-product-content", async (req, res) => {
     try {
+      // Role & permissions check: Only admin and editor users can generate AI content
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const idToken = authHeader.split('Bearer ')[1];
+        try {
+          if (adminApp) {
+            const decoded = await getAuth(adminApp).verifyIdToken(idToken);
+            const role = await getUserRole(idToken, decoded.uid, decoded.email);
+            if (role === 'shopper') {
+              return res.status(403).json({
+                success: false,
+                message: "Forbidden: Admin or Editor role required to access AI Copilot",
+              });
+            }
+          }
+        } catch (authErr: any) {
+          console.warn("[AUTH] Token check non-blocking warning:", authErr?.message || authErr);
+        }
+      }
+
       const { brand = '', title = '', shortPitch = '', category = '' } = req.body || {};
 
       if (!title || typeof title !== 'string' || title.trim().length < 3) {
@@ -225,21 +275,29 @@ async function startServer() {
 
       const ai = getGeminiClient();
       if (ai) {
-        const prompt = `You are a product curator and deal editor for Findora (a smart Indian product discovery and price comparison platform).
+        const prompt = `You are an editorial assistant and product curator for Findora (a smart Indian product discovery and price comparison platform).
 Analyze this product:
 - Brand: ${cleanBrand || 'Not specified'}
-- Title: ${cleanTitle}
-- User Notes / Description: ${cleanShortPitch || 'None'}
+- Product Title: ${cleanTitle}
 - Category: ${cleanCategory || 'General'}
+- Short Description / Notes: ${cleanShortPitch || 'None provided'}
+
+CRITICAL STRICT RULES (NO HALLUCINATIONS):
+- You must ONLY use facts directly stated or reasonably evident from the provided brand, product title, category, and short description.
+- Do NOT invent specific technical specifications, exact battery runtime, lab certifications, warranty periods, performance claims, awards, benchmark comparisons, or fake dimensions.
+- Do NOT create fake reviews, star ratings, or price claims.
+- If information is not provided, write conservatively and objectively instead of guessing or fabricating details.
 
 Generate a structured JSON object containing all of the following fields:
 {
-  "whyWePickedIt": "A concise, compelling 2-3 sentence editorial explanation of why Findora recommends this product and what makes it a smart buy for shoppers.",
-  "topPick": "A punchy badge label such as 'Top Pick', 'Editor\\'s Choice', 'Best Value', 'Flagship Pick', or 'Budget King'.",
-  "pros": ["An array of 3 to 4 specific, genuine advantages of this product."],
+  "whyWePickedIt": "A concise, compelling 2-3 sentence editorial explanation of why Findora recommends this product and what makes it a smart buy for shoppers, based strictly on the provided info.",
+  "topPick": "A punchy standard badge label such as 'Top Pick', 'Editor\\'s Choice', 'Best Value', 'Flagship Pick', 'Budget King', or 'Trending Deal'.",
+  "pros": ["An array of 3 to 4 genuine advantages based strictly on provided details."],
   "cons": ["An array of 1 to 2 honest trade-offs or considerations shoppers should know."],
-  "shortSeoDescription": "A punchy 1-sentence product summary (25-45 words).",
-  "suggestedCategory": "The most appropriate category name for this product (e.g., Electronics, Home & Kitchen, Audio, Beauty, etc.)"
+  "seoTitle": "A concise SEO meta title under 60 characters, e.g. '${cleanBrand} ${cleanTitle} - Price & Review | Findora'",
+  "seoDescription": "A punchy SEO meta description under 160 characters summarizing the product for shoppers.",
+  "tags": ["An array of 3 to 5 relevant keyword tags for search/filtering, e.g. '${cleanBrand}', '${cleanCategory}'"],
+  "suggestedCategory": "The most appropriate category name for this product (e.g. Audio, Mobiles & Accessories, TV & Home Entertainment, Computers & Accessories, Kitchen, Watches, Beauty & Personal Care, Fashion, Home & Living)"
 }
 Return ONLY valid JSON, without any markdown codeblock markers or extra commentary.`;
 
@@ -266,7 +324,9 @@ Return ONLY valid JSON, without any markdown codeblock markers or extra commenta
                   topPick: parsed.topPick || 'Top Pick',
                   pros: Array.isArray(parsed.pros) ? parsed.pros : [],
                   cons: Array.isArray(parsed.cons) ? parsed.cons : [],
-                  shortSeoDescription: parsed.shortSeoDescription || '',
+                  seoTitle: parsed.seoTitle || `${cleanBrand} ${cleanTitle} | Findora`.slice(0, 65),
+                  seoDescription: parsed.seoDescription || parsed.shortSeoDescription || '',
+                  tags: Array.isArray(parsed.tags) ? parsed.tags : [cleanBrand, cleanCategory].filter(Boolean),
                   suggestedCategory: parsed.suggestedCategory || cleanCategory,
                 },
                 source: 'gemini',
@@ -299,12 +359,19 @@ Return ONLY valid JSON, without any markdown codeblock markers or extra commenta
 
   app.get("/api/dump-products", async (req, res) => {
     try {
-      const snapshot = await adminDb.collection("products").get();
-      const products = [];
-      snapshot.forEach(doc => products.push({ id: doc.id, ...doc.data() }));
+      if (!firebaseConfig) {
+        return res.json([]);
+      }
+      const url = `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/${firebaseConfig.firestoreDatabaseId}/documents/products?key=${firebaseConfig.apiKey}`;
+      const response = await fetch(url);
+      const json: any = await response.json();
+      const products = (json.documents || []).map((d: any) => ({
+        id: d.name.split('/').pop(),
+        fields: d.fields,
+      }));
       res.json(products);
-    } catch(e) {
-      res.status(500).json({error: e.toString()});
+    } catch(e: any) {
+      res.status(500).json({ error: e?.toString() });
     }
   });
 

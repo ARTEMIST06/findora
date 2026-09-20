@@ -40,24 +40,40 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
     );
   }
 
-  const getAuthErrorMessage = (code: string) => {
+  const getAuthErrorMessage = (code: string, rawMessage?: string) => {
     switch (code) {
       case 'auth/invalid-credential':
       case 'auth/wrong-password':
       case 'auth/user-not-found':
-        return 'Invalid email or password.';
+        return 'Invalid email or password (auth/invalid-credential).';
       case 'auth/email-already-in-use':
-        return 'An account with this email already exists.';
+        return 'An account with this email already exists (auth/email-already-in-use).';
       case 'auth/weak-password':
-        return 'Password should be at least 6 characters.';
+        return 'Password should be at least 6 characters (auth/weak-password).';
       case 'auth/too-many-requests':
-        return 'Too many attempts. Please try again later.';
+        return 'Too many attempts. Please try again later (auth/too-many-requests).';
       case 'auth/popup-blocked':
-        return 'Sign in popup was blocked by your browser. Please allow popups for this site and try again.';
+        return 'Sign-in popup was blocked by your browser. Please allow popups for this site and try again (auth/popup-blocked).';
       case 'auth/popup-closed-by-user':
-        return 'Sign in was cancelled.';
+        return 'Sign-in was cancelled (auth/popup-closed-by-user).';
+      case 'auth/unauthorized-domain': {
+        const currentHost = typeof window !== 'undefined' ? window.location.hostname : 'this domain';
+        return `Domain unauthorized for OAuth: Please add "${currentHost}" to Firebase Console -> Authentication -> Settings -> Authorized domains (auth/unauthorized-domain).`;
+      }
+      case 'auth/invalid-oauth-client-id':
+        return 'Invalid OAuth Client ID configuration in Firebase / Google Cloud Console (auth/invalid-oauth-client-id).';
+      case 'auth/account-exists-with-different-credential':
+        return 'An account already exists with this email using a different sign-in method. Please sign in with email/password (auth/account-exists-with-different-credential).';
+      case 'auth/cancelled-popup-request':
+        return 'Another sign-in popup is already open. Please complete or close it (auth/cancelled-popup-request).';
+      case 'auth/operation-not-allowed':
+        return 'Google Sign-In is not enabled. Please enable it in Firebase Console -> Authentication -> Sign-in method (auth/operation-not-allowed).';
+      case 'auth/network-request-failed':
+        return 'Network request failed. Please check your internet connection (auth/network-request-failed).';
       default:
-        return 'Authentication failed. Please try again.';
+        return code
+          ? `Authentication error (${code}): ${rawMessage || 'Please try again.'}`
+          : (rawMessage || 'Authentication failed. Please try again.');
     }
   };
 
@@ -87,8 +103,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
         onNavigate('/');
       }
     } catch (error: any) {
-      console.error(error);
-      showToast(getAuthErrorMessage(error.code), 'error');
+      console.error('[Email Auth Error]:', error);
+      showToast(getAuthErrorMessage(error.code, error.message), 'error');
     } finally {
       setLoading(false);
     }
@@ -105,8 +121,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
       showToast('Password reset email sent! Check your inbox.', 'success');
       setIsResetMode(false);
     } catch (error: any) {
-      console.error(error);
-      showToast(getAuthErrorMessage(error.code), 'error');
+      console.error('[Password Reset Error]:', error);
+      showToast(getAuthErrorMessage(error.code, error.message), 'error');
     } finally {
       setLoading(false);
     }
@@ -116,17 +132,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
     try {
       setLoading(true);
       const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
       const result = await signInWithPopup(auth, provider);
-      // Determine if new user? Harder with popup, just log login
       await store.logSecurityEvent(result.user.uid, 'login', { method: 'google' });
       showToast('Successfully signed in with Google!', 'success');
       onNavigate('/');
     } catch (error: any) {
-      console.error(error);
+      console.error('[Google Auth Error]:', error);
       if (error.code === 'auth/popup-closed-by-user') {
         return;
       }
-      showToast(getAuthErrorMessage(error.code), 'error');
+      showToast(getAuthErrorMessage(error.code, error.message), 'error');
     } finally {
       setLoading(false);
     }

@@ -255,26 +255,50 @@ class FindoraStore {
           
           onAuthStateChanged(auth, async (user) => {
             if (user) {
+              const emailLower = (user.email || '').toLowerCase().trim();
+              const isBootstrappedAdmin = emailLower === 'aryasingh2366@gmail.com' || emailLower === 'admin@findora.com';
+              const isBootstrappedEditor = emailLower === 'editor@findora.com';
+              const targetRole = isBootstrappedAdmin ? 'admin' : (isBootstrappedEditor ? 'editor' : 'shopper');
+
               const userRef = doc(db, 'users', user.uid);
-              const userSnap = await getDoc(userRef);
-              if (userSnap.exists()) {
-                this.currentUser = { ...userSnap.data(), id: userSnap.id } as User;
-                // Update lastLogin
-                setDoc(userRef, { lastLogin: new Date().toISOString() }, { merge: true }).catch(console.error);
-              } else {
-                const newUser: User = {
+              try {
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                  const existingData = userSnap.data() as User;
+                  if ((isBootstrappedAdmin || isBootstrappedEditor) && existingData.role !== targetRole) {
+                    existingData.role = targetRole;
+                    setDoc(userRef, { role: targetRole, lastLogin: new Date().toISOString() }, { merge: true }).catch(console.error);
+                  } else {
+                    setDoc(userRef, { lastLogin: new Date().toISOString() }, { merge: true }).catch(console.error);
+                  }
+                  this.currentUser = { ...existingData, id: userSnap.id } as User;
+                } else {
+                  const newUser: User = {
+                    id: user.uid,
+                    email: user.email || '',
+                    name: user.displayName || user.email?.split('@')[0] || 'User',
+                    role: targetRole,
+                    createdAt: new Date().toISOString(),
+                    lastLogin: new Date().toISOString(),
+                  };
+                  if (user.photoURL) {
+                    newUser.avatar = user.photoURL;
+                  }
+                  await setDoc(userRef, newUser);
+                  this.currentUser = newUser;
+                }
+              } catch (userDocErr) {
+                console.error("Error reading/writing user doc:", userDocErr);
+                // Fallback in memory
+                this.currentUser = {
                   id: user.uid,
                   email: user.email || '',
                   name: user.displayName || user.email?.split('@')[0] || 'User',
-                  role: 'shopper',
+                  role: targetRole,
                   createdAt: new Date().toISOString(),
                   lastLogin: new Date().toISOString(),
+                  avatar: user.photoURL || undefined,
                 };
-                if (user.photoURL) {
-                  newUser.avatar = user.photoURL;
-                }
-                await setDoc(userRef, newUser);
-                this.currentUser = newUser;
               }
               
               // Wishlist listener

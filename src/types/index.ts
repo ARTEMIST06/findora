@@ -128,6 +128,9 @@ export interface ProductDraft {
   pros: string[];
   cons: string[];
   specifications: Record<string, string>;
+  seoTitle?: string;
+  seoDescription?: string;
+  tags?: string[];
   published: boolean;
   featured: boolean;
   addedBy: 'Arya' | 'Ananya' | 'Khushi' | string;

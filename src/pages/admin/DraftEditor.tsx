@@ -40,9 +40,14 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
   const [isSuggestingCategory, setIsSuggestingCategory] = useState(false);
   const [suggestedCategory, setSuggestedCategory] = useState<string | null>(null);
 
-  // New item inputs for Pros & Cons
+  // New item inputs for Pros & Cons & Tags
   const [newProText, setNewProText] = useState('');
   const [newConText, setNewConText] = useState('');
+  const [newTagText, setNewTagText] = useState('');
+
+  // Confirmation modal state for overwriting manual edits
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [fieldsToOverwrite, setFieldsToOverwrite] = useState<string[]>([]);
 
   useEffect(() => {
     store.fetchCategories().then(setCategories);
@@ -69,6 +74,9 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
         whyFindora: '',
         pros: [],
         cons: [],
+        seoTitle: '',
+        seoDescription: '',
+        tags: [],
         specifications: {},
         published: false,
         featured: false,
@@ -86,9 +94,9 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
           if (d.manualEdits) {
             setManualEdits(d.manualEdits);
           }
-          if (d.lastGeneratedHash) {
-            setLastGeneratedHash(d.lastGeneratedHash);
-          }
+          const existingHash = d.lastGeneratedHash || 
+            `${(d.brand || '').trim().toLowerCase()}::${(d.title || '').trim().toLowerCase()}::${(d.category || '').trim().toLowerCase()}::${(d.shortPitch || '').trim().toLowerCase()}`;
+          setLastGeneratedHash(existingHash);
         }
       });
     }
@@ -156,12 +164,27 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
     }
 
     setIsGeneratingAi(true);
-    setAiStatusMessage('Generating AI editorial content...');
+    setAiStatusMessage('✨ Findora AI is generating...');
 
     try {
+      let idToken: string | undefined;
+      try {
+        const { auth } = await import('../../lib/firebase');
+        if (auth.currentUser) {
+          idToken = await auth.currentUser.getIdToken();
+        }
+      } catch (authErr) {
+        // Non-blocking
+      }
+
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (idToken) {
+        headers['Authorization'] = `Bearer ${idToken}`;
+      }
+
       const res = await fetch('/api/generate-product-content', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           brand: draft.brand || '',
           title: draft.title,
@@ -169,6 +192,13 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
           category: draft.category || ''
         }),
       });
+
+      if (!res.ok && res.status === 403) {
+        setAiStatusMessage('Forbidden: Admin or Editor role required');
+        showToast('Forbidden: Admin or Editor role required to use AI Copilot', 'error');
+        setIsGeneratingAi(false);
+        return;
+      }
 
       const json = await res.json();
       if (json.success && json.data) {
@@ -200,13 +230,25 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
           if (options.forceAll) delete newManualEdits.cons;
         }
 
-        // 5. shortPitch (if empty or forceAll)
-        if (options.forceAll || (!manualEdits.shortPitch && !draft.shortPitch)) {
-          updates.shortPitch = data.shortSeoDescription;
-          if (options.forceAll) delete newManualEdits.shortPitch;
+        // 5. seoTitle: protect manual edits unless forceAll
+        if (options.forceAll || (!manualEdits.seoTitle && !draft.seoTitle)) {
+          updates.seoTitle = data.seoTitle;
+          if (options.forceAll) delete newManualEdits.seoTitle;
         }
 
-        // 6. suggested category (if empty)
+        // 6. seoDescription: protect manual edits unless forceAll
+        if (options.forceAll || (!manualEdits.seoDescription && !draft.seoDescription)) {
+          updates.seoDescription = data.seoDescription;
+          if (options.forceAll) delete newManualEdits.seoDescription;
+        }
+
+        // 7. tags: protect manual edits unless forceAll
+        if (options.forceAll || (!manualEdits.tags && (!draft.tags || draft.tags.length === 0))) {
+          updates.tags = data.tags;
+          if (options.forceAll) delete newManualEdits.tags;
+        }
+
+        // 8. suggested category (if empty)
         if (!draft.category && data.suggestedCategory) {
           const matched = categories.find(
             c => c.name.toLowerCase() === data.suggestedCategory.toLowerCase() ||
@@ -217,7 +259,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
           }
         }
 
-        const newHash = `${(draft.brand || '').trim()}::${draft.title.trim()}::${(draft.shortPitch || '').trim()}`;
+        const newHash = `${(draft.brand || '').trim().toLowerCase()}::${(draft.title || '').trim().toLowerCase()}::${(draft.category || '').trim().toLowerCase()}::${(draft.shortPitch || '').trim().toLowerCase()}`;
         setLastGeneratedHash(newHash);
         setManualEdits(newManualEdits);
 
@@ -230,42 +272,78 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
         } : prev);
 
         setSaveStatus('unsaved');
-        setAiStatusMessage('✓ AI content generated');
-        showToast(options.forceAll ? '✨ AI content refreshed!' : '✓ AI content populated for empty fields', 'success');
+        setAiStatusMessage('✓ AI content ready');
+        showToast(options.forceAll ? '✨ AI content refreshed!' : '✓ AI content ready', 'success');
       } else {
-        setAiStatusMessage('AI generation failed');
-        showToast(json.message || 'Failed to generate content', 'error');
+        setAiStatusMessage('AI generation failed. Your product data is safe. Try again.');
+        showToast(json.message || 'AI generation failed. Your product data is safe. Try again.', 'error');
       }
     } catch (err: any) {
       console.error("AI generation failed:", err);
-      setAiStatusMessage('AI generation failed');
-      showToast('Could not reach generation service', 'error');
+      setAiStatusMessage('AI generation failed. Your product data is safe. Try again.');
+      showToast('AI generation failed. Your product data is safe. Try again.', 'error');
     } finally {
       setIsGeneratingAi(false);
     }
   };
 
-  // Debounced auto-generation effect when Brand + Title are entered
+  // Debounced auto-generation effect when Brand + Title + Category + Short Description are entered
   useEffect(() => {
     if (!draft) return;
     const title = (draft.title || '').trim();
     const brand = (draft.brand || '').trim();
+    const category = (draft.category || '').trim();
+    const shortPitch = (draft.shortPitch || '').trim();
 
-    // Trigger auto-suggest when title and brand are defined
-    if (title.length < 5 || brand.length < 2) return;
+    // Auto-generation triggers ONLY when all 4 inputs are sufficiently complete:
+    // Brand (>=2 chars), Title (>=3 chars), Category (>=2 chars), Short Description (>=5 chars)
+    if (brand.length < 2 || title.length < 3 || category.length < 2 || shortPitch.length < 5) {
+      return;
+    }
 
-    const currentHash = `${brand}::${title}::${(draft.shortPitch || '').trim()}`;
-    if (currentHash === lastGeneratedHash || currentHash === draft.lastGeneratedHash) return;
+    const currentHash = `${brand.toLowerCase()}::${title.toLowerCase()}::${category.toLowerCase()}::${shortPitch.toLowerCase()}`;
+    if (currentHash === lastGeneratedHash || currentHash === draft.lastGeneratedHash) {
+      return;
+    }
 
     // If all key editorial fields are already protected manual edits, don't auto-run
-    if (manualEdits.whyFindora && manualEdits.badge && manualEdits.pros && manualEdits.cons) return;
+    const allProtected = 
+      manualEdits.whyFindora && 
+      manualEdits.badge && 
+      manualEdits.pros && 
+      manualEdits.cons && 
+      manualEdits.seoTitle && 
+      manualEdits.seoDescription && 
+      manualEdits.tags;
+
+    if (allProtected) return;
 
     const timer = setTimeout(() => {
       generateAllAiContent({ forceAll: false });
-    }, 1400);
+    }, 1200);
 
     return () => clearTimeout(timer);
-  }, [draft?.title, draft?.brand, draft?.shortPitch]);
+  }, [draft?.title, draft?.brand, draft?.category, draft?.shortPitch]);
+
+  const handleRegenerateClick = () => {
+    const fieldLabels: Record<string, string> = {
+      whyFindora: 'Why We Picked It',
+      badge: 'Top Pick / Badge',
+      pros: 'Pros',
+      cons: 'Cons',
+      seoTitle: 'SEO Title',
+      seoDescription: 'SEO Description',
+      tags: 'Tags',
+    };
+
+    const manuallyChanged = Object.keys(manualEdits).filter(k => manualEdits[k] && fieldLabels[k]);
+    if (manuallyChanged.length > 0) {
+      setFieldsToOverwrite(manuallyChanged.map(k => fieldLabels[k]));
+      setIsConfirmModalOpen(true);
+    } else {
+      generateAllAiContent({ forceAll: true });
+    }
+  };
 
   if (!draft) return <div className="p-10 flex justify-center"><Loader2 className="animate-spin" /></div>;
 
@@ -332,6 +410,22 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
     handleChange('cons', updated, true);
   };
 
+  // --- Tags management ---
+  const addTag = () => {
+    if (!newTagText.trim()) return;
+    const tag = newTagText.trim();
+    const existing = draft?.tags || [];
+    if (!existing.includes(tag)) {
+      handleChange('tags', [...existing, tag], true);
+    }
+    setNewTagText('');
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    const updated = (draft?.tags || []).filter(t => t !== tagToRemove);
+    handleChange('tags', updated, true);
+  };
+
   const handlePublish = async () => {
     if (missingFields.length > 0) {
       showToast(`Missing required fields: ${missingFields.map(f => f.label).join(', ')}`, 'error');
@@ -364,14 +458,14 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
         name: draft.title!,
         brand: draft.brand!,
         category: draft.category!,
-        shortDescription: (draft.shortPitch || '').replace('[AI suggestion — review before saving]', '').trim(),
+        shortDescription: (draft.seoDescription || draft.shortPitch || '').replace('[AI suggestion — review before saving]', '').trim(),
         description: (draft.whyFindora || '').replace('[AI suggestion — review before saving]', '').trim(),
         images: [draft.image!],
         specifications: draft.specifications || {},
         pros: draft.pros || [],
         cons: draft.cons || [],
         whyFindora: (draft.whyFindora || '').replace('[AI suggestion — review before saving]', '').trim(),
-        tags: [],
+        tags: draft.tags || [],
         published: true,
         featured: draft.featured || false,
         badge: draft.badge || '',
@@ -638,6 +732,20 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
               </div>
 
               <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                  <span>Short Description *</span>
+                  <span className="text-[10px] text-slate-400 font-normal">Used by AI Copilot for context</span>
+                </label>
+                <textarea
+                  value={draft.shortPitch || ''}
+                  onChange={(e) => handleChange('shortPitch', e.target.value, true)}
+                  rows={2}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 outline-none text-sm text-slate-800"
+                  placeholder="e.g. Premium wireless noise cancelling headphones with 30-hour battery and ultra-clear mic"
+                />
+              </div>
+
+              <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                   Main Image URL *
                 </label>
@@ -658,6 +766,41 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
                     />
                   )}
                 </div>
+              </div>
+
+              {/* Copilot Trigger State Line */}
+              <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
+                  {isGeneratingAi ? (
+                    <span className="text-xs font-semibold text-blue-600 flex items-center gap-1.5 animate-pulse">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ✨ Findora AI is generating...
+                    </span>
+                  ) : aiStatusMessage ? (
+                    <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1 ${
+                      aiStatusMessage.includes('failed') 
+                        ? 'text-amber-800 bg-amber-50 border border-amber-200' 
+                        : 'text-emerald-700 bg-emerald-50 border border-emerald-200'
+                    }`}>
+                      {aiStatusMessage}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-slate-400">
+                      Auto-generates content once Brand, Title, Category, and Short Description are entered.
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleRegenerateClick}
+                  disabled={isGeneratingAi || !draft.title}
+                  className="px-3 py-1 bg-white hover:bg-blue-50 text-blue-700 text-xs font-bold rounded-xl border border-blue-200 flex items-center gap-1.5 disabled:opacity-50 transition-colors shadow-2xs"
+                >
+                  {isGeneratingAi ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                  Regenerate AI Content
+                </button>
               </div>
             </div>
           </div>
@@ -807,30 +950,58 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
             </div>
           </div>
 
-          {/* 3. Editorial & Content (AI + Protected Manual Edits) */}
+          {/* 3. Generated Content (AI Copilot + Protected Manual Edits) */}
           <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 gap-2">
               <div>
-                <h3 className="font-bold text-slate-900 text-base">Editorial & Discovery Content</h3>
+                <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                  <span>Generated Content</span>
+                  <span className="text-xs font-normal text-slate-400">Step 3</span>
+                </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Findora recommendation highlights and buyer value considerations.
+                  AI automatically prepares editorial highlights, buyer value points, and SEO metadata.
                 </p>
               </div>
               <button
-                onClick={() => generateAllAiContent({ forceAll: true })}
+                type="button"
+                onClick={handleRegenerateClick}
                 disabled={isGeneratingAi || !draft.title}
-                className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-xl border border-blue-200 flex items-center gap-1.5 transition-colors"
+                className="px-3.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-xl border border-blue-200 flex items-center gap-1.5 transition-colors disabled:opacity-50"
               >
-                <Sparkles className="w-3 h-3 text-blue-600" />
-                Refine with AI
+                {isGeneratingAi ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-blue-600" />}
+                ✨ Regenerate AI Content
               </button>
             </div>
 
-            {/* Badge Selection */}
+            {/* Why We Picked It */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  Editorial Badge
+                  Why We Picked It
+                  {manualEdits.whyFindora ? (
+                    <span className="text-[10px] text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full font-semibold">
+                      Manual (protected)
+                    </span>
+                  ) : draft.whyFindora ? (
+                    <span className="text-[10px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
+                      <Sparkles className="w-2.5 h-2.5" /> AI generated
+                    </span>
+                  ) : null}
+                </label>
+              </div>
+              <textarea
+                value={draft.whyFindora || ''}
+                onChange={(e) => handleChange('whyFindora', e.target.value, true)}
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 outline-none text-sm text-slate-800 min-h-[90px]"
+                placeholder="Findora editorial reasoning on why this product is recommended..."
+              />
+            </div>
+
+            {/* Top Pick (Badge Selection) */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  Top Pick / Editorial Badge
                   {manualEdits.badge ? (
                     <span className="text-[10px] text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full font-semibold">
                       Manual (protected)
@@ -867,59 +1038,11 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
               />
             </div>
 
-            {/* Short Pitch */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  Short Pitch
-                  {manualEdits.shortPitch ? (
-                    <span className="text-[10px] text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full font-semibold">
-                      Manual (protected)
-                    </span>
-                  ) : draft.shortPitch ? (
-                    <span className="text-[10px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
-                      <Sparkles className="w-2.5 h-2.5" /> AI generated
-                    </span>
-                  ) : null}
-                </label>
-              </div>
-              <textarea
-                value={draft.shortPitch || ''}
-                onChange={(e) => handleChange('shortPitch', e.target.value, true)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 outline-none text-sm text-slate-800 min-h-[70px]"
-                placeholder="Crisp 1-sentence product summary (e.g. Flagship wireless headphones featuring industry-leading ANC)"
-              />
-            </div>
-
-            {/* Why Findora Picked It */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  Why Findora Picked It
-                  {manualEdits.whyFindora ? (
-                    <span className="text-[10px] text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full font-semibold">
-                      Manual (protected)
-                    </span>
-                  ) : draft.whyFindora ? (
-                    <span className="text-[10px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
-                      <Sparkles className="w-2.5 h-2.5" /> AI generated
-                    </span>
-                  ) : null}
-                </label>
-              </div>
-              <textarea
-                value={draft.whyFindora || ''}
-                onChange={(e) => handleChange('whyFindora', e.target.value, true)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 outline-none text-sm text-slate-800 min-h-[100px]"
-                placeholder="Editorial reasoning on why this product is recommended..."
-              />
-            </div>
-
             {/* Pros */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  Product Pros
+                  Pros
                   {manualEdits.pros ? (
                     <span className="text-[10px] text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full font-semibold">
                       Manual (protected)
@@ -978,7 +1101,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  Product Cons / Trade-offs
+                  Cons / Trade-offs
                   {manualEdits.cons ? (
                     <span className="text-[10px] text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full font-semibold">
                       Manual (protected)
@@ -1031,6 +1154,125 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
                   <Plus className="w-3.5 h-3.5" /> Add
                 </button>
               </div>
+            </div>
+
+            {/* SEO Title */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  SEO Title
+                  {manualEdits.seoTitle ? (
+                    <span className="text-[10px] text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full font-semibold">
+                      Manual (protected)
+                    </span>
+                  ) : draft.seoTitle ? (
+                    <span className="text-[10px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
+                      <Sparkles className="w-2.5 h-2.5" /> AI generated
+                    </span>
+                  ) : null}
+                </label>
+                <span className="text-[10px] text-slate-400 font-mono">{(draft.seoTitle || '').length}/60</span>
+              </div>
+              <input
+                type="text"
+                value={draft.seoTitle || ''}
+                onChange={(e) => handleChange('seoTitle', e.target.value, true)}
+                maxLength={70}
+                className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-blue-500 outline-none text-xs text-slate-900"
+                placeholder="e.g. Sony WH-1000XM5 Review & Best Price in India | Findora"
+              />
+            </div>
+
+            {/* SEO Description */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  SEO Description
+                  {manualEdits.seoDescription ? (
+                    <span className="text-[10px] text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full font-semibold">
+                      Manual (protected)
+                    </span>
+                  ) : draft.seoDescription ? (
+                    <span className="text-[10px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
+                      <Sparkles className="w-2.5 h-2.5" /> AI generated
+                    </span>
+                  ) : null}
+                </label>
+                <span className="text-[10px] text-slate-400 font-mono">{(draft.seoDescription || '').length}/160</span>
+              </div>
+              <textarea
+                value={draft.seoDescription || ''}
+                onChange={(e) => handleChange('seoDescription', e.target.value, true)}
+                rows={2}
+                maxLength={180}
+                className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-blue-500 outline-none text-xs text-slate-800"
+                placeholder="Crisp meta description under 160 characters for search engines and social cards..."
+              />
+            </div>
+
+            {/* Tags */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  Product Tags
+                  {manualEdits.tags ? (
+                    <span className="text-[10px] text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full font-semibold">
+                      Manual (protected)
+                    </span>
+                  ) : (draft.tags && draft.tags.length > 0) ? (
+                    <span className="text-[10px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
+                      <Sparkles className="w-2.5 h-2.5" /> AI generated
+                    </span>
+                  ) : null}
+                </label>
+              </div>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {(draft.tags || []).map((t) => (
+                  <span
+                    key={t}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-700 text-xs font-medium rounded-lg"
+                  >
+                    #{t}
+                    <button
+                      type="button"
+                      onClick={() => removeTag(t)}
+                      className="text-slate-400 hover:text-slate-600 ml-0.5"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newTagText}
+                  onChange={(e) => setNewTagText(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); }}}
+                  placeholder="Add a search tag..."
+                  className="flex-1 px-3 py-1.5 text-xs rounded-xl border border-slate-200 outline-none focus:border-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={addTag}
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl flex items-center gap-1"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add Tag
+                </button>
+              </div>
+            </div>
+
+            {/* Bottom Regenerate Button */}
+            <div className="pt-4 border-t border-slate-100 flex justify-end">
+              <button
+                type="button"
+                onClick={handleRegenerateClick}
+                disabled={isGeneratingAi || !draft.title}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-2 transition-colors disabled:opacity-50"
+              >
+                {isGeneratingAi ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                ✨ Regenerate AI Content
+              </button>
             </div>
           </div>
         </div>
@@ -1100,6 +1342,56 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal when Manual Edits will be overwritten */}
+      {isConfirmModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 space-y-4">
+            <div className="flex items-center gap-3 text-amber-600">
+              <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 text-base">Overwriting Manual Edits</h4>
+                <p className="text-xs text-slate-500">Some fields were customized by you</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Regenerating AI content will replace your manual edits with fresh AI-generated content in the following fields:
+            </p>
+
+            <ul className="bg-slate-50 rounded-2xl p-3 border border-slate-100 space-y-1.5 text-xs font-semibold text-slate-700">
+              {fieldsToOverwrite.map(field => (
+                <li key={field} className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  {field}
+                </li>
+              ))}
+            </ul>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsConfirmModalOpen(false)}
+                className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsConfirmModalOpen(false);
+                  generateAllAiContent({ forceAll: true });
+                }}
+                className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors shadow-xs"
+              >
+                Regenerate & Overwrite
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -13,11 +13,30 @@ service cloud.firestore {
     function incoming() {
       return request.resource.data;
     }
+    function isBootstrappedAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email == 'aryasingh2366@gmail.com' ||
+        request.auth.token.email == 'admin@findora.com'
+      );
+    }
+    function isBootstrappedEditor() {
+      return isAuthenticated() && (
+        isBootstrappedAdmin() ||
+        request.auth.token.email == 'editor@findora.com'
+      );
+    }
     function isAdmin() {
-      return isAuthenticated() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return isAuthenticated() && (
+        isBootstrappedAdmin() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
     }
     function isEditor() {
-      return isAuthenticated() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'editor' || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      return isAuthenticated() && (
+        isBootstrappedEditor() ||
+        isAdmin() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'editor' || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'))
+      );
     }
 
     // --- USERS ---
@@ -25,7 +44,7 @@ service cloud.firestore {
       return data.keys().hasAll(['email', 'name', 'role', 'createdAt'])
         && data.email is string
         && data.name is string
-        && data.role == 'shopper'
+        && (data.role == 'shopper' || (isBootstrappedAdmin() && data.role == 'admin') || (isBootstrappedEditor() && data.role == 'editor'))
         && data.createdAt is string
         && (!data.keys().hasAny(['avatar']) || data.avatar is string)
         && (!data.keys().hasAny(['lastLogin']) || data.lastLogin is string)
@@ -39,6 +58,7 @@ service cloud.firestore {
         isAdmin() ||
         (request.auth.uid == userId && !incoming().diff(existing()).affectedKeys().hasAny(['role', 'email', 'createdAt', 'id']))
       );
+      allow delete: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
     }
 
     // --- PRODUCTS ---
