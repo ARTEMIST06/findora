@@ -9,6 +9,7 @@ import {
   ProductWithPrices,
   UserRole,
   PriceAlert,
+  ProductDraft,
 } from '../types';
 import {
   INITIAL_PRODUCTS,
@@ -117,6 +118,88 @@ class FindoraStore {
       console.error("Error deleting draft:", e);
       return false;
     }
+  }
+
+  async duplicateProductToDraft(productId: string): Promise<ProductDraft | null> {
+    const orig = this.getProductById(productId);
+    if (!orig) return null;
+
+    const primaryOffer = this.offers.find(o => o.productId === productId);
+    const now = new Date().toISOString();
+    const newDraftId = `draft_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const cleanTitle = orig.name.startsWith('Copy of ') ? orig.name : `Copy of ${orig.name}`;
+
+    const newDraft: ProductDraft = {
+      id: newDraftId,
+      title: cleanTitle,
+      brand: orig.brand || '',
+      category: orig.category || '',
+      productUrl: primaryOffer?.productUrl || '',
+      affiliateUrl: '', // Do NOT blindly copy affiliate link; require verification
+      merchantId: primaryOffer?.storeId || 'store-amazon',
+      merchantProductId: '', // unique merchant ID cleared
+      image: (orig.images && orig.images.length > 0) ? orig.images[0] : '', // safe image reference preserved
+      currentPrice: primaryOffer?.price || null,
+      mrp: primaryOffer?.originalPrice || null,
+      availability: primaryOffer?.availability || 'in_stock',
+      badge: orig.badge || '',
+      shortPitch: orig.shortDescription || '',
+      whyFindora: orig.description || orig.whyFindora || '',
+      pros: Array.isArray(orig.pros) ? [...orig.pros] : [],
+      cons: Array.isArray(orig.cons) ? [...orig.cons] : [],
+      specifications: orig.specifications ? { ...orig.specifications } : {},
+      tags: Array.isArray(orig.tags) ? [...orig.tags] : [],
+      published: false, // MUST start as unpublished draft
+      featured: false,
+      addedBy: this.currentUser?.name || 'Admin',
+      addedByUserId: this.currentUser?.id || 'admin',
+      draftStatus: 'incomplete',
+      amazonNeedsVerification: true, // Requires verification before publishing
+      duplicatedFromId: orig.id,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const saved = await this.saveDraft(newDraft);
+    if (saved) {
+      notifyChange();
+      return newDraft;
+    }
+    return null;
+  }
+
+  async duplicateDraft(draftId: string): Promise<ProductDraft | null> {
+    const orig = await this.getDraft(draftId);
+    if (!orig) return null;
+
+    const now = new Date().toISOString();
+    const newDraftId = `draft_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const cleanTitle = orig.title?.startsWith('Copy of ') ? orig.title : `Copy of ${orig.title || 'Product'}`;
+
+    const newDraft: ProductDraft = {
+      ...orig,
+      id: newDraftId,
+      title: cleanTitle,
+      merchantProductId: '', // unique merchant identifier cleared
+      affiliateUrl: '', // Do NOT blindly copy affiliate link
+      amazonNeedsVerification: true, // Requires verification before publishing
+      published: false, // MUST NOT be published
+      draftStatus: 'incomplete',
+      addedBy: this.currentUser?.name || orig.addedBy || 'Admin',
+      addedByUserId: this.currentUser?.id || orig.addedByUserId || 'admin',
+      duplicatedFromId: orig.id,
+      createdAt: now,
+      updatedAt: now,
+      publishedAt: undefined,
+      publishedBy: undefined,
+    };
+
+    const saved = await this.saveDraft(newDraft);
+    if (saved) {
+      notifyChange();
+      return newDraft;
+    }
+    return null;
   }
 
   // --- BRANDS ---
@@ -286,6 +369,21 @@ class FindoraStore {
                   }
                   await setDoc(userRef, newUser);
                   this.currentUser = newUser;
+                }
+
+                // Log privileged audit event for Admin / Editor login
+                if (targetRole === 'admin' || targetRole === 'editor') {
+                  import('./audit').then(({ logAuditEvent }) => {
+                    logAuditEvent({
+                      actorUid: user.uid,
+                      actorRole: targetRole,
+                      actorEmail: user.email || '',
+                      action: 'LOGIN',
+                      targetType: 'system',
+                      targetName: 'Admin/Editor Console Session',
+                      details: { provider: user.providerData?.[0]?.providerId || 'email_password' },
+                    }).catch(() => {});
+                  }).catch(() => {});
                 }
               } catch (userDocErr) {
                 console.error("Error reading/writing user doc:", userDocErr);
@@ -945,6 +1043,19 @@ class FindoraStore {
   }
 
   logout(): void {
+    if (this.currentUser && (this.currentUser.role === 'admin' || this.currentUser.role === 'editor')) {
+      const userToLog = this.currentUser;
+      import('./audit').then(({ logAuditEvent }) => {
+        logAuditEvent({
+          actorUid: userToLog.id,
+          actorRole: userToLog.role as 'admin' | 'editor',
+          actorEmail: userToLog.email,
+          action: 'LOGOUT',
+          targetType: 'system',
+          targetName: 'Admin/Editor Console Session',
+        }).catch(() => {});
+      }).catch(() => {});
+    }
     if (typeof window !== 'undefined') {
       import('../lib/firebase').then(({ auth }) => {
         import('firebase/auth').then(({ signOut }) => {
@@ -1080,6 +1191,17 @@ class FindoraStore {
           setDoc(doc(db, 'clicks', click.id), click).catch(console.error);
         });
       });
+      // GA4 tracking instrumentation
+      import('./analytics').then(({ analytics }) => {
+        analytics.trackAffiliateClick({
+          productId,
+          productName: click.productName,
+          store: click.storeName,
+          category: product?.category || 'General',
+          price,
+          affiliateUrl,
+        });
+      }).catch(() => {});
     }
     saveToStorage(STORAGE_KEYS.CLICKS, this.clicks);
     

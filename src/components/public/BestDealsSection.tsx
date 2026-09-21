@@ -15,40 +15,38 @@ export const BestDealsSection: React.FC<BestDealsSectionProps> = ({ onNavigate }
   const deals = products
     .filter((p) => p.maxDiscountPercent && p.maxDiscountPercent > 0)
     .sort((a, b) => (b.maxDiscountPercent || 0) - (a.maxDiscountPercent || 0))
-    .slice(0, 4);
+    .slice(0, 6);
 
   if (deals.length === 0) return null;
 
   return (
-    <section className="py-6 sm:py-8 bg-gradient-to-b from-slate-100/60 to-white border-y border-slate-200/60">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-5">
-          <div>
-            <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
-              <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-              <span>Best Deals</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
-              Prices worth checking
-            </h2>
-            <p className="text-sm text-slate-500 mt-1">
-              The biggest price drops and most aggressive discounts today.
-            </p>
+    <section className="py-8 max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+        <div>
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 uppercase tracking-widest mb-1 px-3 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+            <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+            <span>Aggressive Discounts</span>
           </div>
-          <button
-            onClick={() => onNavigate('/deals')}
-            className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 group self-start sm:self-auto"
-          >
-            <span>Explore all deals</span>
-            <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-          </button>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-1">
+            Prices Worth Checking Today
+          </h2>
+          <p className="text-sm text-slate-400 mt-1">
+            Highest price reductions compared against 90-day market averages.
+          </p>
         </div>
+        <button
+          onClick={() => onNavigate('/deals')}
+          className="text-xs sm:text-sm font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1 group self-start sm:self-auto"
+        >
+          <span>Explore all deals</span>
+          <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+        </button>
+      </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {deals.map((product) => (
-            <ProductCard key={product.id} product={product} onNavigate={onNavigate} />
-          ))}
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {deals.map((product) => (
+          <ProductCard key={product.id} product={product} onNavigate={onNavigate} />
+        ))}
       </div>
     </section>
   );

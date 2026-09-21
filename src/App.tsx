@@ -21,6 +21,8 @@ import { ProfilePage } from './pages/public/ProfilePage';
 import { AuthPage } from './pages/public/AuthPages';
 import { LegalPage } from './pages/public/LegalPages';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { AnalyticsDashboard } from './pages/admin/AnalyticsDashboard';
+import { analytics } from './services/analytics';
 
 export default function App() {
   const [currentPath, setCurrentPath] = useState<string>(() => {
@@ -29,6 +31,12 @@ export default function App() {
     if (hash) return hash;
     return window.location.pathname || '/';
   });
+
+  // Track page views on route change
+  useEffect(() => {
+    const [pathPart] = currentPath.split('?');
+    analytics.trackPageView(pathPart || '/');
+  }, [currentPath]);
 
   // Keep state synced with browser history
   useEffect(() => {
@@ -131,7 +139,12 @@ export default function App() {
       return <AuthPage mode="signup" onNavigate={handleNavigate} />;
     }
 
-    // 12. Admin Dashboard
+    // 12. Admin Analytics & Audit
+    if (pathPart === '/admin/analytics') {
+      return <AnalyticsDashboard onNavigate={handleNavigate} />;
+    }
+
+    // 13. Admin Dashboard
     if (pathPart === '/admin') {
       return <AdminDashboard onNavigate={handleNavigate} />;
     }
@@ -158,16 +171,19 @@ export default function App() {
 
     // Fallback: 404
     return (
-      <div className="max-w-md mx-auto py-20 px-4 text-center">
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">Page Not Found</h2>
-        <p className="text-sm text-slate-500 mb-6">
-          The link you followed doesn't match an active page.
+      <div className="max-w-lg mx-auto py-28 px-4 text-center">
+        <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+          <span className="text-2xl font-bold">404</span>
+        </div>
+        <h2 className="text-3xl font-extrabold text-white mb-3 tracking-tight">Page Not Found</h2>
+        <p className="text-sm text-slate-400 mb-8 max-w-sm mx-auto leading-relaxed">
+          The link or product you followed doesn't match an active page on Findora. Explore our live catalog or search across top retailers.
         </p>
         <button
           onClick={() => handleNavigate('/')}
-          className="px-5 py-2.5 bg-blue-600 text-white font-semibold text-xs rounded-xl"
+          className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm rounded-xl shadow-lg shadow-indigo-500/25 transition-all"
         >
-          Return to Home
+          Return to Findora Home
         </button>
       </div>
     );
@@ -177,7 +193,7 @@ export default function App() {
     <HelmetProvider>
       <ToastProvider>
         <Analytics />
-        <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900 antialiased selection:bg-blue-600 selection:text-white">
+        <div className="min-h-screen flex flex-col bg-[#070B14] bg-mesh-dark font-sans text-slate-100 antialiased selection:bg-blue-600 selection:text-white">
           {/* Global Navigation Bar */}
           <Navbar currentRoute={currentPath} onNavigate={handleNavigate} />
 

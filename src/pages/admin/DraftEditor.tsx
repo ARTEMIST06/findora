@@ -20,6 +20,7 @@ import { TEAM_MEMBERS } from '../../config/teamMembers';
 import { REQUIRED_DRAFT_FIELDS, getMissingDraftFields, calculateDraftStatus, formatDraftStatus } from '../../utils/drafts';
 import { OpenAmazonButton } from '../../components/admin/OpenAmazonButton';
 import { validateAmazonAffiliateUrl, isAmazonUrl } from '../../utils/amazon';
+import { ProductImageManager } from '../../components/admin/ProductImageManager';
 
 export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({ draftId, onBack }) => {
   const store = useFindoraStore();
@@ -274,6 +275,22 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
         setSaveStatus('unsaved');
         setAiStatusMessage('✓ AI content ready');
         showToast(options.forceAll ? '✨ AI content refreshed!' : '✓ AI content ready', 'success');
+
+        const currentUser = store.getCurrentUser();
+        if (currentUser) {
+          import('../../services/audit').then(({ logAuditEvent }) => {
+            logAuditEvent({
+              actorUid: currentUser.id,
+              actorRole: (currentUser.role as any) || 'editor',
+              actorEmail: currentUser.email,
+              action: 'AI_CONTENT_GENERATED',
+              targetType: 'draft',
+              targetId: draft.id || 'draft-new',
+              targetName: draft.title,
+              details: { fieldsGenerated: Object.keys(updates) },
+            }).catch(() => {});
+          }).catch(() => {});
+        }
       } else {
         setAiStatusMessage('AI generation failed. Your product data is safe. Try again.');
         showToast(json.message || 'AI generation failed. Your product data is safe. Try again.', 'error');
@@ -436,6 +453,11 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
       showToast(`Invalid Affiliate URL: ${affiliateValidation.message}`, 'error');
       return;
     }
+
+    if (draft.amazonNeedsVerification) {
+      showToast('Amazon product and affiliate link must be verified before publishing', 'error');
+      return;
+    }
     
     setIsPublishing(true);
     try {
@@ -505,6 +527,22 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
       await batch.commit();
       
       showToast('Draft published successfully! Live in store.', 'success');
+
+      if (user) {
+        import('../../services/audit').then(({ logAuditEvent }) => {
+          logAuditEvent({
+            actorUid: user.id,
+            actorRole: (user.role as any) || 'editor',
+            actorEmail: user.email,
+            action: 'PRODUCT_PUBLISHED',
+            targetType: 'product',
+            targetId: productId,
+            targetName: draft.title,
+            details: { draftId: draft.id, category: draft.category, brand: draft.brand },
+          }).catch(() => {});
+        }).catch(() => {});
+      }
+
       onBack();
     } catch (e: any) {
       console.error("[CLIENT] Publish draft error:", e);
@@ -746,26 +784,13 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Main Image URL *
-                </label>
-                <div className="flex gap-3 items-center">
-                  <input
-                    type="url"
-                    value={draft.image || ''}
-                    onChange={(e) => handleChange('image', e.target.value, true)}
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 outline-none text-sm text-slate-900"
-                    placeholder="https://images-na.ssl-images-amazon.com/images/..."
-                  />
-                  {draft.image && (
-                    <img 
-                      src={draft.image} 
-                      alt="Preview" 
-                      className="w-10 h-10 object-contain rounded-lg border border-slate-200 bg-white shrink-0" 
-                      onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                    />
-                  )}
-                </div>
+                <ProductImageManager
+                  imageUrl={draft.image || ''}
+                  onChange={(newUrl) => handleChange('image', newUrl, true)}
+                  label="Product Image"
+                  required
+                  helperText="Image preview, replace, and remove are supported. Existing image references are preserved safely."
+                />
               </div>
 
               {/* Copilot Trigger State Line */}
@@ -821,6 +846,30 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
               </div>
               <OpenAmazonButton url={draft.productUrl} size="md" />
             </div>
+
+            {/* Amazon Verification Notice for Duplicates */}
+            {draft.amazonNeedsVerification && (
+              <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 flex items-start gap-3 shadow-2xs">
+                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="flex-1 text-xs space-y-2">
+                  <div>
+                    <h4 className="font-bold text-amber-950 text-sm">⚠ Amazon link needs verification</h4>
+                    <p className="text-amber-800 mt-0.5">
+                      This draft was duplicated from an existing product. Please verify the Amazon product page and configure the verified Affiliate URL before publishing.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleChange('amazonNeedsVerification', false, true)}
+                      className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition-colors shadow-2xs"
+                    >
+                      Mark Amazon Link Verified
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Amazon Product URL */}
             <div className="space-y-1.5">

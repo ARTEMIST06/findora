@@ -9,11 +9,14 @@ import fs from 'fs';
 let adminApp: any = null;
 let firebaseConfig: any = null;
 try {
-  const configStr = fs.readFileSync(path.join(process.cwd(), 'firebase-applet-config.json'), 'utf8');
-  firebaseConfig = JSON.parse(configStr);
-  adminApp = initializeApp({
-    projectId: firebaseConfig.projectId,
-  });
+  const configPath = path.join(process.cwd(), 'firebase-applet-config.json');
+  if (fs.existsSync(configPath)) {
+    const configStr = fs.readFileSync(configPath, 'utf8');
+    firebaseConfig = JSON.parse(configStr);
+    adminApp = initializeApp({
+      projectId: firebaseConfig.projectId,
+    });
+  }
 } catch (e) {
   console.error("Firebase Admin initialization failed:", e);
 }
@@ -379,8 +382,23 @@ Return ONLY valid JSON, without any markdown codeblock markers or extra commenta
 
   
 
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
+  // Safe path to compiled dist directory
+  const distPath = path.join(process.cwd(), 'dist');
+
+  const execPath = process.argv[1] || '';
+  const isProduction =
+    process.env.NODE_ENV === "production" ||
+    execPath.includes("dist") ||
+    execPath.endsWith(".cjs") ||
+    process.env.npm_lifecycle_event === "start" ||
+    (process.env.npm_lifecycle_event !== "dev" && fs.existsSync(path.join(distPath, "index.html")));
+
+  // API 404 handler to prevent SPA fallback from masking missing API routes
+  app.all('/api/*', (req, res) => {
+    res.status(404).json({ success: false, message: `API endpoint ${req.method} ${req.path} not found` });
+  });
+
+  if (!isProduction) {
     const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -388,16 +406,22 @@ Return ONLY valid JSON, without any markdown codeblock markers or extra commenta
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://0.0.0.0:${PORT}`); console.log("AWS_ID:", process.env.AMAZON_CREATORS_API_CREDENTIAL_ID ? "Set" : "Not Set");
+  const server = app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on http://0.0.0.0:${PORT}`);
+  });
+
+  server.on("error", (err: any) => {
+    console.error("Server listener error:", err);
   });
 }
 
-startServer();
+startServer().catch((err) => {
+  console.error("Fatal error starting server:", err);
+  process.exit(1);
+});

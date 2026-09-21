@@ -20,17 +20,24 @@ import {
   RefreshCw,
   Eye,
   DollarSign,
+  Copy,
+  BarChart3,
 } from 'lucide-react';
 import { BulkImport } from './BulkImport';
 import { DraftsDashboard } from './DraftsDashboard';
+import { DraftEditor } from './DraftEditor';
 import { CategoriesDashboard } from './CategoriesDashboard';
 import { BrandsDashboard } from './BrandsDashboard';
 import { FileUp } from 'lucide-react';
 import { SEOHead } from '../../components/common/SEOHead';
 import { useFindoraStore } from '../../services/store';
+import { logAuditEvent } from '../../services/audit';
 import { OpenAmazonButton } from '../../components/admin/OpenAmazonButton';
-import { getAmazonProductUrl } from '../../utils/amazon';
-import { Product, Store as StoreType, PriceOffer } from '../../types';
+import { AmazonQuickActions } from '../../components/admin/AmazonQuickActions';
+import { ProductImageManager } from '../../components/admin/ProductImageManager';
+import { ProductManagement } from '../../components/admin/ProductManagement';
+import { getAmazonProductUrl, getAmazonAffiliateUrl } from '../../utils/amazon';
+import { Product, Store as StoreType, PriceOffer, ProductDraft, Brand } from '../../types';
 import { formatINR, formatRelativeTime } from '../../utils/formatters';
 import { useToast } from '../../components/common/Toast';
 import * as XLSX from 'xlsx';
@@ -59,9 +66,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
     'overview'
   );
 
-  // Search & filter in tables
-  const [productFilter, setProductFilter] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  // Drafts state for unified product management
+  const [drafts, setDrafts] = useState<ProductDraft[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
+
+  const loadDrafts = React.useCallback(async () => {
+    try {
+      const data = await store.getDrafts();
+      setDrafts(data || []);
+    } catch (err) {
+      console.error('Error loading drafts in AdminDashboard:', err);
+    }
+  }, [store]);
+
+  React.useEffect(() => {
+    loadDrafts();
+    store.getBrands().then((b) => setBrands(b || []));
+  }, [loadDrafts, store]);
 
   // Modals state
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -181,30 +203,16 @@ if (authLoading) {
   if (!currentUser) {
     return (
       <div className="flex flex-col items-center justify-center py-32 px-4 text-center">
-        <ShieldCheck className="w-16 h-16 text-slate-300 mb-4" />
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">Authentication Required</h2>
-        <p className="text-slate-500 mb-6">You must be logged in to access the admin dashboard.</p>
+        <div className="w-20 h-20 rounded-3xl bg-[#0D1322] border border-slate-800 flex items-center justify-center mx-auto mb-5 shadow-xl">
+          <ShieldCheck className="w-10 h-10 text-slate-500" />
+        </div>
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-2">Authentication Required</h2>
+        <p className="text-sm text-slate-400 max-w-sm mb-6">You must be logged in with administrative credentials to access this control center.</p>
         <button
           onClick={() => onNavigate('/login')}
-          className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+          className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-full font-bold text-xs transition-all shadow-lg shadow-indigo-500/20"
         >
-          Sign In
-        </button>
-      </div>
-    );
-  }
-
-  if (currentUser.role !== 'admin') {
-    return (
-      <div className="flex flex-col items-center justify-center py-32 px-4 text-center">
-        <XCircle className="w-16 h-16 text-rose-500 mb-4" />
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">Access Denied</h2>
-        <p className="text-slate-500 mb-6">Your account does not have permission to access the admin area.</p>
-        <button
-          onClick={() => onNavigate('/')}
-          className="px-6 py-3 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-colors"
-        >
-          Return to Home
+          Sign In to Account
         </button>
       </div>
     );
@@ -213,18 +221,18 @@ if (authLoading) {
   // Role check guard: If shopper, show permission message
   if (currentUser?.role !== 'admin' && currentUser?.role !== 'editor') {
     return (
-      <div className="max-w-xl mx-auto px-4 py-20 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4">
-          <ShieldCheck className="w-8 h-8" />
+      <div className="max-w-xl mx-auto px-4 py-24 text-center">
+        <div className="w-20 h-20 rounded-3xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto mb-5 shadow-xl">
+          <ShieldCheck className="w-10 h-10" />
         </div>
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">Access Denied</h2>
-        <p className="text-sm text-slate-500 mb-6">
-          Your current account role is <strong>{currentUser?.role || 'Guest'}</strong>. This area requires Admin or Editor privileges.
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-2">Access Denied</h2>
+        <p className="text-sm text-slate-400 max-w-sm mx-auto mb-6">
+          Your current account role is <strong className="text-white">{currentUser?.role || 'Shopper'}</strong>. This area requires Administrator or Editor permissions.
         </p>
         <div className="flex justify-center gap-3">
           <button
             onClick={() => onNavigate('/')}
-            className="px-5 py-2.5 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-50"
+            className="px-6 py-2.5 rounded-full border border-slate-700 bg-[#0D1322] text-white text-xs font-semibold hover:bg-slate-800 transition-colors"
           >
             Back to Home
           </button>
@@ -321,6 +329,82 @@ if (authLoading) {
     setIsProductModalOpen(true);
   };
 
+  const handleDuplicateProduct = async (prod: Product) => {
+    try {
+      const newDraft = await store.duplicateProductToDraft(prod.id);
+      if (newDraft) {
+        showToast(`Duplicated "${prod.name}" into a new draft: "${newDraft.title}"`, 'success');
+        loadDrafts();
+        if (currentUser) {
+          logAuditEvent({
+            actorUid: currentUser.id,
+            actorRole: (currentUser.role as any) || 'admin',
+            actorEmail: currentUser.email,
+            action: 'PRODUCT_DUPLICATED',
+            targetType: 'product',
+            targetId: prod.id,
+            targetName: prod.name,
+            details: { newDraftId: newDraft.id, originalProductId: prod.id },
+          }).catch(() => {});
+        }
+      } else {
+        showToast('Failed to duplicate product', 'error');
+      }
+    } catch (err: any) {
+      console.error("Duplicate product error:", err);
+      showToast(err.message || 'Failed to duplicate product', 'error');
+    }
+  };
+
+  const handleDuplicateDraft = async (draft: ProductDraft) => {
+    try {
+      const newDraft = await store.duplicateDraft(draft.id);
+      if (newDraft) {
+        showToast(`Draft duplicated as "${newDraft.title}"`, 'success');
+        loadDrafts();
+        if (currentUser) {
+          logAuditEvent({
+            actorUid: currentUser.id,
+            actorRole: (currentUser.role as any) || 'admin',
+            actorEmail: currentUser.email,
+            action: 'PRODUCT_DUPLICATED',
+            targetType: 'draft',
+            targetId: draft.id,
+            targetName: draft.title,
+            details: { newDraftId: newDraft.id, originalDraftId: draft.id },
+          }).catch(() => {});
+        }
+      } else {
+        showToast('Failed to duplicate draft', 'error');
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Error duplicating draft', 'error');
+    }
+  };
+
+  const handleDeleteDraft = async (draftId: string) => {
+    if (confirm('Are you sure you want to delete this draft?')) {
+      try {
+        await store.deleteDraft(draftId);
+        showToast('Draft deleted', 'success');
+        loadDrafts();
+        if (currentUser) {
+          logAuditEvent({
+            actorUid: currentUser.id,
+            actorRole: (currentUser.role as any) || 'admin',
+            actorEmail: currentUser.email,
+            action: 'PRODUCT_DELETED',
+            targetType: 'draft',
+            targetId: draftId,
+            targetName: `Draft ${draftId}`,
+          }).catch(() => {});
+        }
+      } catch (err: any) {
+        showToast(err.message || 'Error deleting draft', 'error');
+      }
+    }
+  };
+
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProduct?.name || !editingProduct.brand) {
@@ -396,6 +480,19 @@ if (authLoading) {
 
       setIsProductModalOpen(false);
       showToast(editingProduct.id ? `Updated "${editingProduct.name}" and its offers` : `Added new product "${editingProduct.name}" and its offers`, 'success');
+
+      if (currentUser) {
+        logAuditEvent({
+          actorUid: currentUser.id,
+          actorRole: (currentUser.role as any) || 'admin',
+          actorEmail: currentUser.email,
+          action: editingProduct.id ? 'PRODUCT_EDITED' : 'PRODUCT_CREATED',
+          targetType: 'product',
+          targetId: savedProductId || editingProduct.id,
+          targetName: editingProduct.name,
+          details: { category: editingProduct.category, brand: editingProduct.brand, offersCount: editingProductOffers.length },
+        }).catch(() => {});
+      }
     } catch (err: any) {
 
       console.error(err);
@@ -407,6 +504,17 @@ if (authLoading) {
     if (confirm(`Are you sure you want to delete "${name}"?`)) {
       store.deleteProduct(id);
       showToast(`Deleted "${name}"`, 'info');
+      if (currentUser) {
+        logAuditEvent({
+          actorUid: currentUser.id,
+          actorRole: (currentUser.role as any) || 'admin',
+          actorEmail: currentUser.email,
+          action: 'PRODUCT_DELETED',
+          targetType: 'product',
+          targetId: id,
+          targetName: name,
+        }).catch(() => {});
+      }
     }
   };
 
@@ -443,6 +551,19 @@ if (authLoading) {
 
     showToast('Store offer and live price updated!', 'success');
     setIsOfferModalOpen(false);
+
+    if (currentUser) {
+      logAuditEvent({
+        actorUid: currentUser.id,
+        actorRole: (currentUser.role as any) || 'admin',
+        actorEmail: currentUser.email,
+        action: 'AFFILIATE_LINK_UPDATED',
+        targetType: 'offer',
+        targetId: targetProductIdForOffer,
+        targetName: `Offer for ${targetProductIdForOffer}`,
+        details: { storeId: editingOffer.storeId, price: editingOffer.price, affiliateUrl: editingOffer.affiliateUrl },
+      }).catch(() => {});
+    }
   };
 
   const handleDeleteOffer = (offerId: string) => {
@@ -491,46 +612,48 @@ if (authLoading) {
     setIsStoreModalOpen(false);
   };
 
-  const filteredProductsList = products.filter((p) => {
-    const matchesSearch =
-      p.name.toLowerCase().includes(productFilter.toLowerCase()) ||
-      p.brand.toLowerCase().includes(productFilter.toLowerCase());
-    const matchesCat = selectedCategory === 'all' || p.category === selectedCategory;
-    return matchesSearch && matchesCat;
-  });
-
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+    <div className="admin-container max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8 min-h-screen text-slate-100">
       <SEOHead 
         title="Admin Dashboard - Findora"
         description="Manage products, store pricing, and track affiliate clicks in the Findora admin dashboard."
       />
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
         <div>
-          <div className="inline-flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">
-            <LayoutDashboard className="w-4 h-4" />
+          <div className="inline-flex items-center gap-2 text-xs font-bold text-blue-400 uppercase tracking-wider mb-1">
+            <LayoutDashboard className="w-4 h-4 text-cyan-400" />
             <span>Findora Platform Management</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
             Admin & Pricing Control Center
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Logged in as <strong className="text-slate-900">{currentUser?.name}</strong> ({currentUser?.role})
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Logged in as <strong className="text-white">{currentUser?.name}</strong> ({currentUser?.role})
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <button
             onClick={() => onNavigate('/')}
-            className="px-3.5 py-2 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5"
+            className="px-4 py-2 border border-slate-700 bg-[#0D1322] hover:bg-slate-800 rounded-full text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition-colors"
           >
             <Eye className="w-4 h-4 text-slate-400" />
             <span>View Public Site</span>
           </button>
+          {isAdmin && (
+            <button
+              onClick={() => onNavigate('/admin/analytics')}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full text-xs font-bold transition-all shadow-md shadow-emerald-600/20 flex items-center gap-1.5"
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span className="hidden sm:inline">Analytics & Audit</span>
+              <span className="sm:hidden">Analytics</span>
+            </button>
+          )}
           <button
             onClick={() => setActiveTab('bulk-import')}
-            className="px-3.5 py-2 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 transition-colors"
+            className="px-4 py-2 border border-slate-700 bg-[#0D1322] hover:bg-slate-800 rounded-full text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition-colors"
           >
             <FileUp className="w-4 h-4 text-slate-400" />
             <span className="hidden sm:inline">Import Products</span>
@@ -539,7 +662,7 @@ if (authLoading) {
           <button
             onClick={handleExportExcel}
             disabled={isExporting}
-            className="px-3.5 py-2 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 transition-colors disabled:opacity-50"
+            className="px-4 py-2 border border-slate-700 bg-[#0D1322] hover:bg-slate-800 rounded-full text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition-colors disabled:opacity-50"
           >
             {isExporting ? <RefreshCw className="w-4 h-4 animate-spin text-slate-400" /> : <Download className="w-4 h-4 text-slate-400" />}
             <span className="hidden sm:inline">{isExporting ? 'Exporting...' : 'Export Products'}</span>
@@ -547,7 +670,7 @@ if (authLoading) {
           </button>
           <button
             onClick={handleOpenNewProduct}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+            className="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-full text-xs font-bold transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
             <span>Add New Product</span>
@@ -556,13 +679,13 @@ if (authLoading) {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-2 border-b border-slate-200 text-xs sm:text-sm font-semibold">
+      <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-2 border-b border-slate-800 text-xs sm:text-sm font-semibold">
         <button
           onClick={() => setActiveTab('overview')}
-          className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 ${
+          className={`px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shrink-0 ${
             activeTab === 'overview'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
           }`}
         >
           <LayoutDashboard className="w-4 h-4" />
@@ -571,10 +694,10 @@ if (authLoading) {
 
         <button
           onClick={() => setActiveTab('products')}
-          className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 ${
+          className={`px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shrink-0 ${
             activeTab === 'products'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
           }`}
         >
           <Package className="w-4 h-4" />
@@ -583,10 +706,10 @@ if (authLoading) {
 
         <button
           onClick={() => setActiveTab('drafts')}
-          className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 ${
+          className={`px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shrink-0 ${
             activeTab === 'drafts'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
           }`}
         >
           <Edit2 className="w-4 h-4" />
@@ -595,10 +718,10 @@ if (authLoading) {
 
         <button
           onClick={() => setActiveTab('categories')}
-          className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 ${
+          className={`px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shrink-0 ${
             activeTab === 'categories'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
           }`}
         >
           <LayoutDashboard className="w-4 h-4" />
@@ -607,10 +730,10 @@ if (authLoading) {
 
         <button
           onClick={() => setActiveTab('brands')}
-          className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 ${
+          className={`px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shrink-0 ${
             activeTab === 'brands'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
           }`}
         >
           <Tag className="w-4 h-4" />
@@ -619,10 +742,10 @@ if (authLoading) {
 
         <button
           onClick={() => setActiveTab('offers')}
-          className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 ${
+          className={`px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shrink-0 ${
             activeTab === 'offers'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
           }`}
         >
           <Tag className="w-4 h-4" />
@@ -631,10 +754,10 @@ if (authLoading) {
 
         <button
           onClick={() => setActiveTab('stores')}
-          className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 ${
+          className={`px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shrink-0 ${
             activeTab === 'stores'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
           }`}
         >
           <Store className="w-4 h-4" />
@@ -643,10 +766,10 @@ if (authLoading) {
 
         <button
           onClick={() => setActiveTab('clicks')}
-          className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 ${
+          className={`px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shrink-0 ${
             activeTab === 'clicks'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
           }`}
         >
           <MousePointerClick className="w-4 h-4" />
@@ -654,10 +777,10 @@ if (authLoading) {
         </button>
         <button
           onClick={() => setActiveTab('bulk-import')}
-          className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shrink-0 ${
+          className={`px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shrink-0 ${
             activeTab === 'bulk-import'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
           }`}
         >
           <FileUp className="w-4 h-4" />
@@ -828,153 +951,37 @@ if (authLoading) {
 
       {/* TAB 2: PRODUCTS TABLE */}
       {activeTab === 'products' && (
-        <div className="space-y-4">
-          {/* Filter Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200">
-            <div className="flex items-center gap-3 flex-1">
-              <div className="relative flex-1 max-w-sm">
-                <input
-                  type="text"
-                  value={productFilter}
-                  onChange={(e) => setProductFilter(e.target.value)}
-                  placeholder="Filter products..."
-                  className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500"
-                />
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
-              </div>
-
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 outline-none"
-              >
-                <option value="all">All Categories</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.slug}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <button
-              onClick={handleOpenNewProduct}
-              className="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 flex items-center gap-1.5 shrink-0"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add Product</span>
-            </button>
+        editingDraftId ? (
+          <div className="bg-white rounded-2xl border border-slate-200 p-6">
+            <DraftEditor
+              draftId={editingDraftId}
+              onBack={() => {
+                setEditingDraftId(null);
+                loadDrafts();
+                store.getAllProductsWithPrices(false);
+              }}
+            />
           </div>
-
-          {/* Table */}
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200 uppercase tracking-wider">
-                  <tr>
-                    <th className="py-3.5 px-4">Product</th>
-                    <th className="py-3.5 px-3">Brand & Cat</th>
-                    <th className="py-3.5 px-3">Lowest Price</th>
-                    <th className="py-3.5 px-3">Store Offers</th>
-                    <th className="py-3.5 px-3">Status</th>
-                    <th className="py-3.5 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredProductsList.map((prod) => (
-                    <tr key={prod.id} className="hover:bg-slate-50/80">
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={prod.images[0]}
-                            alt={prod.name}
-                            className="w-10 h-10 object-contain rounded-lg p-1 bg-white border border-slate-200"
-                          />
-                          <div>
-                            <span className="font-bold text-slate-900 block line-clamp-1">
-                              {prod.name}
-                            </span>
-                            <span className="text-[10px] text-slate-400">/{prod.slug}</span>
-                          </div>
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-3">
-                        <span className="font-bold text-slate-700 block">{prod.brand}</span>
-                        <span className="text-[10px] text-slate-400 capitalize">{prod.category}</span>
-                      </td>
-
-                      <td className="py-3.5 px-3">
-                        <span className="font-bold text-slate-900 text-sm">
-                          {formatINR(prod.lowestPrice)}
-                        </span>
-                        {prod.bestStore && (
-                          <span className="text-[10px] text-emerald-600 block">
-                            at {prod.bestStore.name}
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="py-3.5 px-3">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-semibold text-slate-700">
-                            {prod.offers.length} stores
-                          </span>
-                          <button
-                            onClick={() => handleOpenAddOffer(prod.id)}
-                            className="text-blue-600 hover:text-blue-800 p-0.5"
-                            title="Add/Manage store prices"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-3">
-                        <span
-                          className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            prod.published
-                              ? 'bg-emerald-50 text-emerald-700'
-                              : 'bg-slate-100 text-slate-500'
-                          }`}
-                        >
-                          {prod.published ? 'Live' : 'Draft'}
-                        </span>
-                      </td>
-
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <OpenAmazonButton url={getAmazonProductUrl(prod)} size="compact" />
-                          <button
-                            onClick={() => onNavigate(`/product/${prod.slug}`)}
-                            className="p-1 text-slate-400 hover:text-blue-600"
-                            title="View product"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleEditProduct(prod)}
-                            className="p-1 text-slate-400 hover:text-indigo-600"
-                            title="Edit details"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteProduct(prod.id, prod.name)}
-                            className="p-1 text-slate-400 hover:text-rose-600"
-                            title="Delete product"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        ) : (
+          <ProductManagement
+            products={products}
+            drafts={drafts}
+            categories={categories}
+            brands={brands}
+            stores={stores}
+            onOpenNewProduct={handleOpenNewProduct}
+            onEditProduct={handleEditProduct}
+            onDuplicateProduct={handleDuplicateProduct}
+            onDeleteProduct={handleDeleteProduct}
+            onOpenAddOffer={handleOpenAddOffer}
+            onNavigate={onNavigate}
+            onEditDraft={(draftId) => setEditingDraftId(draftId)}
+            onDuplicateDraft={handleDuplicateDraft}
+            onDeleteDraft={handleDeleteDraft}
+            onExportExcel={handleExportExcel}
+            isExporting={isExporting}
+          />
+        )
       )}
 
       {/* TAB 3: OFFERS / STORE PRICING TABLE */}
@@ -1343,18 +1350,19 @@ if (authLoading) {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-semibold text-slate-700">Image URL{fetchedFields.images && <span className="ml-2 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">✓ AUTO</span>}</label>
-                  <div className="flex gap-4">
-                    <input
-                      type="url"
-                      value={editingProduct.images?.[0] || ''}
-                      onChange={(e) => setEditingProduct({ ...editingProduct, images: [e.target.value] })}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
-                    />
-                    {editingProduct.images?.[0] && (
-                      <img src={editingProduct.images[0]} alt="Preview" className="w-10 h-10 object-contain rounded-lg border border-slate-200" />
-                    )}
-                  </div>
+                  <ProductImageManager
+                    imageUrl={editingProduct.images?.[0] || ''}
+                    onChange={(newUrl) => {
+                      const rest = editingProduct.images?.slice(1) || [];
+                      setEditingProduct({
+                        ...editingProduct,
+                        images: newUrl ? [newUrl, ...rest] : rest
+                      });
+                    }}
+                    label="Product Image"
+                    required
+                    helperText="Image preview, replace, and remove are supported. Existing image references are preserved safely."
+                  />
                 </div>
                 <div className="space-y-1">
                   <label className="font-semibold text-slate-700">Why Findora Picked It</label>
@@ -1451,7 +1459,7 @@ if (authLoading) {
                       <div className="space-y-1">
                         <div className="flex items-center justify-between">
                           <label className="font-semibold text-slate-700">Original Product URL{fetchedFields.productUrl && idx === 0 && <span className="ml-2 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">✓ AUTO</span>}</label>
-                          <OpenAmazonButton url={offer.productUrl || offer.affiliateUrl} size="compact" />
+                          <OpenAmazonButton url={offer.productUrl} size="compact" />
                         </div>
                         <input
                           type="url"

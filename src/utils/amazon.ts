@@ -127,19 +127,33 @@ export function getAmazonProductUrl(item: any): string | null {
         isAmazonUrl(o.productUrl) ||
         isAmazonUrl(o.affiliateUrl)
     );
-    if (amazonOffer) {
-      if (amazonOffer.productUrl && isValidHttpUrl(amazonOffer.productUrl)) {
-        return amazonOffer.productUrl.trim();
-      }
-      if (amazonOffer.affiliateUrl && isValidHttpUrl(amazonOffer.affiliateUrl)) {
-        return amazonOffer.affiliateUrl.trim();
-      }
+    if (amazonOffer && amazonOffer.productUrl && isValidHttpUrl(amazonOffer.productUrl)) {
+      return amazonOffer.productUrl.trim();
     }
   }
 
-  // If affiliateUrl is an Amazon URL
-  if (item.affiliateUrl && typeof item.affiliateUrl === 'string' && isAmazonUrl(item.affiliateUrl)) {
+  return null;
+}
+
+export function getAmazonAffiliateUrl(item: any): string | null {
+  if (!item) return null;
+
+  // Direct affiliateUrl on draft or offer
+  if (item.affiliateUrl && typeof item.affiliateUrl === 'string' && isValidHttpUrl(item.affiliateUrl)) {
     return item.affiliateUrl.trim();
+  }
+
+  // If item has offers array (ProductWithPrices)
+  if (Array.isArray(item.offers) && item.offers.length > 0) {
+    const amazonOffer = item.offers.find(
+      (o: any) =>
+        o.storeId === 'store-amazon' ||
+        isAmazonUrl(o.affiliateUrl) ||
+        isAmazonUrl(o.productUrl)
+    );
+    if (amazonOffer && amazonOffer.affiliateUrl && isValidHttpUrl(amazonOffer.affiliateUrl)) {
+      return amazonOffer.affiliateUrl.trim();
+    }
   }
 
   return null;

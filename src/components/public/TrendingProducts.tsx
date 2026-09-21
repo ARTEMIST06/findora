@@ -1,5 +1,5 @@
-import React from 'react';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowRight, ChevronLeft, ChevronRight, Flame, Sparkles } from 'lucide-react';
 import { ProductCard } from '../common/ProductCard';
 import { useFindoraStore } from '../../services/store';
 
@@ -10,44 +10,70 @@ interface TrendingProductsProps {
 export const TrendingProducts: React.FC<TrendingProductsProps> = ({ onNavigate }) => {
   const store = useFindoraStore();
   const products = store.getAllProductsWithPrices(true);
-  
-  let featured = products.filter((p) => p.featured);
-  if (featured.length < 4) {
-    const others = products.filter((p) => !p.featured).sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
-    featured = [...featured, ...others].slice(0, 4);
-  } else {
-    featured = featured.slice(0, 4);
-  }
+  const [page, setPage] = useState(0);
 
+  // Get trending/featured products
+  const trendingList = products.slice(0, 12);
+  const pageSize = 6;
+  const maxPages = Math.ceil(trendingList.length / pageSize);
 
+  const displayedProducts = trendingList.slice(page * pageSize, (page + 1) * pageSize);
 
   return (
-    <section className="py-6 max-w-7xl mx-auto px-4 sm:px-6">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-5">
+    <section className="py-8 max-w-7xl mx-auto px-4 sm:px-6">
+      {/* Header matching reference screenshot */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
         <div>
-          <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
-            <Sparkles className="w-3.5 h-3.5 text-blue-500" />
-            <span>Trending</span>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-amber-400">🔥</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              Curated Selection
+            </span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            What's getting attention
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            Trending Deals
           </h2>
-          <p className="text-sm text-slate-500 mt-1">
-            The most searched and compared products right now.
+          <p className="text-sm text-slate-400 mt-1">
+            Handpicked products. Better prices. Happier you.
           </p>
         </div>
-        <button
-          onClick={() => onNavigate('/products')}
-          className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 group self-start sm:self-auto"
-        >
-          <span>See all {products.length} products</span>
-          <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-        </button>
+
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          <button
+            onClick={() => onNavigate('/deals')}
+            className="text-xs sm:text-sm font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1.5 transition-colors group"
+          >
+            <span>View All</span>
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          </button>
+
+          {/* Pagination Controls */}
+          {maxPages > 1 && (
+            <div className="flex items-center gap-1.5 ml-2">
+              <button
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="w-8 h-8 rounded-full border border-slate-800 bg-[#0D1322] hover:bg-slate-800 text-slate-300 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center transition-all"
+                aria-label="Previous Page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(maxPages - 1, p + 1))}
+                disabled={page >= maxPages - 1}
+                className="w-8 h-8 rounded-full border border-slate-800 bg-[#0D1322] hover:bg-slate-800 text-slate-300 disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center transition-all"
+                aria-label="Next Page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-
-        {featured.map((product) => (
+      {/* Grid of 6 cards matching reference design */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {displayedProducts.map((product) => (
           <ProductCard key={product.id} product={product} onNavigate={onNavigate} />
         ))}
       </div>

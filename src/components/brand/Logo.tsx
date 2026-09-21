@@ -38,7 +38,7 @@ export const Logo: React.FC<LogoProps> = ({
   };
 
   const iconDim = iconSizes[size];
-  const isLight = variant === 'light';
+  const isDark = variant === 'dark';
 
   // SVG Icon representing the custom Findora 'F' with magnifying lens discovery symbol
   const LogoIcon = (
@@ -48,21 +48,21 @@ export const Logo: React.FC<LogoProps> = ({
       viewBox="0 0 120 120"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="shrink-0 transition-transform duration-200 group-hover:scale-105"
+      className="shrink-0 transition-transform duration-200 group-hover:scale-105 drop-shadow-[0_0_12px_rgba(59,130,246,0.35)]"
       id="findora-logo-mark"
     >
       <defs>
         {/* Main F top swoop gradient */}
         <linearGradient id="fTopGrad" x1="10" y1="15" x2="110" y2="55" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#2563EB" />
-          <stop offset="50%" stopColor="#0EA5E9" />
-          <stop offset="100%" stopColor="#38BDF8" />
+          <stop offset="0%" stopColor="#3B82F6" />
+          <stop offset="50%" stopColor="#6366F1" />
+          <stop offset="100%" stopColor="#8B5CF6" />
         </linearGradient>
 
         {/* Stem navy-purple gradient */}
         <linearGradient id="fStemGrad" x1="15" y1="40" x2="70" y2="110" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#1D4ED8" />
-          <stop offset="60%" stopColor="#312E81" />
+          <stop offset="0%" stopColor="#2563EB" />
+          <stop offset="60%" stopColor="#4F46E5" />
           <stop offset="100%" stopColor="#1E1B4B" />
         </linearGradient>
 
@@ -74,7 +74,7 @@ export const Logo: React.FC<LogoProps> = ({
 
         {/* Ambient shadow */}
         <filter id="logoShadow" x="-10%" y="-10%" width="130%" height="130%" filterUnits="userSpaceOnUse">
-          <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#1E3A8A" floodOpacity="0.25" />
+          <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#1E3A8A" floodOpacity="0.35" />
         </filter>
       </defs>
 
@@ -99,8 +99,8 @@ export const Logo: React.FC<LogoProps> = ({
           r="16"
           stroke="url(#lensRingGrad)"
           strokeWidth="6.5"
-          fill="#1E293B"
-          fillOpacity="0.3"
+          fill="#0F172A"
+          fillOpacity="0.4"
         />
 
         {/* Magnifying Glass Inner Refraction Dot */}
@@ -109,14 +109,14 @@ export const Logo: React.FC<LogoProps> = ({
           cy="70"
           r="3"
           fill="#38BDF8"
-          fillOpacity="0.8"
+          fillOpacity="0.9"
         />
 
         {/* Magnifying Glass Handle protruding diagonally */}
         <path
           d="M 55 85 L 67 97 C 69 99 69 102 67 104 C 65 106 62 106 60 104 L 48 92 Z"
           fill="url(#lensRingGrad)"
-          stroke="#312E81"
+          stroke="#4338CA"
           strokeWidth="1.5"
         />
       </g>
@@ -147,7 +147,7 @@ export const Logo: React.FC<LogoProps> = ({
         <div className="flex items-center tracking-tight leading-none">
           <span
             className={`font-extrabold tracking-tight ${textSizes[size]} ${
-              isLight ? 'text-white' : 'text-[#0B132B]'
+              isDark ? 'text-[#0B132B]' : 'text-white'
             }`}
           >
             Find
@@ -155,21 +155,21 @@ export const Logo: React.FC<LogoProps> = ({
           {/* Stylized 'o' with dual-tone ring */}
           <span className="relative inline-flex items-center justify-center">
             <span
-              className={`font-extrabold ${textSizes[size]} text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600`}
+              className={`font-extrabold ${textSizes[size]} text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400`}
             >
               o
             </span>
           </span>
           <span
             className={`font-extrabold tracking-tight ${textSizes[size]} ${
-              isLight ? 'text-white' : 'text-[#0B132B]'
+              isDark ? 'text-[#0B132B]' : 'text-white'
             }`}
           >
             ra
           </span>
           <span
             className={`font-semibold ml-0.5 self-start text-[10px] ${
-              isLight ? 'text-blue-300' : 'text-blue-600'
+              isDark ? 'text-blue-600' : 'text-blue-400'
             }`}
           >
             ™
@@ -179,7 +179,7 @@ export const Logo: React.FC<LogoProps> = ({
         {showTagline && (
           <span
             className={`font-medium tracking-wide mt-0.5 ${taglineSizes[size]} ${
-              isLight ? 'text-slate-300' : 'text-slate-600'
+              isDark ? 'text-slate-600' : 'text-slate-400'
             }`}
           >
             Find it. Compare it. Buy smarter.

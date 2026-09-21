@@ -105,6 +105,34 @@
         "userId": { "type": "string" }
       },
       "required": ["productId", "storeId", "affiliateUrl", "timestamp"]
+    },
+    "AuditLog": {
+      "title": "Audit Log",
+      "description": "Immutable security and activity audit log for privileged admin and editor actions.",
+      "type": "object",
+      "properties": {
+        "actorUid": { "type": "string" },
+        "actorRole": { "type": "string", "enum": ["admin", "editor", "shopper"] },
+        "actorEmail": { "type": "string" },
+        "action": { "type": "string" },
+        "targetType": { "type": "string" },
+        "targetId": { "type": "string" },
+        "targetName": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "details": { "type": "object" }
+      },
+      "required": ["actorUid", "actorRole", "actorEmail", "action", "targetType", "timestamp"]
+    },
+    "SearchEvent": {
+      "title": "Search Event",
+      "description": "Aggregated anonymous search query tracking without PII.",
+      "type": "object",
+      "properties": {
+        "query": { "type": "string" },
+        "resultsCount": { "type": "number" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["query", "resultsCount", "timestamp"]
     }
   },
   "firestore": {
@@ -131,6 +159,14 @@
     "clicks/{clickId}": {
       "schema": { "$ref": "#/entities/AffiliateClick" },
       "description": "Click analytics for outgoing affiliate links."
+    },
+    "auditLogs/{logId}": {
+      "schema": { "$ref": "#/entities/AuditLog" },
+      "description": "Privileged audit events. Strictly immutable, admin-only read."
+    },
+    "searchEvents/{eventId}": {
+      "schema": { "$ref": "#/entities/SearchEvent" },
+      "description": "Aggregated anonymous search queries for search analytics."
     }
   }
 }

@@ -3,6 +3,7 @@ import { SEOHead } from '../../components/common/SEOHead';
 import { HeroSection } from '../../components/public/HeroSection';
 import { PopularCategories } from '../../components/public/PopularCategories';
 import { TrendingProducts } from '../../components/public/TrendingProducts';
+import { StoreBannerStrip } from '../../components/public/StoreBannerStrip';
 import { BestDealsSection } from '../../components/public/BestDealsSection';
 import { WhyFindoraSection } from '../../components/public/WhyFindoraSection';
 import { ComparisonHighlight } from '../../components/public/ComparisonHighlight';
@@ -14,7 +15,7 @@ interface HomePageProps {
 
 export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-12">
       <SEOHead 
         title="Findora - Compare Prices & Buy Smarter"
         description="Stop hopping between tabs. Findora compares verified prices, coupons, and historical price drops across Amazon, Flipkart, Croma, and Reliance Digital in one instant search."
@@ -22,9 +23,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
       <HeroSection onNavigate={onNavigate} />
       <PopularCategories onNavigate={onNavigate} />
       <TrendingProducts onNavigate={onNavigate} />
-      <RecentlyAdded onNavigate={onNavigate} />
+      <StoreBannerStrip onNavigate={onNavigate} />
       <BestDealsSection onNavigate={onNavigate} />
       <ComparisonHighlight onNavigate={onNavigate} />
+      <RecentlyAdded onNavigate={onNavigate} />
       <WhyFindoraSection />
     </div>
   );

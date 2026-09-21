@@ -142,6 +142,8 @@ export interface ProductDraft {
   updatedAt: string;
   publishedAt?: string;
   publishedBy?: string;
+  amazonNeedsVerification?: boolean;
+  duplicatedFromId?: string;
 }
 
 export interface Category {

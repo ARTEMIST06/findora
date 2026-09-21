@@ -152,6 +152,24 @@ service cloud.firestore {
       allow update: if isEditor();
       allow delete: if isAdmin();
     }
+
+    // --- AUDIT LOGS ---
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated() && (isEditor() || isAdmin()) && request.resource.data.actorUid == request.auth.uid;
+      allow update, delete: if false; // Audit logs are strictly immutable
+    }
+
+    // --- SEARCH ANALYTICS ---
+    match /searchEvents/{eventId} {
+      allow read: if isAdmin();
+      allow create: if incoming().keys().hasAll(['query', 'resultsCount', 'timestamp'])
+        && incoming().query is string
+        && incoming().query.size() <= 100
+        && incoming().resultsCount is number
+        && incoming().timestamp is string;
+      allow update, delete: if false;
+    }
   }
 }
 

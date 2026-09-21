@@ -1,1 +1,147 @@
 @import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-primary: #070B14;
+    --bg-surface: #0D1322;
+    --bg-elevated: #131B2E;
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-accent: rgba(59, 130, 246, 0.3);
+  }
+
+  body {
+    background-color: #070B14;
+    color: #F1F5F9;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow-x: hidden;
+  }
+}
+
+/* Custom dark scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #070B14;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E293B;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Atmospheric and glow utilities */
+.glow-blue {
+  box-shadow: 0 0 40px -10px rgba(59, 130, 246, 0.3);
+}
+
+.glow-purple {
+  box-shadow: 0 0 40px -10px rgba(139, 92, 246, 0.3);
+}
+
+.glow-ambient {
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8), 0 0 20px -5px rgba(59, 130, 246, 0.15);
+}
+
+/* Glass card styling */
+.glass-card {
+  background-color: rgba(13, 19, 34, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card-hover:hover {
+  background-color: rgba(19, 27, 46, 0.85);
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.6), 0 0 24px -6px rgba(59, 130, 246, 0.2);
+}
+
+/* Ambient backdrop gradient mesh */
+.bg-mesh-dark {
+  background-color: #070B14;
+  background-image: 
+    radial-gradient(at 15% 15%, rgba(30, 58, 138, 0.18) 0px, transparent 50%),
+    radial-gradient(at 85% 20%, rgba(88, 28, 135, 0.15) 0px, transparent 50%),
+    radial-gradient(at 50% 60%, rgba(15, 23, 42, 0.6) 0px, transparent 70%);
+}
+
+/* Subtle image backlight reflection */
+.product-backdrop-glow {
+  background: radial-gradient(circle at center, rgba(59, 130, 246, 0.12) 0%, rgba(139, 92, 246, 0.06) 40%, transparent 70%);
+}
+
+/* Premium Dark Fintech Admin Styles */
+.admin-container {
+  color: #F8FAFC;
+}
+
+.admin-container .bg-white {
+  background-color: #0D1322 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #F8FAFC;
+}
+
+.admin-container .bg-slate-50,
+.admin-container .bg-slate-50\/80,
+.admin-container .bg-slate-100,
+.admin-container .bg-slate-100\/90 {
+  background-color: #070B14 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.admin-container .text-slate-900 {
+  color: #F8FAFC !important;
+}
+
+.admin-container .text-slate-800 {
+  color: #F1F5F9 !important;
+}
+
+.admin-container .text-slate-700 {
+  color: #E2E8F0 !important;
+}
+
+.admin-container .text-slate-600 {
+  color: #94A3B8 !important;
+}
+
+.admin-container .text-slate-500 {
+  color: #64748B !important;
+}
+
+.admin-container .border-slate-200,
+.admin-container .border-slate-200\/80,
+.admin-container .border-slate-100 {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.admin-container .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+.admin-container .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.admin-container tr:hover,
+.admin-container .hover\:bg-slate-50:hover,
+.admin-container .hover\:bg-slate-50\/50:hover,
+.admin-container .hover\:bg-slate-50\/80:hover {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+.admin-container input:not([type="checkbox"]):not([type="radio"]),
+.admin-container select,
+.admin-container textarea {
+  background-color: #070B14 !important;
+  border-color: #1E293B !important;
+  color: #F8FAFC !important;
+}
+
+.admin-container input:focus,
+.admin-container select:focus,
+.admin-container textarea:focus {
+  border-color: #3B82F6 !important;
+}
+

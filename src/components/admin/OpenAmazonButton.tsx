@@ -33,11 +33,10 @@ export const OpenAmazonButton: React.FC<OpenAmazonButtonProps> = ({
     return (
       <span
         title="Amazon URL missing for this product/draft"
-        className={`inline-flex items-center gap-1.5 font-semibold text-slate-400 bg-slate-100/90 border border-slate-200 rounded-xl cursor-not-allowed select-none transition-colors ${basePadding} ${className}`}
+        className={`inline-flex items-center gap-1.5 font-medium text-slate-400 bg-slate-100/90 border border-slate-200 rounded-xl cursor-not-allowed select-none transition-colors ${basePadding} ${className}`}
       >
         <ExternalLink className="w-3.5 h-3.5 opacity-40 shrink-0" />
-        <span>{label}</span>
-        <span className="text-[10px] text-slate-400 font-normal">(missing)</span>
+        <span>Amazon URL missing</span>
       </span>
     );
   }

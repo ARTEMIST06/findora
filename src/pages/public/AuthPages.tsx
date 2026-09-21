@@ -33,8 +33,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
     return (
       <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
         <div className="flex flex-col items-center">
-          <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
-          <h2 className="text-xl font-bold text-slate-900 mb-2">Loading...</h2>
+          <div className="w-10 h-10 border-4 border-slate-800 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+          <h2 className="text-xl font-bold text-white mb-2">Loading...</h2>
         </div>
       </div>
     );
@@ -149,20 +149,24 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 relative overflow-hidden">
       <SEOHead 
         title={mode === 'login' ? 'Login - Findora' : 'Sign Up - Findora'}
         description={mode === 'login' ? 'Sign in to access your saved price drops, comparison sheets & personal alerts.' : 'Join Findora to save items, track prices, and discover the best deals.'}
       />
-      <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200/80 p-8 shadow-xl space-y-6">
+      
+      {/* Background ambient lighting */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[480px] h-[480px] bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div className="max-w-md w-full bg-[#0D1322]/90 rounded-3xl border border-slate-800/80 p-8 sm:p-10 shadow-2xl space-y-6 relative z-10 backdrop-blur-xl">
         <div className="text-center space-y-2">
           <div className="inline-flex justify-center mb-2">
             <Logo size="lg" showTagline={false} />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-2xl font-extrabold text-white">
             {isResetMode ? 'Reset your password' : mode === 'login' ? 'Welcome back to Findora' : 'Create your Findora account'}
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-400">
             {isResetMode 
               ? 'Enter your email to receive a password reset link.'
               : mode === 'login'
@@ -174,14 +178,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
         {isResetMode ? (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Email</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#070B14] border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   placeholder="you@example.com"
                   required
                 />
@@ -190,13 +194,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
             <button
               onClick={handlePasswordReset}
               disabled={loading || !email}
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
+              className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50"
             >
               {loading ? 'Sending...' : 'Send Reset Link'}
             </button>
             <button
               onClick={() => setIsResetMode(false)}
-              className="w-full py-2.5 text-slate-500 hover:text-slate-700 text-sm font-medium transition-colors"
+              className="w-full py-2.5 text-slate-400 hover:text-white text-sm font-medium transition-colors"
             >
               Back to Login
             </button>
@@ -205,14 +209,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
           <form onSubmit={handleEmailAuth} className="space-y-4">
             {mode === 'signup' && (
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Full Name</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-full pl-10 pr-4 py-2.5 bg-[#070B14] border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                     placeholder="John Doe"
                     required
                   />
@@ -221,14 +225,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
             )}
             
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Email Address</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#070B14] border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   placeholder="you@example.com"
                   required
                 />
@@ -236,25 +240,25 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm font-medium text-slate-700">Password</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">Password</label>
                 {mode === 'login' && (
                   <button
                     type="button"
                     onClick={() => setIsResetMode(true)}
-                    className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                    className="text-xs text-blue-400 hover:text-blue-300 font-medium"
                   >
                     Forgot password?
                   </button>
                 )}
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#070B14] border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   placeholder="••••••••"
                   required
                 />
@@ -264,7 +268,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
             >
               {loading ? 'Processing...' : mode === 'login' ? 'Sign In' : 'Create Account'}
             </button>
@@ -274,16 +278,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
         {!isResetMode && (
           <>
             <div className="relative flex items-center py-2">
-              <div className="flex-grow border-t border-slate-200"></div>
-              <span className="shrink-0 px-4 text-xs text-slate-400">or</span>
-              <div className="flex-grow border-t border-slate-200"></div>
+              <div className="flex-grow border-t border-slate-800"></div>
+              <span className="shrink-0 px-4 text-xs text-slate-500">or</span>
+              <div className="flex-grow border-t border-slate-800"></div>
             </div>
 
-            <div className="pt-2">
+            <div className="pt-1">
               <button
                 onClick={handleGoogleSignIn}
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-3 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-3 px-4 py-2.5 bg-[#070B14] border border-slate-700 hover:border-slate-600 rounded-xl text-sm font-semibold text-white hover:bg-slate-800/60 transition-all disabled:opacity-50"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -295,8 +299,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
               </button>
             </div>
 
-            <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-center gap-2">
-              <span className="text-sm text-slate-500">
+            <div className="mt-8 pt-6 border-t border-slate-800 flex items-center justify-center gap-2">
+              <span className="text-sm text-slate-400">
                 {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
               </span>
               <button
@@ -304,7 +308,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
                   setIsResetMode(false);
                   onNavigate(mode === 'login' ? '/signup' : '/login');
                 }}
-                className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+                className="text-sm font-semibold text-blue-400 hover:text-blue-300"
               >
                 {mode === 'login' ? 'Sign up' : 'Log in'}
               </button>
