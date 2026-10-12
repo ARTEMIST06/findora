@@ -11,6 +11,7 @@ import {
 import { SEOHead } from '../../components/common/SEOHead';
 import { ProductCard } from '../../components/common/ProductCard';
 import { useFindoraStore } from '../../services/store';
+import { analytics } from '../../services/analytics';
 
 interface ProductsPageProps {
   onNavigate: (route: string) => void;
@@ -135,6 +136,23 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
     sortBy,
   ]);
 
+  // Track category view
+  React.useEffect(() => {
+    if (selectedCategory && selectedCategory !== 'all') {
+      analytics.trackViewCategory(selectedCategory, filteredProducts.length);
+    }
+  }, [selectedCategory, filteredProducts.length]);
+
+  // Track search query with debounce
+  React.useEffect(() => {
+    const trimmed = searchQuery.trim();
+    if (!trimmed) return;
+    const timer = setTimeout(() => {
+      analytics.trackSearch(trimmed, filteredProducts.length);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery, filteredProducts.length]);
+
   const activeFilterCount =
     (selectedCategory !== 'all' ? 1 : 0) +
     selectedBrands.length +
@@ -143,20 +161,54 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
     (minRating > 0 ? 1 : 0) +
     (searchQuery ? 1 : 0);
 
+  const isSearchState = Boolean(initialQuery || (searchQuery && searchQuery.trim() !== ''));
+  const isCategoryPage = Boolean(initialCategory && initialCategory !== 'all');
+  const catObj = isCategoryPage ? categories.find(c => c.slug === initialCategory) : null;
+  const categoryName = catObj?.name || (initialCategory ? initialCategory.charAt(0).toUpperCase() + initialCategory.slice(1) : '');
+
+  let seoTitle = 'Explore & Compare Products | Findora';
+  let seoDescription = 'Browse and compare verified prices, deals, and specifications for electronics, smartphones, laptops, and audio gear across top retailers.';
+  let canonicalPath = '/products';
+  let isNoIndex = false;
+  let breadcrumbs: Array<{ name: string; url: string }> = [
+    { name: 'Home', url: '/' },
+    { name: 'Products', url: '/products' },
+  ];
+
+  if (isSearchState) {
+    const q = (initialQuery || searchQuery).trim();
+    seoTitle = `Search Results for "${q}" | Findora`;
+    seoDescription = `Compare prices and find the best deals for "${q}" across verified stores on Findora.`;
+    canonicalPath = '/products';
+    isNoIndex = true;
+    breadcrumbs.push({ name: `Search: ${q}`, url: `/search?q=${encodeURIComponent(q)}` });
+  } else if (isCategoryPage) {
+    seoTitle = `Best ${categoryName} Price Comparison & Deals | Findora`;
+    seoDescription = `Browse, compare prices, and find the lowest store deals for ${categoryName.toLowerCase()} across Amazon, Croma, Flipkart, and more on Findora.`;
+    canonicalPath = `/category/${initialCategory}`;
+    isNoIndex = false;
+    breadcrumbs = [
+      { name: 'Home', url: '/' },
+      { name: 'Categories', url: '/categories' },
+      { name: categoryName, url: `/category/${initialCategory}` },
+    ];
+  }
+
   const pageTitle = initialQuery 
     ? `Search Results for "${initialQuery}"` 
-    : initialCategory && initialCategory !== 'all' 
-      ? `${categories.find(c => c.slug === initialCategory)?.name || 'Products'}` 
+    : isCategoryPage 
+      ? categoryName 
       : 'Explore & Compare Products';
-
-  const seoTitle = `${pageTitle} - Findora`;
-  const seoDescription = initialQuery 
-    ? `Compare prices and find the best deals for ${initialQuery} across multiple stores on Findora.`
-    : `Browse and compare verified prices, deals, and specifications for ${pageTitle.toLowerCase()} across top retailers.`;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      <SEOHead title={seoTitle} description={seoDescription} />
+      <SEOHead 
+        title={seoTitle} 
+        description={seoDescription}
+        canonicalPath={canonicalPath}
+        noIndex={isNoIndex}
+        breadcrumbs={breadcrumbs}
+      />
       
       {/* Header with Title & Sort */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800/80">

@@ -21,8 +21,13 @@ export const DealsPage: React.FC<DealsPageProps> = ({ onNavigate }) => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-10">
       <SEOHead 
-        title="Best Deals & Verified Price Drops - Findora"
+        title="Best Deals & Verified Price Drops | Findora"
         description="Discover the highest discounts and verified price drops on premium electronics, smartphones, laptops, and audio gear across top stores."
+        canonicalPath="/deals"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Deals', url: '/deals' }
+        ]}
       />
       {/* Header */}
       <div className="pb-6 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center justify-between gap-4">

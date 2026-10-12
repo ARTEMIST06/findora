@@ -16,6 +16,7 @@ import { SEOHead } from '../../components/common/SEOHead';
 import { useFindoraStore } from '../../services/store';
 import { formatINR } from '../../utils/formatters';
 import { useToast } from '../../components/common/Toast';
+import { getProductImage, handleImageFallback } from '../../utils/visualAssets';
 
 interface ComparePageProps {
   onNavigate: (route: string) => void;
@@ -59,8 +60,10 @@ export const ComparePage: React.FC<ComparePageProps> = ({ onNavigate }) => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
       <SEOHead 
-        title="Compare Products - Findora"
+        title="Compare Products | Findora"
         description="Compare prices, specifications, and features side-by-side to make the best purchasing decision."
+        canonicalPath="/compare"
+        noIndex={true}
       />
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800/80">
@@ -137,8 +140,9 @@ export const ComparePage: React.FC<ComparePageProps> = ({ onNavigate }) => {
                   <div className="flex flex-col items-center text-center">
                     <div className="w-24 h-24 p-2 rounded-2xl bg-[#080D1A] border border-slate-800 flex items-center justify-center mb-3">
                       <img
-                        src={product.images[0]}
+                        src={getProductImage(product)}
                         alt={product.name}
+                        onError={(e) => handleImageFallback(e, product.category)}
                         className="w-full h-full object-contain"
                       />
                     </div>
@@ -166,13 +170,45 @@ export const ComparePage: React.FC<ComparePageProps> = ({ onNavigate }) => {
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-slate-800">
+                  <div className="mt-4 pt-3 border-t border-slate-800 space-y-2">
+                    {product.offers.length > 0 && product.offers[0].affiliateUrl ? (
+                      <a
+                        href={product.offers[0].affiliateUrl.startsWith('http') ? product.offers[0].affiliateUrl : `https://${product.offers[0].affiliateUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          try {
+                            store.trackAffiliateClick(
+                              product.id,
+                              product.offers[0].storeId,
+                              product.offers[0].price,
+                              product.offers[0].affiliateUrl,
+                              { pageLocation: '/compare' }
+                            );
+                          } catch (err) {
+                            console.warn('Compare affiliate tracking error:', err);
+                          }
+                        }}
+                        className="w-full py-2 px-3 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-md shadow-indigo-500/20 active:scale-95"
+                      >
+                        <span>Check Price</span>
+                        <ExternalLink className="w-3 h-3 opacity-80" />
+                      </a>
+                    ) : product.offers.length > 0 ? (
+                      <button
+                        onClick={() => showToast('Price link unavailable', 'info')}
+                        className="w-full py-2 px-3 rounded-full bg-slate-800 text-slate-500 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-not-allowed border border-slate-700"
+                      >
+                        <span>Price link unavailable</span>
+                      </button>
+                    ) : null}
+
                     <button
                       onClick={() => onNavigate(`/product/${product.slug}`)}
-                      className="w-full py-2 px-3 rounded-full bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition-all flex items-center justify-center gap-1.5 border border-slate-700"
+                      className="w-full py-1.5 px-3 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition-all flex items-center justify-center gap-1.5 border border-slate-700"
                     >
-                      <span>All Offers</span>
-                      <ExternalLink className="w-3 h-3 text-slate-400" />
+                      <span>All Offers {product.offers.length > 0 ? `(${product.offers.length})` : ''}</span>
                     </button>
                   </div>
                 </div>

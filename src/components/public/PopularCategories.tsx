@@ -59,7 +59,7 @@ export const PopularCategories: React.FC<PopularCategoriesProps> = ({ onNavigate
     <section className="py-6 max-w-7xl mx-auto px-4 sm:px-6">
       {/* Category Icons Strip matching reference screenshot */}
       <div className="relative">
-        <div className="flex items-center gap-2.5 sm:gap-3 overflow-x-auto pb-3 pt-1 scrollbar-none no-scrollbar">
+        <div className="flex items-center gap-2.5 sm:gap-3 overflow-x-auto overscroll-x-contain touch-pan-x pb-3 pt-1 scrollbar-none no-scrollbar">
           {categoryPills.map((cat) => {
             const IconComp = cat.icon;
             const isActive = activeCategory === cat.id;

@@ -93,11 +93,15 @@ export interface AffiliateClick {
   productName: string;
   storeId: string;
   storeName: string;
+  category?: string;
   price: number;
   affiliateUrl: string;
+  pageLocation?: string;
   timestamp: string;
   userId?: string;
   referrer?: string;
+  trafficSource?: string;
+  campaign?: string;
   device?: string;
 }
 

@@ -3,9 +3,10 @@ import { Mail, Lock, User, ArrowRight, ShieldCheck, Sparkles } from 'lucide-reac
 import { Logo } from '../../components/brand/Logo';
 import { useToast } from '../../components/common/Toast';
 import { auth } from '../../lib/firebase';
-import { signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from 'firebase/auth';
+import { signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile, getAdditionalUserInfo } from 'firebase/auth';
 import { SEOHead } from '../../components/common/SEOHead';
 import { useFindoraStore } from '../../services/store';
+import { analytics } from '../../services/analytics';
 
 interface AuthPageProps {
   mode: 'login' | 'signup';
@@ -94,11 +95,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
         const credential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(credential.user, { displayName: name });
         await store.logSecurityEvent(credential.user.uid, 'account_creation');
+        analytics.trackSignUp('email');
         showToast('Account created successfully!', 'success');
         onNavigate('/');
       } else {
         const credential = await signInWithEmailAndPassword(auth, email, password);
         await store.logSecurityEvent(credential.user.uid, 'login', { method: 'email' });
+        analytics.trackLogin('email');
         showToast('Successfully signed in!', 'success');
         onNavigate('/');
       }
@@ -134,8 +137,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       const result = await signInWithPopup(auth, provider);
-      await store.logSecurityEvent(result.user.uid, 'login', { method: 'google' });
-      showToast('Successfully signed in with Google!', 'success');
+      const additionalInfo = getAdditionalUserInfo(result);
+      const isNewUser = additionalInfo?.isNewUser ?? (mode === 'signup');
+      await store.logSecurityEvent(result.user.uid, isNewUser ? 'account_creation' : 'login', { method: 'google' });
+      if (isNewUser) {
+        analytics.trackSignUp('google');
+      } else {
+        analytics.trackLogin('google');
+      }
+      showToast(isNewUser ? 'Welcome to Findora!' : 'Successfully signed in with Google!', 'success');
       onNavigate('/');
     } catch (error: any) {
       console.error('[Google Auth Error]:', error);
@@ -151,8 +161,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 relative overflow-hidden">
       <SEOHead 
-        title={mode === 'login' ? 'Login - Findora' : 'Sign Up - Findora'}
+        title={mode === 'login' ? 'Login | Findora' : 'Sign Up | Findora'}
         description={mode === 'login' ? 'Sign in to access your saved price drops, comparison sheets & personal alerts.' : 'Join Findora to save items, track prices, and discover the best deals.'}
+        canonicalPath={mode === 'login' ? '/login' : '/signup'}
+        noIndex={true}
       />
       
       {/* Background ambient lighting */}

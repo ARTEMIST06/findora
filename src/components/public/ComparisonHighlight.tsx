@@ -2,6 +2,7 @@ import React from 'react';
 import { Scale, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
 import { formatINR } from '../../utils/formatters';
 import { useFindoraStore } from '../../services/store';
+import { getProductImage, handleImageFallback } from '../../utils/visualAssets';
 
 interface ComparisonHighlightProps {
   onNavigate: (route: string) => void;
@@ -66,8 +67,9 @@ export const ComparisonHighlight: React.FC<ComparisonHighlightProps> = ({ onNavi
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-5">
                   <div className="w-20 h-20 shrink-0 rounded-xl bg-[#0D1426] p-2 border border-slate-800 flex items-center justify-center">
                     <img
-                      src={p.images[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'}
+                      src={getProductImage(p)}
                       alt={p.name}
+                      onError={(e) => handleImageFallback(e, p.category)}
                       className="w-full h-full object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
                     />
                   </div>

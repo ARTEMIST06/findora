@@ -90,8 +90,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
       <SEOHead 
-        title="Your Profile - Findora"
+        title="Your Profile | Findora"
         description="Manage your account, view your wishlist, and track your recent store visits on Findora."
+        canonicalPath="/profile"
+        noIndex={true}
       />
       {/* User Header Card */}
       <div className="p-6 sm:p-8 rounded-3xl bg-[#0D1322]/90 border border-slate-800/80 shadow-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 backdrop-blur-md">

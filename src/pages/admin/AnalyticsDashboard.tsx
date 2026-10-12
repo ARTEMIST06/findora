@@ -38,6 +38,7 @@ import {
   Percent,
 } from 'lucide-react';
 import { useFindoraStore } from '../../services/store';
+import { SEOHead } from '../../components/common/SEOHead';
 import {
   analytics,
   AggregatedSearchQuery,
@@ -263,6 +264,52 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
     ];
   }, [funnelMetrics.totalVisitors]);
 
+  // Clicks by Store Breakdown
+  const clicksByStore = useMemo(() => {
+    const storeMap: Record<string, { storeId: string; storeName: string; clicks: number; totalValue: number }> = {};
+    allClicks.forEach((c) => {
+      const storeId = c.storeId || 'store-amazon';
+      const storeName = c.storeName || (storeId === 'store-amazon' ? 'Amazon India' : storeId.replace('store-', '').toUpperCase());
+      if (!storeMap[storeId]) {
+        storeMap[storeId] = { storeId, storeName, clicks: 0, totalValue: 0 };
+      }
+      storeMap[storeId].clicks += 1;
+      storeMap[storeId].totalValue += (c.price || 0);
+    });
+
+    const list = Object.values(storeMap).sort((a, b) => b.clicks - a.clicks);
+    const totalClicks = Math.max(allClicks.length, 1);
+    return list.map((s) => ({
+      ...s,
+      percentage: Math.round((s.clicks / totalClicks) * 100),
+      avgPrice: s.clicks > 0 ? Math.round(s.totalValue / s.clicks) : 0,
+    }));
+  }, [allClicks]);
+
+  // Clicks Over Time Breakdown (Past 7 Days timeline)
+  const clicksOverTime = useMemo(() => {
+    const days: { date: string; label: string; count: number }[] = [];
+    const now = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      const dateStr = d.toISOString().split('T')[0];
+      const label = i === 0 ? 'Today' : i === 1 ? 'Yesterday' : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      days.push({ date: dateStr, label, count: 0 });
+    }
+
+    allClicks.forEach((c) => {
+      const cDate = (c.timestamp || '').split('T')[0];
+      const match = days.find((d) => d.date === cDate);
+      if (match) {
+        match.count += 1;
+      } else if (days.length > 0) {
+        days[days.length - 1].count += 1;
+      }
+    });
+
+    return days;
+  }, [allClicks]);
+
   // Filtered Audit Logs
   const filteredAuditLogs = useMemo(() => {
     let list = [...auditLogs];
@@ -373,6 +420,12 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
 
   return (
     <div className="admin-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 min-h-screen text-slate-100">
+      <SEOHead
+        title="Analytics & Audit Console | Findora"
+        description="Findora internal analytics, visitor behavior, and security audit log."
+        canonicalPath="/admin/analytics"
+        noIndex={true}
+      />
       {/* Top Header & Context Actions */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-800">
         <div className="space-y-1">
@@ -795,6 +848,100 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
               <span>{funnelMetrics.nonClickingVisitors.toLocaleString()} visitors inspected product details but did not trigger an outbound affiliate redirect.</span>
             </div>
             <span className="text-[11px] font-semibold text-slate-500">Strictly aggregated; individual visitors remain anonymous.</span>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* SECTION: AFFILIATE PERFORMANCE (BY STORE & OVER TIME) */}
+      {/* ========================================================================= */}
+      {(activeTab === 'overview' || activeTab === 'funnel') && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Clicks by Store */}
+          <div className="p-6 bg-white border border-slate-200/80 rounded-3xl shadow-2xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <ExternalLink className="w-4 h-4 text-blue-600" />
+                  <span>Clicks by Store</span>
+                </h3>
+                <p className="text-[11px] text-slate-500">Distribution of outbound affiliate redirects across merchants</p>
+              </div>
+              <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full">
+                {allClicks.length} Total Clicks
+              </span>
+            </div>
+
+            {clicksByStore.length > 0 ? (
+              <div className="space-y-4">
+                {clicksByStore.map((store) => (
+                  <div key={store.storeId} className="space-y-1.5 text-xs">
+                    <div className="flex items-center justify-between font-semibold">
+                      <span className="font-bold text-slate-900 flex items-center gap-2">
+                        <span>{store.storeName}</span>
+                        {store.storeId === 'store-amazon' && (
+                          <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+                            Primary
+                          </span>
+                        )}
+                      </span>
+                      <span className="text-slate-600 font-bold">
+                        {store.clicks} clicks ({store.percentage}%)
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          store.storeId === 'store-amazon' ? 'bg-amber-500' : 'bg-blue-600'
+                        }`}
+                        style={{ width: `${store.percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl border border-slate-100">
+                No outbound affiliate clicks recorded yet.
+              </div>
+            )}
+          </div>
+
+          {/* Clicks Over Time */}
+          <div className="p-6 bg-white border border-slate-200/80 rounded-3xl shadow-2xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-emerald-600" />
+                  <span>Clicks Over Time</span>
+                </h3>
+                <p className="text-[11px] text-slate-500">Daily trajectory of shopper outbound purchase intent</p>
+              </div>
+              <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
+                Past 7 Days
+              </span>
+            </div>
+
+            <div className="grid grid-cols-7 gap-2 pt-2">
+              {clicksOverTime.map((day) => {
+                const maxClicks = Math.max(...clicksOverTime.map((d) => d.count), 1);
+                const heightPct = Math.max(12, Math.round((day.count / maxClicks) * 100));
+                return (
+                  <div key={day.date} className="flex flex-col items-center gap-1.5 text-center">
+                    <span className="text-[11px] font-bold text-slate-800">{day.count}</span>
+                    <div className="w-full bg-slate-100 h-24 rounded-xl flex items-end p-1 overflow-hidden">
+                      <div
+                        className="w-full bg-emerald-500 rounded-lg transition-all"
+                        style={{ height: `${heightPct}%` }}
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-500 truncate w-full font-medium" title={day.label}>
+                      {day.label.split(',')[0]}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}

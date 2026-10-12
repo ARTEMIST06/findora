@@ -27,6 +27,7 @@ import { formatINR, formatRelativeTime } from '../../utils/formatters';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useToast } from '../../components/common/Toast';
 import { ProductCard } from '../../components/common/ProductCard';
+import { getProductImage, handleImageFallback } from '../../utils/visualAssets';
 
 interface ProductDetailPageProps {
   slug: string;
@@ -78,7 +79,6 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
         brand: product.brand,
         price: product.offers?.[0]?.price,
       });
-      analytics.recordLocalProductView(product.id);
     }
   }, [product?.id]);
 
@@ -102,6 +102,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
   if (!product) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-24 text-center min-h-[60vh] flex flex-col justify-center items-center">
+        <SEOHead
+          title="Product Not Found - Findora"
+          description="The requested product was not found in our catalog. Browse our live catalog or search across top retailers."
+          noIndex={true}
+        />
         <div className="w-16 h-16 rounded-2xl bg-[#0D1322] border border-slate-800 flex items-center justify-center mb-4 text-slate-500">
           <AlertTriangle className="w-8 h-8 text-amber-400" />
         </div>
@@ -213,14 +218,43 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
   const bestOffer = product.offers[0];
   const sortedOffers = [...product.offers].sort((a, b) => a.price - b.price);
 
+    const productSlug = product.slug || product.id;
+    const cleanDescription = product.shortDescription || product.whyFindora || product.description || `Compare prices and deals for ${product.name} across verified stores on Findora.`;
+    const productImage = (product.images && product.images.length > 0) ? product.images[0] : getProductImage(product);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-12">
       <SEOHead
-        title={`${product.name} Best Price in India - Findora`}
-        description={product.shortDescription || `Compare prices for ${product.name} across major Indian retailers on Findora.`}
-        image={product.images[0]}
-        url={currentUrl}
+        title={`${product.name} - Price, Deals & Specs | Findora`}
+        description={cleanDescription}
+        image={productImage}
+        canonicalPath={`/product/${productSlug}`}
         type="product"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Products', url: '/products' },
+          { name: product.category, url: `/category/${product.category}` },
+          { name: product.name, url: `/product/${productSlug}` }
+        ]}
+        productData={{
+          name: product.name,
+          description: cleanDescription,
+          images: product.images && product.images.length > 0 ? product.images : [productImage],
+          brand: product.brand,
+          category: product.category,
+          id: product.id,
+          sku: product.id,
+          rating: product.rating,
+          reviewCount: product.reviewCount,
+          offers: sortedOffers.map(o => ({
+            price: o.price,
+            originalPrice: o.originalPrice,
+            currency: o.currency || 'INR',
+            availability: o.availability,
+            storeName: stores.find(s => s.id === o.storeId)?.name || o.storeId,
+            productUrl: o.productUrl,
+          })),
+        }}
       />
 
       {/* Breadcrumbs */}
@@ -258,8 +292,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
               </span>
             )}
             <img
-              src={product.images[selectedImageIndex] || product.images[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'}
+              src={product.images[selectedImageIndex] || getProductImage(product)}
               alt={product.name}
+              onError={(e) => handleImageFallback(e, product.category)}
               className="w-full h-full object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)] transition-all duration-300"
             />
           </div>
@@ -277,7 +312,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                       : 'border-slate-800 hover:border-slate-700 opacity-70 hover:opacity-100'
                   }`}
                 >
-                  <img src={img} alt={`Thumb ${idx}`} className="w-full h-full object-contain" />
+                  <img src={img} alt={`${product.name} gallery image ${idx + 1}`} className="w-full h-full object-contain" />
                 </button>
               ))}
             </div>
@@ -368,7 +403,19 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                       href={bestOffer.affiliateUrl.startsWith('http') ? bestOffer.affiliateUrl : `https://${bestOffer.affiliateUrl}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={() => store.trackAffiliateClick(product.id, bestOffer.storeId, bestOffer.price, bestOffer.affiliateUrl)}
+                      onClick={() => {
+                        try {
+                          store.trackAffiliateClick(
+                            product.id,
+                            bestOffer.storeId,
+                            bestOffer.price,
+                            bestOffer.affiliateUrl,
+                            { pageLocation: `/product/${product.slug}` }
+                          );
+                        } catch (err) {
+                          console.warn('Affiliate tracking error:', err);
+                        }
+                      }}
                       className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-sm transition-all shadow-xl shadow-indigo-500/20 flex items-center justify-center gap-2 shrink-0 group active:scale-95"
                     >
                       <span>Check Price</span>
@@ -379,7 +426,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                       disabled
                       className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-slate-800 text-slate-500 font-bold text-sm flex items-center justify-center gap-2 shrink-0 cursor-not-allowed border border-slate-700"
                     >
-                      <span>Currently Unavailable</span>
+                      <span>Price link unavailable</span>
                     </button>
                   )
                 )}
@@ -538,7 +585,19 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                               href={offer.affiliateUrl.startsWith('http') ? offer.affiliateUrl : `https://${offer.affiliateUrl}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              onClick={() => store.trackAffiliateClick(product.id, offer.storeId, offer.price, offer.affiliateUrl)}
+                              onClick={() => {
+                                try {
+                                  store.trackAffiliateClick(
+                                    product.id,
+                                    offer.storeId,
+                                    offer.price,
+                                    offer.affiliateUrl,
+                                    { pageLocation: `/product/${product.slug}` }
+                                  );
+                                } catch (err) {
+                                  console.warn('Offer tracking error:', err);
+                                }
+                              }}
                               className={`inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold transition-all shadow-md w-[120px] ${
                                 isLowest
                                   ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-indigo-500/20'
@@ -553,7 +612,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                               disabled
                               className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold transition-all bg-slate-900 text-slate-500 w-[120px] cursor-not-allowed border border-slate-800"
                             >
-                              <span>Unavailable</span>
+                              <span>Price unavailable</span>
                             </button>
                           )}
                         </td>
@@ -859,14 +918,26 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
               href={bestOffer.affiliateUrl.startsWith('http') ? bestOffer.affiliateUrl : `https://${bestOffer.affiliateUrl}`}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => store.trackAffiliateClick(product.id, bestOffer.storeId, bestOffer.price, bestOffer.affiliateUrl)}
+              onClick={() => {
+                try {
+                  store.trackAffiliateClick(
+                    product.id,
+                    bestOffer.storeId,
+                    bestOffer.price,
+                    bestOffer.affiliateUrl,
+                    { pageLocation: `/product/${product.slug}` }
+                  );
+                } catch (err) {
+                  console.warn('Mobile affiliate tracking error:', err);
+                }
+              }}
               className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full font-bold text-sm shadow-md shadow-indigo-500/20 whitespace-nowrap active:scale-95 transition-transform"
             >
               Check Price
             </a>
           ) : (
             <button disabled className="px-6 py-3 bg-slate-800 text-slate-500 rounded-full font-bold text-sm whitespace-nowrap border border-slate-700 cursor-not-allowed">
-              Unavailable
+              Price link unavailable
             </button>
           )}
         </div>

@@ -71,8 +71,8 @@ export const TrendingProducts: React.FC<TrendingProductsProps> = ({ onNavigate }
         </div>
       </div>
 
-      {/* Grid of 6 cards matching reference design */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      {/* Responsive Grid: 1 col on mobile, 2 on sm, 3 on md/lg, 4 on xl, 6 on 2xl */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 sm:gap-5">
         {displayedProducts.map((product) => (
           <ProductCard key={product.id} product={product} onNavigate={onNavigate} />
         ))}

@@ -1,10 +1,53 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronRight, ShieldCheck, Mail, AlertCircle, FileText, Lock, Cookie, Scale, Send, CheckCircle2 } from 'lucide-react';
+import { SEOHead } from '../../components/common/SEOHead';
 
 interface LegalPageProps {
   page: 'about' | 'contact' | 'privacy' | 'terms' | 'affiliate-disclosure' | 'cookie-disclosure';
   onNavigate: (path: string) => void;
 }
+
+const LEGAL_SEO_CONFIG: Record<
+  LegalPageProps['page'],
+  { title: string; desc: string; canonical: string; breadcrumbTitle: string }
+> = {
+  about: {
+    title: 'About Us | Findora',
+    desc: "Learn about Findora's mission to help you find the best prices across multiple stores.",
+    canonical: '/about',
+    breadcrumbTitle: 'About Findora',
+  },
+  contact: {
+    title: 'Contact Us | Findora',
+    desc: 'Get in touch with the Findora team for support, partnerships, or feedback.',
+    canonical: '/contact',
+    breadcrumbTitle: 'Contact Us',
+  },
+  privacy: {
+    title: 'Privacy Policy | Findora',
+    desc: "Read Findora's privacy policy and understand how we protect your data.",
+    canonical: '/privacy',
+    breadcrumbTitle: 'Privacy Policy',
+  },
+  terms: {
+    title: 'Terms & Conditions | Findora',
+    desc: 'Review the terms and conditions for using the Findora price comparison platform.',
+    canonical: '/terms',
+    breadcrumbTitle: 'Terms & Conditions',
+  },
+  'affiliate-disclosure': {
+    title: 'Affiliate Disclosure | Findora',
+    desc: 'Findora affiliate and FTC disclosure regarding merchant commissions.',
+    canonical: '/affiliate-disclosure',
+    breadcrumbTitle: 'Affiliate Disclosure',
+  },
+  'cookie-disclosure': {
+    title: 'Cookie & Analytics Disclosure | Findora',
+    desc: 'Information about how Findora uses cookies and analytics.',
+    canonical: '/cookie-disclosure',
+    breadcrumbTitle: 'Cookie & Analytics',
+  },
+};
 
 export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
   const [contactName, setContactName] = useState('');
@@ -15,28 +58,14 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    // Update Meta Tags for SEO
-    let title = 'Findora';
-    let desc = 'Findora Legal & Information';
-    switch (page) {
-      case 'about': title = 'About Us | Findora'; desc = 'Learn about Findora\'s mission to help you find the best prices across multiple stores.'; break;
-      case 'contact': title = 'Contact Us | Findora'; desc = 'Get in touch with the Findora team for support, partnerships, or feedback.'; break;
-      case 'privacy': title = 'Privacy Policy | Findora'; desc = 'Read Findora\'s privacy policy and understand how we protect your data.'; break;
-      case 'terms': title = 'Terms & Conditions | Findora'; desc = 'Review the terms and conditions for using the Findora price comparison platform.'; break;
-      case 'affiliate-disclosure': title = 'Affiliate Disclosure | Findora'; desc = 'Findora affiliate and FTC disclosure regarding merchant commissions.'; break;
-      case 'cookie-disclosure': title = 'Cookie & Analytics Disclosure | Findora'; desc = 'Information about how Findora uses cookies and analytics.'; break;
-    }
-    document.title = title;
-    
-    // Find or create meta description tag
-    let metaDesc = document.querySelector('meta[name="description"]');
-    if (!metaDesc) {
-      metaDesc = document.createElement('meta');
-      metaDesc.setAttribute('name', 'description');
-      document.head.appendChild(metaDesc);
-    }
-    metaDesc.setAttribute('content', desc);
   }, [page]);
+
+  const seo = LEGAL_SEO_CONFIG[page] || {
+    title: 'Information | Findora',
+    desc: 'Findora legal documentation and information.',
+    canonical: `/${page}`,
+    breadcrumbTitle: 'Information',
+  };
 
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +85,15 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 pt-24 min-h-[80vh]">
+      <SEOHead
+        title={seo.title}
+        description={seo.desc}
+        canonicalPath={seo.canonical}
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: seo.breadcrumbTitle, url: seo.canonical }
+        ]}
+      />
       {page === 'about' && <Breadcrumb title="About Findora" />}
       {page === 'contact' && <Breadcrumb title="Contact Us" />}
       {page === 'privacy' && <Breadcrumb title="Privacy Policy" />}

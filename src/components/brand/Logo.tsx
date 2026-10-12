@@ -178,7 +178,7 @@ export const Logo: React.FC<LogoProps> = ({
 
         {showTagline && (
           <span
-            className={`font-medium tracking-wide mt-0.5 ${taglineSizes[size]} ${
+            className={`hidden sm:block font-medium tracking-wide mt-0.5 ${taglineSizes[size]} ${
               isDark ? 'text-slate-600' : 'text-slate-400'
             }`}
           >

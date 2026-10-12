@@ -615,8 +615,10 @@ if (authLoading) {
   return (
     <div className="admin-container max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8 min-h-screen text-slate-100">
       <SEOHead 
-        title="Admin Dashboard - Findora"
+        title="Admin Dashboard | Findora"
         description="Manage products, store pricing, and track affiliate clicks in the Findora admin dashboard."
+        canonicalPath="/admin"
+        noIndex={true}
       />
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">

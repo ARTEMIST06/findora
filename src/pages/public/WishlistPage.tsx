@@ -4,6 +4,7 @@ import { SEOHead } from '../../components/common/SEOHead';
 import { useFindoraStore } from '../../services/store';
 import { formatINR } from '../../utils/formatters';
 import { useToast } from '../../components/common/Toast';
+import { getProductImage, handleImageFallback } from '../../utils/visualAssets';
 
 interface WishlistPageProps {
   onNavigate: (route: string) => void;
@@ -39,8 +40,10 @@ export const WishlistPage: React.FC<WishlistPageProps> = ({ onNavigate }) => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-10">
       <SEOHead 
-        title="Your Wishlist - Findora"
+        title="Your Wishlist | Findora"
         description="Monitor current lowest store prices for your favorite devices and buy when the time is right."
+        canonicalPath="/wishlist"
+        noIndex={true}
       />
       <div className="pb-6 border-b border-slate-800/80">
         <div className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-400 uppercase tracking-widest mb-1.5 bg-rose-500/10 px-3 py-1 rounded-full border border-rose-500/20">
@@ -83,8 +86,9 @@ export const WishlistPage: React.FC<WishlistPageProps> = ({ onNavigate }) => {
                   <div className="flex items-center gap-3">
                     <div className="w-16 h-16 rounded-2xl bg-[#080D1A] p-2 border border-slate-800 flex items-center justify-center shrink-0">
                       <img
-                        src={product.images[0]}
+                        src={getProductImage(product)}
                         alt={product.name}
+                        onError={(e) => handleImageFallback(e, product.category)}
                         className="w-full h-full object-contain"
                       />
                     </div>
@@ -139,18 +143,30 @@ export const WishlistPage: React.FC<WishlistPageProps> = ({ onNavigate }) => {
                     href={product.offers[0].affiliateUrl.startsWith('http') ? product.offers[0].affiliateUrl : `https://${product.offers[0].affiliateUrl}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={() => store.trackAffiliateClick(product.id, product.offers[0].storeId, product.offers[0].price, product.offers[0].affiliateUrl)}
-                    className="w-full py-2.5 px-3 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-md shadow-indigo-500/20 transition-all"
+                    onClick={() => {
+                      try {
+                        store.trackAffiliateClick(
+                          product.id,
+                          product.offers[0].storeId,
+                          product.offers[0].price,
+                          product.offers[0].affiliateUrl,
+                          { pageLocation: '/wishlist' }
+                        );
+                      } catch (err) {
+                        console.warn('Wishlist affiliate tracking error:', err);
+                      }
+                    }}
+                    className="w-full py-2.5 px-3 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-md shadow-indigo-500/20 transition-all active:scale-95"
                   >
                     <span>Check Price</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 ) : (
                   <button
-                    onClick={() => showToast('Merchant link unavailable.', 'error')}
+                    onClick={() => showToast('Price link unavailable', 'info')}
                     className="w-full py-2.5 px-3 rounded-full bg-slate-800 text-slate-500 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-not-allowed border border-slate-700"
                   >
-                    <span>Unavailable</span>
+                    <span>Price link unavailable</span>
                   </button>
                 )}
               </div>

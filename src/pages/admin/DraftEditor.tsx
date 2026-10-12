@@ -91,13 +91,65 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
     } else {
       store.getDraft(draftId).then(d => {
         if (d) {
-          setDraft(d);
-          if (d.manualEdits) {
-            setManualEdits(d.manualEdits);
+          const normalized: Partial<ProductDraft> = {
+            ...d,
+            title: d.title || (d as any).name || '',
+            brand: d.brand || '',
+            category: d.category || '',
+            productUrl: d.productUrl || '',
+            affiliateUrl: d.affiliateUrl || '',
+            image: d.image || ((d as any).images && (d as any).images[0]) || '',
+            shortPitch: d.shortPitch || (d as any).shortDescription || '',
+            whyFindora: d.whyFindora || (d as any).description || '',
+            badge: d.badge || '',
+            pros: Array.isArray(d.pros) ? d.pros : [],
+            cons: Array.isArray(d.cons) ? d.cons : [],
+            tags: Array.isArray(d.tags) ? d.tags : [],
+            specifications: d.specifications || {},
+            manualEdits: d.manualEdits || {},
+          };
+          setDraft(normalized);
+          if (normalized.manualEdits) {
+            setManualEdits(normalized.manualEdits);
           }
-          const existingHash = d.lastGeneratedHash || 
-            `${(d.brand || '').trim().toLowerCase()}::${(d.title || '').trim().toLowerCase()}::${(d.category || '').trim().toLowerCase()}::${(d.shortPitch || '').trim().toLowerCase()}`;
+          const existingHash = normalized.lastGeneratedHash || 
+            `${(normalized.brand || '').trim().toLowerCase()}::${(normalized.title || '').trim().toLowerCase()}::${(normalized.category || '').trim().toLowerCase()}::${(normalized.shortPitch || '').trim().toLowerCase()}`;
           setLastGeneratedHash(existingHash);
+        } else {
+          // Fallback to checking existing products if opening from a product item
+          const p = store.getProductById(draftId);
+          if (p) {
+            const mappedDraft: Partial<ProductDraft> = {
+              id: p.id,
+              title: p.name,
+              brand: p.brand || '',
+              category: p.category || '',
+              productUrl: '',
+              affiliateUrl: '',
+              merchantId: 'store-amazon',
+              merchantProductId: '',
+              image: (p.images && p.images[0]) || '',
+              currentPrice: null,
+              mrp: null,
+              availability: 'in_stock',
+              badge: p.badge || '',
+              shortPitch: p.shortDescription || '',
+              whyFindora: p.description || p.whyFindora || '',
+              pros: Array.isArray(p.pros) ? p.pros : [],
+              cons: Array.isArray(p.cons) ? p.cons : [],
+              tags: Array.isArray(p.tags) ? p.tags : [],
+              specifications: p.specifications || {},
+              published: p.published || false,
+              featured: p.featured || false,
+              addedBy: store.getCurrentUser()?.name || 'Admin',
+              addedByUserId: store.getCurrentUser()?.id || 'admin',
+              draftStatus: 'incomplete',
+              manualEdits: {},
+              createdAt: p.createdAt || new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+            setDraft(mappedDraft);
+          }
         }
       });
     }
@@ -187,16 +239,32 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
         method: 'POST',
         headers,
         body: JSON.stringify({
-          brand: draft.brand || '',
+          id: draft.id,
           title: draft.title,
+          brand: draft.brand || '',
+          category: draft.category || '',
           shortPitch: draft.shortPitch || '',
-          category: draft.category || ''
+          existingDescription: draft.whyFindora || '',
+          specifications: draft.specifications || {},
+          pros: Array.isArray(draft.pros) ? draft.pros : [],
+          cons: Array.isArray(draft.cons) ? draft.cons : [],
+          tags: Array.isArray(draft.tags) ? draft.tags : [],
+          image: draft.image || '',
         }),
       });
 
-      if (!res.ok && res.status === 403) {
-        setAiStatusMessage('Forbidden: Admin or Editor role required');
-        showToast('Forbidden: Admin or Editor role required to use AI Copilot', 'error');
+      if (!res.ok) {
+        let errorMsg = `Server returned status ${res.status}`;
+        let errorCategory = res.status === 403 ? 'PERMISSION_DENIED' : 'SERVER_ERROR';
+        try {
+          const errJson = await res.json();
+          if (errJson?.message) errorMsg = errJson.message;
+          if (errJson?.errorCategory) errorCategory = errJson.errorCategory;
+        } catch (_) {}
+
+        console.error("[AI Copilot Server Error]:", { status: res.status, errorCategory, errorMsg });
+        setAiStatusMessage(`AI generation failed: ${errorMsg}`);
+        showToast(`AI generation failed: [${errorCategory}] ${errorMsg}`, 'error');
         setIsGeneratingAi(false);
         return;
       }
@@ -207,53 +275,82 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
         const updates: Partial<ProductDraft> = {};
         const newManualEdits = { ...manualEdits };
 
+        const whyValue = data.whyFindora || data.whyWePickedIt || '';
+        const badgeValue = data.badge || data.topPick || '';
+        const prosValue = Array.isArray(data.pros) ? data.pros : [];
+        const consValue = Array.isArray(data.cons) ? data.cons : [];
+        const seoTitleValue = data.seoTitle || '';
+        const seoDescValue = data.seoDescription || '';
+        const tagsValue = Array.isArray(data.tags) ? data.tags : [];
+        const catValue = data.categorySuggestion || data.suggestedCategory || '';
+        const pitchValue = data.shortPitch || '';
+
         // 1. whyFindora: protect manual edits unless forceAll
         if (options.forceAll || (!manualEdits.whyFindora && (!draft.whyFindora || draft.whyFindora.includes('[AI suggestion')))) {
-          updates.whyFindora = data.whyWePickedIt;
-          if (options.forceAll) delete newManualEdits.whyFindora;
+          if (whyValue) {
+            updates.whyFindora = whyValue;
+            if (options.forceAll) delete newManualEdits.whyFindora;
+          }
         }
 
         // 2. badge: protect manual edits unless forceAll
         if (options.forceAll || (!manualEdits.badge && !draft.badge)) {
-          updates.badge = data.topPick;
-          if (options.forceAll) delete newManualEdits.badge;
+          if (badgeValue) {
+            updates.badge = badgeValue;
+            if (options.forceAll) delete newManualEdits.badge;
+          }
         }
 
         // 3. pros: protect manual edits unless forceAll
         if (options.forceAll || (!manualEdits.pros && (!draft.pros || draft.pros.length === 0))) {
-          updates.pros = data.pros;
-          if (options.forceAll) delete newManualEdits.pros;
+          if (prosValue.length > 0) {
+            updates.pros = prosValue;
+            if (options.forceAll) delete newManualEdits.pros;
+          }
         }
 
         // 4. cons: protect manual edits unless forceAll
         if (options.forceAll || (!manualEdits.cons && (!draft.cons || draft.cons.length === 0))) {
-          updates.cons = data.cons;
-          if (options.forceAll) delete newManualEdits.cons;
+          if (consValue.length > 0) {
+            updates.cons = consValue;
+            if (options.forceAll) delete newManualEdits.cons;
+          }
         }
 
         // 5. seoTitle: protect manual edits unless forceAll
         if (options.forceAll || (!manualEdits.seoTitle && !draft.seoTitle)) {
-          updates.seoTitle = data.seoTitle;
-          if (options.forceAll) delete newManualEdits.seoTitle;
+          if (seoTitleValue) {
+            updates.seoTitle = seoTitleValue;
+            if (options.forceAll) delete newManualEdits.seoTitle;
+          }
         }
 
         // 6. seoDescription: protect manual edits unless forceAll
         if (options.forceAll || (!manualEdits.seoDescription && !draft.seoDescription)) {
-          updates.seoDescription = data.seoDescription;
-          if (options.forceAll) delete newManualEdits.seoDescription;
+          if (seoDescValue) {
+            updates.seoDescription = seoDescValue;
+            if (options.forceAll) delete newManualEdits.seoDescription;
+          }
         }
 
         // 7. tags: protect manual edits unless forceAll
         if (options.forceAll || (!manualEdits.tags && (!draft.tags || draft.tags.length === 0))) {
-          updates.tags = data.tags;
-          if (options.forceAll) delete newManualEdits.tags;
+          if (tagsValue.length > 0) {
+            updates.tags = tagsValue;
+            if (options.forceAll) delete newManualEdits.tags;
+          }
         }
 
-        // 8. suggested category (if empty)
-        if (!draft.category && data.suggestedCategory) {
+        // 8. shortPitch: if draft has no shortPitch
+        if ((!draft.shortPitch || options.forceAll) && pitchValue) {
+          updates.shortPitch = pitchValue;
+        }
+
+        // 9. suggested category (if empty)
+        if (!draft.category && catValue) {
           const matched = categories.find(
-            c => c.name.toLowerCase() === data.suggestedCategory.toLowerCase() ||
-                 c.slug.toLowerCase() === data.suggestedCategory.toLowerCase()
+            c => c.name.toLowerCase() === catValue.toLowerCase() ||
+                 c.slug.toLowerCase() === catValue.toLowerCase()
           );
           if (matched) {
             updates.category = matched.name;
@@ -273,8 +370,11 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
         } : prev);
 
         setSaveStatus('unsaved');
-        setAiStatusMessage('✓ AI content ready');
-        showToast(options.forceAll ? '✨ AI content refreshed!' : '✓ AI content ready', 'success');
+        const successMsg = json.source === 'fallback' 
+          ? '✓ Content generated (Template fallback used)' 
+          : (options.forceAll ? '✨ AI content refreshed!' : '✓ AI content ready');
+        setAiStatusMessage(successMsg);
+        showToast(successMsg, 'success');
 
         const currentUser = store.getCurrentUser();
         if (currentUser) {
@@ -292,13 +392,17 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
           }).catch(() => {});
         }
       } else {
-        setAiStatusMessage('AI generation failed. Your product data is safe. Try again.');
-        showToast(json.message || 'AI generation failed. Your product data is safe. Try again.', 'error');
+        const errorCategory = json?.errorCategory || 'API_ERROR';
+        const errorMsg = json?.message || 'Failed to parse AI response';
+        console.error("[AI Copilot Error Response]:", { errorCategory, errorMsg, json });
+        setAiStatusMessage(`AI generation failed: ${errorMsg}`);
+        showToast(`AI generation failed: [${errorCategory}] ${errorMsg}`, 'error');
       }
     } catch (err: any) {
-      console.error("AI generation failed:", err);
-      setAiStatusMessage('AI generation failed. Your product data is safe. Try again.');
-      showToast('AI generation failed. Your product data is safe. Try again.', 'error');
+      console.error("[AI Copilot Network/Client Error]:", err);
+      const errMsg = err?.message || 'Network request failed';
+      setAiStatusMessage(`AI generation failed: ${errMsg}`);
+      showToast(`AI generation failed: [CLIENT_NETWORK_ERROR] ${errMsg}`, 'error');
     } finally {
       setIsGeneratingAi(false);
     }
@@ -353,7 +457,13 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
       tags: 'Tags',
     };
 
-    const manuallyChanged = Object.keys(manualEdits).filter(k => manualEdits[k] && fieldLabels[k]);
+    const manuallyChanged = Object.keys(fieldLabels).filter(k => {
+      if (manualEdits[k]) return true;
+      const val = (draft as any)?.[k];
+      if (Array.isArray(val)) return val.length > 0;
+      return typeof val === 'string' && val.trim().length > 0;
+    });
+
     if (manuallyChanged.length > 0) {
       setFieldsToOverwrite(manuallyChanged.map(k => fieldLabels[k]));
       setIsConfirmModalOpen(true);
@@ -674,19 +784,29 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
 
           <div className="flex flex-wrap items-center gap-2">
             <button
-              onClick={() => generateAllAiContent({ forceAll: true })}
+              onClick={() => generateAllAiContent({ forceAll: false })}
               disabled={isGeneratingAi || !draft.title}
-              title="Force regenerate all AI fields (will refresh why, badge, pros, cons)"
-              className="px-3.5 py-1.5 bg-white border border-blue-200 text-blue-700 text-xs font-bold rounded-xl hover:bg-blue-50 shadow-2xs flex items-center gap-1.5 disabled:opacity-50 transition-all"
+              title="Generate AI content for empty/missing fields without overwriting existing content"
+              className="px-3.5 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 shadow-2xs flex items-center gap-1.5 disabled:opacity-50 transition-all cursor-pointer"
+            >
+              {isGeneratingAi ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+              AI Fill Missing Fields
+            </button>
+
+            <button
+              onClick={handleRegenerateClick}
+              disabled={isGeneratingAi || !draft.title}
+              title="Regenerate all AI fields (will prompt to confirm if existing edits are present)"
+              className="px-3.5 py-1.5 bg-white border border-blue-200 text-blue-700 text-xs font-bold rounded-xl hover:bg-blue-50 shadow-2xs flex items-center gap-1.5 disabled:opacity-50 transition-all cursor-pointer"
             >
               {isGeneratingAi ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-              ✨ Regenerate AI Content
+              ✨ Regenerate All
             </button>
 
             <button 
               onClick={suggestCategory} 
               disabled={isSuggestingCategory} 
-              className="px-3.5 py-1.5 bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-50 shadow-2xs flex items-center gap-1.5 disabled:opacity-50"
+              className="px-3.5 py-1.5 bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-50 shadow-2xs flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
             >
               {isSuggestingCategory ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3 text-blue-500" />}
               Suggest Category

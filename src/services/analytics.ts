@@ -6,9 +6,12 @@
 // Storage keys for analytics metrics
 const STORAGE_KEYS = {
   PRODUCT_VIEWS: 'findora_analytics_prod_views_v1',
+  WISHLIST_ADDS: 'findora_analytics_wishlist_adds_v1',
+  COMPARE_ADDS: 'findora_analytics_compare_adds_v1',
   SEARCH_QUERIES: 'findora_analytics_searches_v1',
   PAGE_VIEWS: 'findora_analytics_page_views_v1',
   SESSION_ID: 'findora_analytics_session_id_v1',
+  SESSION_UTM: 'findora_utm_session_v1',
 };
 
 // Ensure gtag type safety
@@ -17,6 +20,15 @@ declare global {
     dataLayer: any[];
     gtag?: (...args: any[]) => void;
   }
+}
+
+export interface UtmCampaignData {
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_content?: string;
+  utm_term?: string;
+  capturedAt?: string;
 }
 
 export interface SearchQueryRecord {
@@ -95,18 +107,101 @@ export interface UserMetricsRecord {
 }
 
 class AnalyticsService {
+  private dedupMap: Map<string, number> = new Map();
+  private recentEvents: Array<{ event: string; params?: Record<string, any>; timestamp: string }> = [];
+
+  /**
+   * Checks if an event is a duplicate within the debounce threshold.
+   */
+  private isDuplicate(key: string, windowMs = 1200): boolean {
+    const now = Date.now();
+    const last = this.dedupMap.get(key);
+    if (last && now - last < windowMs) {
+      return true;
+    }
+    this.dedupMap.set(key, now);
+    if (this.dedupMap.size > 200) {
+      const cutoff = now - 60000;
+      for (const [k, time] of this.dedupMap.entries()) {
+        if (time < cutoff) this.dedupMap.delete(k);
+      }
+    }
+    return false;
+  }
+
   /**
    * Checks if Google Analytics 4 is actively configured via environment variable.
    */
   isGA4Configured(): boolean {
     if (typeof window === 'undefined') return false;
-    const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+    const gaId = (typeof import.meta !== 'undefined' && import.meta.env)
+      ? import.meta.env.VITE_GA_MEASUREMENT_ID
+      : undefined;
     return Boolean(gaId && gaId.trim().length > 0 && gaId.startsWith('G-'));
   }
 
   getGA4MeasurementId(): string | null {
     if (typeof window === 'undefined') return null;
-    return import.meta.env.VITE_GA_MEASUREMENT_ID || null;
+    const gaId = (typeof import.meta !== 'undefined' && import.meta.env)
+      ? import.meta.env.VITE_GA_MEASUREMENT_ID
+      : undefined;
+    return gaId || null;
+  }
+
+  /**
+   * Captures UTM parameters from URL (query or hash) and preserves them in sessionStorage.
+   */
+  captureUtmFromUrl(): UtmCampaignData | null {
+    if (typeof window === 'undefined') return null;
+    try {
+      const url = new URL(window.location.href);
+      let params = url.searchParams;
+      if (url.hash.includes('?')) {
+        const hashQuery = url.hash.split('?')[1];
+        params = new URLSearchParams(hashQuery);
+      }
+
+      const source = params.get('utm_source');
+      const medium = params.get('utm_medium');
+      const campaign = params.get('utm_campaign');
+      const content = params.get('utm_content');
+      const term = params.get('utm_term');
+
+      if (source || medium || campaign || content || term) {
+        const utmData: UtmCampaignData = {
+          utm_source: source?.trim() || undefined,
+          utm_medium: medium?.trim() || undefined,
+          utm_campaign: campaign?.trim() || undefined,
+          utm_content: content?.trim() || undefined,
+          utm_term: term?.trim() || undefined,
+          capturedAt: new Date().toISOString(),
+        };
+        sessionStorage.setItem(STORAGE_KEYS.SESSION_UTM, JSON.stringify(utmData));
+        return utmData;
+      }
+
+      const stored = sessionStorage.getItem(STORAGE_KEYS.SESSION_UTM);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      // Safe fallback
+    }
+    return null;
+  }
+
+  /**
+   * Retrieves active session UTM attribution parameters.
+   */
+  getSessionUtm(): UtmCampaignData | null {
+    try {
+      const storage = typeof window !== 'undefined' ? window.sessionStorage : (typeof sessionStorage !== 'undefined' ? sessionStorage : null);
+      if (!storage) return null;
+      const stored = storage.getItem(STORAGE_KEYS.SESSION_UTM);
+      return stored ? JSON.parse(stored) : null;
+    } catch (e) {
+      return null;
+    }
   }
 
   /**
@@ -114,27 +209,75 @@ class AnalyticsService {
    */
   private sendGtag(command: string, ...args: any[]) {
     if (typeof window === 'undefined') return;
-    if (typeof window.gtag === 'function') {
-      window.gtag(command, ...args);
-    } else if (Array.isArray(window.dataLayer)) {
-      window.dataLayer.push([command, ...args]);
+    try {
+      if (typeof (window as any).gtag === 'function') {
+        (window as any).gtag(command, ...args);
+      } else {
+        (window as any).dataLayer = (window as any).dataLayer || [];
+        (window as any).dataLayer.push([command, ...args]);
+      }
+    } catch (e) {
+      // Safe fallback
     }
   }
 
   /**
-   * Track custom or standard GA4 event
+   * Track custom or standard GA4 event with safe dev logging & testing log
    */
   trackEvent(eventName: string, params?: Record<string, any>) {
+    const timestamp = new Date().toISOString();
+    this.recentEvents.unshift({ event: eventName, params, timestamp });
+    if (this.recentEvents.length > 100) this.recentEvents.pop();
+
+    if (typeof window !== 'undefined' && (window as any).__findora_analytics_events__) {
+      (window as any).__findora_analytics_events__.unshift({ event: eventName, params, timestamp });
+    }
+
+    if (typeof import.meta !== 'undefined' && import.meta.env?.DEV && !this.isGA4Configured()) {
+      // Clean console log for developer visibility without spamming or errors
+      // console.debug(`[Findora Analytics]:`, eventName, params);
+    }
+
     this.sendGtag('event', eventName, params);
   }
 
   /**
-   * Page View tracking
+   * Returns recent tracked events for testing & verification
+   */
+  getRecentEvents(): Array<{ event: string; params?: Record<string, any>; timestamp: string }> {
+    return [...this.recentEvents];
+  }
+
+  /**
+   * Clear test event buffer
+   */
+  clearRecentEvents(): void {
+    this.recentEvents = [];
+    if (typeof window !== 'undefined' && (window as any).__findora_analytics_events__) {
+      (window as any).__findora_analytics_events__ = [];
+    }
+  }
+
+  /**
+   * Page View tracking with React deduplication and session campaign attribution
    */
   trackPageView(path: string, title?: string) {
+    this.captureUtmFromUrl();
+    const cleanPath = path.split('?')[0] || '/';
+
+    if (this.isDuplicate(`page_view:${cleanPath}`, 1000)) {
+      return;
+    }
+
+    const utm = this.getSessionUtm();
     this.trackEvent('page_view', {
-      page_path: path,
-      page_title: title || document.title,
+      page_path: cleanPath,
+      page_title: title || (typeof document !== 'undefined' ? document.title : ''),
+      ...(utm?.utm_source ? { utm_source: utm.utm_source } : {}),
+      ...(utm?.utm_medium ? { utm_medium: utm.utm_medium } : {}),
+      ...(utm?.utm_campaign ? { utm_campaign: utm.utm_campaign } : {}),
+      ...(utm?.utm_content ? { utm_content: utm.utm_content } : {}),
+      ...(utm?.utm_term ? { utm_term: utm.utm_term } : {}),
     });
 
     if (typeof window !== 'undefined') {
@@ -148,19 +291,26 @@ class AnalyticsService {
   }
 
   /**
-   * Search Tracking - No PII is stored.
+   * Search Tracking - Instruments search events with result count and zero-result tracking. No PII is stored.
    */
   trackSearch(searchTerm: string, resultsCount = 0) {
     const clean = searchTerm.trim().toLowerCase();
     if (!clean) return;
 
-    // 1. Google Analytics
+    if (this.isDuplicate(`search:${clean}`, 1500)) {
+      return;
+    }
+
+    const utm = this.getSessionUtm();
     this.trackEvent('search', {
       search_term: clean,
       results_count: resultsCount,
+      is_zero_result: resultsCount === 0,
+      ...(utm?.utm_source ? { utm_source: utm.utm_source } : {}),
+      ...(utm?.utm_campaign ? { utm_campaign: utm.utm_campaign } : {}),
     });
 
-    // 2. Local storage record for instant preview
+    // 2. Local storage record for zero-latency admin reading
     if (typeof window !== 'undefined') {
       try {
         const stored: SearchQueryRecord[] = JSON.parse(
@@ -186,7 +336,7 @@ class AnalyticsService {
               resultsCount,
               timestamp: new Date().toISOString(),
             }).catch(() => {
-              // Fail gracefully if offline
+              // Fail gracefully if offline or unauthenticated
             });
           });
         })
@@ -195,7 +345,7 @@ class AnalyticsService {
   }
 
   /**
-   * Product View Tracking
+   * Product View Tracking with deduplication
    */
   trackViewProduct(product: {
     id: string;
@@ -204,6 +354,23 @@ class AnalyticsService {
     brand?: string;
     price?: number;
   }) {
+    if (!product?.id) return;
+
+    if (this.isDuplicate(`view_product:${product.id}`, 1500)) {
+      return;
+    }
+
+    const utm = this.getSessionUtm();
+    this.trackEvent('view_product', {
+      product_id: product.id,
+      product_name: product.name,
+      category: product.category,
+      brand: product.brand,
+      price: product.price,
+      currency: 'INR',
+      ...(utm?.utm_source ? { utm_source: utm.utm_source } : {}),
+      ...(utm?.utm_campaign ? { utm_campaign: utm.utm_campaign } : {}),
+    });
     this.trackEvent('view_item', {
       items: [
         {
@@ -247,16 +414,30 @@ class AnalyticsService {
   }
 
   /**
-   * Category View Tracking
+   * Category View Tracking with result count and deduplication
    */
-  trackViewCategory(category: string) {
+  trackViewCategory(category: string, resultsCount?: number) {
+    const clean = category.trim().toLowerCase();
+    if (!clean || clean === 'all') return;
+
+    if (this.isDuplicate(`view_category:${clean}`, 1500)) {
+      return;
+    }
+
+    const utm = this.getSessionUtm();
+    this.trackEvent('view_category', {
+      category: clean,
+      results_count: resultsCount !== undefined ? resultsCount : 0,
+      ...(utm?.utm_source ? { utm_source: utm.utm_source } : {}),
+      ...(utm?.utm_campaign ? { utm_campaign: utm.utm_campaign } : {}),
+    });
     this.trackEvent('view_item_list', {
-      item_list_name: category,
+      item_list_name: clean,
     });
   }
 
   /**
-   * Wishlist Add Tracking
+   * Wishlist Add Tracking with deduplication
    */
   trackAddToWishlist(product: {
     id: string;
@@ -264,7 +445,21 @@ class AnalyticsService {
     category?: string;
     price?: number;
   }) {
+    if (!product?.id) return;
+
+    if (this.isDuplicate(`add_to_wishlist:${product.id}`, 1200)) {
+      return;
+    }
+
+    const utm = this.getSessionUtm();
     this.trackEvent('add_to_wishlist', {
+      product_id: product.id,
+      product_name: product.name,
+      category: product.category,
+      price: product.price,
+      currency: 'INR',
+      ...(utm?.utm_source ? { utm_source: utm.utm_source } : {}),
+      ...(utm?.utm_campaign ? { utm_campaign: utm.utm_campaign } : {}),
       items: [
         {
           item_id: product.id,
@@ -274,52 +469,125 @@ class AnalyticsService {
         },
       ],
     });
+
+    if (typeof window !== 'undefined') {
+      try {
+        const counts: Record<string, number> = JSON.parse(
+          localStorage.getItem(STORAGE_KEYS.WISHLIST_ADDS) || '{}'
+        );
+        counts[product.id] = (counts[product.id] || 0) + 1;
+        localStorage.setItem(STORAGE_KEYS.WISHLIST_ADDS, JSON.stringify(counts));
+      } catch (e) {
+        // ignore
+      }
+    }
   }
 
   /**
-   * Compare Add Tracking
+   * Compare Add Tracking with deduplication
    */
   trackAddToCompare(product: {
     id: string;
     name: string;
     category?: string;
+    price?: number;
   }) {
+    if (!product?.id) return;
+
+    if (this.isDuplicate(`add_to_compare:${product.id}`, 1200)) {
+      return;
+    }
+
+    const utm = this.getSessionUtm();
     this.trackEvent('add_to_compare', {
+      product_id: product.id,
+      product_name: product.name,
+      category: product.category,
+      price: product.price,
       item_id: product.id,
       item_name: product.name,
       item_category: product.category,
+      currency: 'INR',
+      ...(utm?.utm_source ? { utm_source: utm.utm_source } : {}),
+      ...(utm?.utm_campaign ? { utm_campaign: utm.utm_campaign } : {}),
     });
+
+    if (typeof window !== 'undefined') {
+      try {
+        const counts: Record<string, number> = JSON.parse(
+          localStorage.getItem(STORAGE_KEYS.COMPARE_ADDS) || '{}'
+        );
+        counts[product.id] = (counts[product.id] || 0) + 1;
+        localStorage.setItem(STORAGE_KEYS.COMPARE_ADDS, JSON.stringify(counts));
+      } catch (e) {
+        // ignore
+      }
+    }
   }
 
   /**
-   * Affiliate Click Tracking - Instruments Amazon "Check Price" button
+   * Affiliate Click Tracking - Instruments "Check Price" CTAs
    */
   trackAffiliateClick(details: {
     productId: string;
     productName: string;
     store: string;
+    storeId?: string;
     category?: string;
     price?: number;
     affiliateUrl?: string;
+    pageLocation?: string;
+    device?: string;
+    trafficSource?: string;
+    campaign?: string;
   }) {
+    const utm = this.getSessionUtm();
+    const effectiveCampaign = details.campaign || utm?.utm_campaign || undefined;
+    const effectiveSource = details.trafficSource || utm?.utm_source || 'Direct';
+
     this.trackEvent('affiliate_click', {
       product_id: details.productId,
       product_name: details.productName,
-      store: details.store,
+      store_id: details.storeId || details.store.toLowerCase().replace(/\s+/g, '-'),
+      store_name: details.store,
       category: details.category || 'General',
       value: details.price || 0,
+      currency: 'INR',
+      page_location: details.pageLocation || (typeof window !== 'undefined' ? window.location.pathname : ''),
+      device: details.device || 'Desktop',
+      traffic_source: effectiveSource,
+      campaign: effectiveCampaign,
+      ...(utm?.utm_medium ? { utm_medium: utm.utm_medium } : {}),
+      ...(utm?.utm_content ? { utm_content: utm.utm_content } : {}),
+      timestamp: new Date().toISOString(),
     });
   }
 
   /**
-   * Login & Sign-up tracking
+   * Login & Sign-up tracking without sending any PII or credentials
    */
   trackLogin(method: string) {
-    this.trackEvent('login', { method });
+    const clean = (method || 'unknown').toLowerCase().trim();
+    if (this.isDuplicate(`login:${clean}`, 2000)) return;
+
+    const utm = this.getSessionUtm();
+    this.trackEvent('login', {
+      method: clean,
+      ...(utm?.utm_source ? { utm_source: utm.utm_source } : {}),
+      ...(utm?.utm_campaign ? { utm_campaign: utm.utm_campaign } : {}),
+    });
   }
 
   trackSignUp(method: string) {
-    this.trackEvent('sign_up', { method });
+    const clean = (method || 'unknown').toLowerCase().trim();
+    if (this.isDuplicate(`sign_up:${clean}`, 2000)) return;
+
+    const utm = this.getSessionUtm();
+    this.trackEvent('sign_up', {
+      method: clean,
+      ...(utm?.utm_source ? { utm_source: utm.utm_source } : {}),
+      ...(utm?.utm_campaign ? { utm_campaign: utm.utm_campaign } : {}),
+    });
   }
 
   // =========================================================================
@@ -399,11 +667,17 @@ class AnalyticsService {
     wishlistProductIds: string[] = []
   ): ProductPerformanceMetric[] {
     let localViews: Record<string, number> = {};
+    let localWishlist: Record<string, number> = {};
+    let localCompare: Record<string, number> = {};
     if (typeof window !== 'undefined') {
       try {
         localViews = JSON.parse(localStorage.getItem(STORAGE_KEYS.PRODUCT_VIEWS) || '{}');
+        localWishlist = JSON.parse(localStorage.getItem(STORAGE_KEYS.WISHLIST_ADDS) || '{}');
+        localCompare = JSON.parse(localStorage.getItem(STORAGE_KEYS.COMPARE_ADDS) || '{}');
       } catch (e) {
         localViews = {};
+        localWishlist = {};
+        localCompare = {};
       }
     }
 
@@ -420,7 +694,8 @@ class AnalyticsService {
       const pClicks = clickCounts[p.id] || 0;
       // Views: at least 1 view if clicked, plus recorded views
       const views = Math.max(localViews[p.id] || 0, pClicks > 0 ? pClicks + 2 : 0);
-      const isWishlisted = wishlistProductIds.includes(p.id) ? 1 : 0;
+      const isWishlisted = Math.max(localWishlist[p.id] || 0, wishlistProductIds.includes(p.id) ? 1 : 0);
+      const compareAdds = localCompare[p.id] || 0;
       const ctr = views > 0 ? Math.min(100, Math.round((pClicks / views) * 100)) : 0;
 
       return {
@@ -432,7 +707,7 @@ class AnalyticsService {
         image: p.images && p.images.length > 0 ? p.images[0] : undefined,
         views,
         wishlistAdds: isWishlisted,
-        compareAdds: 0,
+        compareAdds,
         amazonClicks: pClicks,
         affiliateCtr: ctr,
       };

@@ -4,6 +4,7 @@ import { ProductWithPrices } from '../../types';
 import { formatINR } from '../../utils/formatters';
 import { useFindoraStore } from '../../services/store';
 import { useToast } from './Toast';
+import { getProductImage, handleImageFallback } from '../../utils/visualAssets';
 
 interface ProductCardProps {
   product: ProductWithPrices;
@@ -43,7 +44,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
     }
   };
 
-  const mainImage = (product.images && product.images[0]) || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600';
+  const mainImage = getProductImage(product);
 
   // Determine badge styling based on badge content
   const getBadgeStyle = (badgeText?: string, discount?: number) => {
@@ -123,6 +124,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
         <img
           src={mainImage}
           alt={product.name}
+          onError={(e) => handleImageFallback(e, product.category)}
           className="h-full w-full object-contain p-2 transition-transform duration-500 group-hover:scale-105 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]"
           loading="lazy"
         />
@@ -217,31 +219,43 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
                 rel="noopener noreferrer"
                 onClick={(e) => {
                   e.stopPropagation();
-                  store.trackAffiliateClick(
-                    product.id,
-                    product.offers[0].storeId,
-                    product.offers[0].price,
-                    product.offers[0].affiliateUrl
-                  );
+                  try {
+                    store.trackAffiliateClick(
+                      product.id,
+                      product.offers[0].storeId,
+                      product.offers[0].price,
+                      product.offers[0].affiliateUrl,
+                      { pageLocation: typeof window !== 'undefined' ? window.location.pathname : '/' }
+                    );
+                  } catch (err) {
+                    console.warn('Affiliate tracking error:', err);
+                  }
                 }}
                 className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold transition-all flex items-center justify-center gap-1 shadow-md shadow-indigo-500/20 active:scale-95"
               >
                 <span>Check Price</span>
                 <ExternalLink className="w-3 h-3 opacity-80" />
               </a>
+            ) : product.offers.length > 0 ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  showToast('Price link unavailable', 'info');
+                }}
+                className="w-full py-2 px-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-400 text-xs font-medium transition-all flex items-center justify-center gap-1 border border-slate-700/60"
+                title="Price link unavailable"
+              >
+                <span className="truncate">Price unavailable</span>
+              </button>
             ) : (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (product.offers.length > 0 && !product.offers[0].affiliateUrl) {
-                    showToast('Merchant link unavailable', 'error');
-                  } else {
-                    onNavigate(`/product/${product.slug}`);
-                  }
+                  onNavigate(`/product/${product.slug}`);
                 }}
                 className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold transition-all flex items-center justify-center gap-1 shadow-md shadow-indigo-500/20"
               >
-                <span>Compare</span>
+                <span>View Details</span>
               </button>
             )}
           </div>

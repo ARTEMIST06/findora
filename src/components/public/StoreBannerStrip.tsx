@@ -47,17 +47,22 @@ export const StoreBannerStrip: React.FC<StoreBannerStripProps> = ({ onNavigate }
         </div>
 
         {/* Store Brand Logos / Badges Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mt-8 relative z-10">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-3 mt-8 relative z-10">
           {brands.map((brand) => (
             <div
               key={brand.name}
               onClick={() => onNavigate(`/products?q=${encodeURIComponent(brand.name)}`)}
-              className="group p-3.5 rounded-2xl bg-[#070B14]/80 hover:bg-[#0D1527] border border-slate-800/80 hover:border-blue-500/40 transition-all duration-200 cursor-pointer flex flex-col items-center justify-center text-center shadow-md"
+              className="group p-3.5 rounded-2xl bg-[#070B14]/80 hover:bg-[#0D1527] border border-slate-800/80 hover:border-blue-500/40 transition-all duration-300 cursor-pointer flex flex-col items-center justify-center text-center shadow-md hover:shadow-xl hover:-translate-y-0.5"
             >
+              <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${brand.color} border border-white/5 flex items-center justify-center mb-1.5 transition-transform duration-300 group-hover:scale-110`}>
+                <span className={`text-xs font-black ${brand.text}`}>
+                  {brand.name.slice(0, 1)}
+                </span>
+              </div>
               <span className="text-xs font-extrabold text-white group-hover:text-blue-300 transition-colors">
                 {brand.name}
               </span>
-              <span className={`text-[10px] font-medium mt-1 ${brand.text}`}>
+              <span className={`text-[10px] font-medium mt-0.5 ${brand.text}`}>
                 {brand.badge}
               </span>
             </div>

@@ -293,6 +293,7 @@ class FindoraStore {
   private wishlist: string[] = []; // product IDs
   private compareIds: string[] = []; // max 4 product IDs
   private clicks: AffiliateClick[] = [];
+  private lastClickTimes = new Map<string, { time: number; click: AffiliateClick }>();
 
   constructor() {
     this.init();
@@ -446,6 +447,7 @@ class FindoraStore {
     this.compareIds = getFromStorage(STORAGE_KEYS.COMPARE, []);
     this.wishlist = [];
     localStorage.removeItem(STORAGE_KEYS.WISHLIST);
+    this.clicks = getFromStorage(STORAGE_KEYS.CLICKS, []);
     
     // Temporarily load mock data so the UI isn't completely empty before Firebase loads
     this.products = getFromStorage(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS);
@@ -1103,10 +1105,22 @@ class FindoraStore {
     if (!this.currentUser) {
       return false;
     }
-    if (this.wishlist.includes(productId)) {
+    const isAlreadyWishlisted = this.wishlist.includes(productId);
+    if (isAlreadyWishlisted) {
       this.wishlist = this.wishlist.filter((id) => id !== productId);
     } else {
       this.wishlist.push(productId);
+      const prod = this.getProductWithPrices(productId);
+      if (prod) {
+        import('./analytics').then(({ analytics }) => {
+          analytics.trackAddToWishlist({
+            id: prod.id,
+            name: prod.name,
+            category: prod.category,
+            price: prod.lowestPrice || prod.offers?.[0]?.price,
+          });
+        }).catch(() => {});
+      }
     }
     
     // Save to Firebase
@@ -1142,6 +1156,17 @@ class FindoraStore {
       return false; // Full
     }
     this.compareIds.push(productId);
+    const prod = this.getProductWithPrices(productId);
+    if (prod) {
+      import('./analytics').then(({ analytics }) => {
+        analytics.trackAddToCompare({
+          id: prod.id,
+          name: prod.name,
+          category: prod.category,
+          price: prod.lowestPrice || prod.offers?.[0]?.price,
+        });
+      }).catch(() => {});
+    }
     saveToStorage(STORAGE_KEYS.COMPARE, this.compareIds);
     notifyChange();
     return true;
@@ -1164,47 +1189,109 @@ class FindoraStore {
     productId: string,
     storeId: string,
     price: number,
-    affiliateUrl: string
+    affiliateUrl: string,
+    context?: { pageLocation?: string; campaign?: string }
   ): AffiliateClick {
+    // 1. Prevent duplicate click events within 1500ms window (e.g. rapid double-clicking)
+    const dedupKey = `${productId}:${storeId}:${affiliateUrl}`;
+    const nowMs = Date.now();
+    const existingRecent = this.lastClickTimes.get(dedupKey);
+    if (existingRecent && nowMs - existingRecent.time < 1500) {
+      return existingRecent.click;
+    }
+
     const product = this.getProductById(productId);
     const store = this.getStoreById(storeId);
-    const click: any = {
-      id: `click-${Date.now()}`,
+    const nowIso = new Date().toISOString();
+
+    // Determine device safely
+    let device = 'Desktop';
+    if (typeof navigator !== 'undefined') {
+      const ua = navigator.userAgent || '';
+      if (/tablet|ipad|playbook|silk/i.test(ua)) {
+        device = 'Tablet';
+      } else if (/mobile|iphone|ipod|android|blackberry|mini|windows\sce|palm/i.test(ua)) {
+        device = 'Mobile';
+      }
+    }
+
+    // Determine safe traffic source from referrer
+    let trafficSource = 'Direct';
+    if (typeof document !== 'undefined' && document.referrer) {
+      try {
+        trafficSource = new URL(document.referrer).hostname.replace(/^www\./, '') || 'Direct';
+      } catch {
+        trafficSource = 'Direct';
+      }
+    }
+
+    // Safe page location (no tokens or credentials)
+    let pageLocation = context?.pageLocation || '';
+    if (!pageLocation && typeof window !== 'undefined') {
+      pageLocation = window.location.pathname || '/';
+    }
+
+    const click: AffiliateClick = {
+      id: `click-${nowMs}-${Math.random().toString(36).slice(2, 6)}`,
       productId,
       productName: product ? product.name : 'Unknown Product',
       storeId,
-      storeName: store ? store.name : 'Store',
-      price,
+      storeName: store ? store.name : (storeId.replace('store-', '').toUpperCase()),
+      category: product?.category || 'General',
+      price: Number(price) || 0,
       affiliateUrl,
-      timestamp: new Date().toISOString(),
-      device: typeof navigator !== 'undefined' ? (navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop') : 'Web',
+      pageLocation,
+      timestamp: nowIso,
+      trafficSource,
+      campaign: context?.campaign,
+      device,
     };
+
     if (this.currentUser) {
       click.userId = this.currentUser.id;
     }
-    this.clicks.unshift(click as AffiliateClick);
-    if (this.clicks.length > 500) this.clicks = this.clicks.slice(0, 500); // keep recent
-    
+
+    // Cache to prevent duplicate events on double click
+    this.lastClickTimes.set(dedupKey, { time: nowMs, click });
+
+    // Local state and persistence
+    this.clicks.unshift(click);
+    if (this.clicks.length > 500) this.clicks = this.clicks.slice(0, 500);
+
+    // Non-blocking asynchronous sync to Firestore and GA4
     if (typeof window !== 'undefined') {
       import('../lib/firebase').then(({ db }) => {
         import('firebase/firestore').then(({ doc, setDoc }) => {
-          setDoc(doc(db, 'clicks', click.id), click).catch(console.error);
-        });
-      });
-      // GA4 tracking instrumentation
+          setDoc(doc(db, 'clicks', click.id), click).catch((err) => {
+            console.warn('Firestore click tracking caught:', err);
+          });
+        }).catch(() => {});
+      }).catch(() => {});
+
+      // GA4 tracking instrumentation (reuse existing analytics architecture)
       import('./analytics').then(({ analytics }) => {
         analytics.trackAffiliateClick({
           productId,
           productName: click.productName,
           store: click.storeName,
-          category: product?.category || 'General',
-          price,
-          affiliateUrl,
+          storeId: click.storeId,
+          category: click.category,
+          price: click.price,
+          affiliateUrl: click.affiliateUrl,
+          pageLocation: click.pageLocation,
+          device: click.device,
+          trafficSource: click.trafficSource,
+          campaign: click.campaign,
         });
       }).catch(() => {});
     }
-    saveToStorage(STORAGE_KEYS.CLICKS, this.clicks);
-    
+
+    try {
+      saveToStorage(STORAGE_KEYS.CLICKS, this.clicks);
+    } catch (e) {
+      console.warn('Storage save caught:', e);
+    }
+
     notifyChange();
     return click;
   }

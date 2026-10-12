@@ -112,9 +112,9 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
       </div>
 
       {/* Main Navbar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-3 sm:gap-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-2 sm:gap-4 lg:gap-6">
         {/* Left: Brand Logo & Desktop Nav Links */}
-        <div className="flex items-center gap-6 lg:gap-8 shrink-0">
+        <div className="flex items-center gap-4 lg:gap-5 xl:gap-8 shrink-0">
           <Logo
             size="md"
             showTagline={true}
@@ -123,10 +123,10 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
           />
 
           {/* Desktop Nav Links */}
-          <nav className="hidden lg:flex items-center gap-1 text-sm font-medium text-slate-300">
+          <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 text-xs xl:text-sm font-medium text-slate-300">
             <button
               onClick={() => onNavigate('/')}
-              className={`px-3.5 py-2 rounded-full transition-all ${
+              className={`px-2.5 xl:px-3.5 py-1.5 xl:py-2 rounded-full transition-all ${
                 currentRoute === '/'
                   ? 'text-white bg-white/10 font-semibold shadow-inner'
                   : 'hover:text-white hover:bg-white/5'
@@ -136,7 +136,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
             </button>
             <button
               onClick={() => onNavigate('/categories')}
-              className={`px-3.5 py-2 rounded-full transition-all ${
+              className={`px-2.5 xl:px-3.5 py-1.5 xl:py-2 rounded-full transition-all ${
                 currentRoute.startsWith('/categories')
                   ? 'text-white bg-white/10 font-semibold shadow-inner'
                   : 'hover:text-white hover:bg-white/5'
@@ -146,7 +146,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
             </button>
             <button
               onClick={() => onNavigate('/compare')}
-              className={`px-3.5 py-2 rounded-full transition-all flex items-center gap-1.5 ${
+              className={`px-2.5 xl:px-3.5 py-1.5 xl:py-2 rounded-full transition-all flex items-center gap-1.5 ${
                 currentRoute === '/compare'
                   ? 'text-white bg-white/10 font-semibold shadow-inner'
                   : 'hover:text-white hover:bg-white/5'
@@ -159,18 +159,18 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
             </button>
             <button
               onClick={() => onNavigate('/deals')}
-              className={`px-3.5 py-2 rounded-full transition-all flex items-center gap-1.5 ${
+              className={`px-2.5 xl:px-3.5 py-1.5 xl:py-2 rounded-full transition-all flex items-center gap-1.5 ${
                 currentRoute === '/deals'
                   ? 'text-amber-400 bg-amber-500/15 font-semibold'
                   : 'hover:text-amber-400 hover:bg-amber-500/10'
               }`}
             >
-              <Flame className="w-4 h-4 text-amber-400" />
+              <Flame className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-amber-400" />
               <span>Deals</span>
             </button>
             <button
               onClick={() => onNavigate('/blog')}
-              className={`px-3.5 py-2 rounded-full transition-all ${
+              className={`px-2.5 xl:px-3.5 py-1.5 xl:py-2 rounded-full transition-all ${
                 currentRoute === '/blog'
                   ? 'text-white bg-white/10 font-semibold shadow-inner'
                   : 'hover:text-white hover:bg-white/5'
@@ -182,7 +182,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
         </div>
 
         {/* Middle: Pill Search Bar */}
-        <div ref={searchRef} className="relative flex-1 max-w-md hidden md:block">
+        <div ref={searchRef} className="relative flex-1 max-w-[200px] lg:max-w-xs xl:max-w-md hidden md:block">
           <form onSubmit={handleSearchSubmit} className="relative w-full">
             <input
               type="text"
@@ -192,17 +192,17 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
                 setIsSearchOpen(true);
               }}
               onFocus={() => setIsSearchOpen(true)}
-              placeholder="Search products, brands, categories..."
-              className="w-full pl-10 pr-10 py-2.5 bg-[#0F172A]/90 hover:bg-[#131E35] focus:bg-[#131E35] text-white placeholder-slate-400 text-sm rounded-full border border-slate-700/60 focus:border-blue-500/70 focus:ring-4 focus:ring-blue-500/15 transition-all outline-none"
+              placeholder="Search products, brands..."
+              className="w-full pl-9 pr-8 py-2 xl:py-2.5 bg-[#0F172A]/90 hover:bg-[#131E35] focus:bg-[#131E35] text-white placeholder-slate-400 text-xs xl:text-sm rounded-full border border-slate-700/60 focus:border-blue-500/70 focus:ring-4 focus:ring-blue-500/15 transition-all outline-none"
             />
-            <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-400 pointer-events-none" />
+            <Search className="absolute left-3 top-2.5 xl:top-3 w-3.5 h-3.5 xl:w-4 xl:h-4 text-slate-400 pointer-events-none" />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3.5 top-3 text-slate-400 hover:text-white"
+                className="absolute right-3 top-2.5 xl:top-3 text-slate-400 hover:text-white"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </form>
@@ -257,11 +257,11 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
         </div>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {/* Compare Button */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          {/* Compare Button - visible sm and up, kept in drawer for narrow mobile */}
           <button
             onClick={() => onNavigate('/compare')}
-            className={`relative p-2.5 sm:px-3.5 sm:py-2 rounded-full border text-sm font-medium transition-all flex items-center gap-2 ${
+            className={`hidden sm:flex relative p-2 sm:px-3 sm:py-2 rounded-full border text-xs sm:text-sm font-medium transition-all items-center gap-1.5 ${
               currentRoute === '/compare'
                 ? 'bg-blue-600/20 text-blue-400 border-blue-500/50'
                 : 'text-slate-300 border-slate-800 bg-[#0D1322]/80 hover:bg-slate-800/80 hover:text-white hover:border-slate-700'
@@ -269,9 +269,9 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
             title="Compare products side-by-side"
           >
             <Scale className="w-4 h-4 text-blue-400" />
-            <span className="hidden xl:inline text-xs">Compare</span>
+            <span className="hidden 2xl:inline text-xs">Compare</span>
             <span
-              className={`text-[11px] font-bold px-1.5 py-0.2 rounded-full ${
+              className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
                 compareList.length > 0
                   ? 'bg-blue-600 text-white'
                   : 'bg-slate-800 text-slate-400'
@@ -284,7 +284,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
           {/* Wishlist Button */}
           <button
             onClick={() => onNavigate('/wishlist')}
-            className={`relative p-2.5 sm:px-3.5 sm:py-2 rounded-full border text-sm font-medium transition-all flex items-center gap-2 ${
+            className={`relative p-2 sm:px-3 sm:py-2 rounded-full border text-xs sm:text-sm font-medium transition-all flex items-center gap-1.5 ${
               currentRoute === '/wishlist'
                 ? 'bg-rose-500/20 text-rose-400 border-rose-500/50'
                 : 'text-slate-300 border-slate-800 bg-[#0D1322]/80 hover:bg-slate-800/80 hover:text-white hover:border-slate-700'
@@ -292,9 +292,9 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
             title="Saved Wishlist"
           >
             <Heart className="w-4 h-4 text-rose-400" />
-            <span className="hidden xl:inline text-xs">Wishlist</span>
+            <span className="hidden 2xl:inline text-xs">Wishlist</span>
             <span
-              className={`text-[11px] font-bold px-1.5 py-0.2 rounded-full ${
+              className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
                 wishlist.length > 0
                   ? 'bg-rose-600 text-white'
                   : 'bg-slate-800 text-slate-400'

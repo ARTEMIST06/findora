@@ -58,12 +58,14 @@ export function validateAmazonAffiliateUrl(url: string | null | undefined): {
   isValid: boolean;
   isAmazon: boolean;
   message: string;
+  associateTag?: string | null;
 } {
   if (!url || !url.trim()) {
     return {
       isValid: false,
       isAmazon: false,
       message: 'Affiliate URL is required before publishing.',
+      associateTag: null,
     };
   }
 
@@ -74,6 +76,7 @@ export function validateAmazonAffiliateUrl(url: string | null | undefined): {
       isValid: false,
       isAmazon: false,
       message: 'Enter a valid Amazon Associates link.',
+      associateTag: null,
     };
   }
 
@@ -85,6 +88,7 @@ export function validateAmazonAffiliateUrl(url: string | null | undefined): {
       isValid: false,
       isAmazon: false,
       message: 'Invalid URL format.',
+      associateTag: null,
     };
   }
 
@@ -93,6 +97,7 @@ export function validateAmazonAffiliateUrl(url: string | null | undefined): {
       isValid: false,
       isAmazon: false,
       message: 'Enter a valid Amazon Associates link.',
+      associateTag: null,
     };
   }
 
@@ -101,13 +106,17 @@ export function validateAmazonAffiliateUrl(url: string | null | undefined): {
       isValid: false,
       isAmazon: false,
       message: 'Enter a valid Amazon Associates link.',
+      associateTag: null,
     };
   }
+
+  const associateTag = parsed.searchParams.get('tag');
 
   return {
     isValid: true,
     isAmazon: true,
     message: 'Valid Amazon affiliate link',
+    associateTag,
   };
 }
 

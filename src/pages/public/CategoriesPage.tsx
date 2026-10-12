@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { SEOHead } from '../../components/common/SEOHead';
 import { useFindoraStore } from '../../services/store';
+import { CATEGORY_ASSETS } from '../../utils/visualAssets';
 
 interface CategoriesPageProps {
   onNavigate: (route: string) => void;
@@ -38,8 +39,13 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ onNavigate }) =>
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-10">
       <SEOHead 
-        title="Product Categories - Findora"
+        title="Product Categories | Findora"
         description="Browse our comprehensive taxonomy of premium electronics, including smartphones, laptops, audio gear, and more. Find and compare the best products in each category."
+        canonicalPath="/categories"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Categories', url: '/categories' }
+        ]}
       />
       <div className="pb-6 border-b border-slate-800/80">
         <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-400 uppercase tracking-widest mb-1.5">
@@ -57,18 +63,37 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ onNavigate }) =>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {categories.map((cat) => {
           const catProducts = products.filter((p) => p.category === cat.slug);
+          const asset = CATEGORY_ASSETS[cat.slug.toLowerCase()];
+
           return (
             <div
               key={cat.id}
               onClick={() => onNavigate(`/category/${cat.slug}`)}
-              className="p-6 bg-[#0D1322]/80 hover:bg-[#0F172A] rounded-3xl border border-slate-800/80 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer flex flex-col justify-between group backdrop-blur-sm"
+              className="relative p-6 bg-[#0D1322]/90 hover:bg-[#0F172A] rounded-3xl border border-slate-800/80 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer flex flex-col justify-between group overflow-hidden"
             >
-              <div>
+              {/* Subtle background image watermark */}
+              {asset?.image && (
+                <div className="absolute top-0 right-0 w-1/2 h-44 pointer-events-none opacity-10 group-hover:opacity-20 transition-opacity duration-300 overflow-hidden rounded-tr-3xl">
+                  <img
+                    src={asset.image}
+                    alt={cat.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#0D1322]/80 to-[#0D1322]"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0D1322] via-transparent to-transparent"></div>
+                </div>
+              )}
+
+              <div className="relative z-10">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 group-hover:bg-gradient-to-tr group-hover:from-blue-600 group-hover:to-indigo-600 group-hover:text-white transition-all flex items-center justify-center shadow-sm">
+                  <div
+                    className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 group-hover:bg-gradient-to-tr group-hover:from-blue-600 group-hover:to-indigo-600 group-hover:text-white transition-all flex items-center justify-center shadow-sm"
+                    style={{ borderColor: asset?.accent ? `${asset.accent}40` : undefined }}
+                  >
                     {iconMap[cat.icon] || <Smartphone className="w-7 h-7" />}
                   </div>
-                  <span className="text-xs font-bold text-slate-400 bg-slate-800/80 border border-slate-700/60 px-3 py-1 rounded-full">
+                  <span className="text-xs font-bold text-slate-300 bg-slate-800/90 border border-slate-700/60 px-3 py-1 rounded-full">
                     {catProducts.length} items
                   </span>
                 </div>
@@ -97,7 +122,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ onNavigate }) =>
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs font-bold text-blue-400 group-hover:text-blue-300">
+              <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs font-bold text-blue-400 group-hover:text-blue-300 relative z-10">
                 <span>Explore {cat.name}</span>
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </div>
