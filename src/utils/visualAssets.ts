@@ -93,6 +93,56 @@ export const CATEGORY_ASSETS: Record<string, { image: string; alt: string; accen
     alt: 'Books and digital reading',
     accent: '#D97706',
   },
+  'home-decor': {
+    image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&auto=format&fit=crop&q=80',
+    alt: 'Home decor and interiors',
+    accent: '#A855F7',
+  },
+  watches: {
+    image: 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800&auto=format&fit=crop&q=80',
+    alt: 'Watches for men and women',
+    accent: '#F59E0B',
+  },
+  earbuds: {
+    image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&auto=format&fit=crop&q=80',
+    alt: 'True wireless earbuds',
+    accent: '#8B5CF6',
+  },
+  footwear: {
+    image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&auto=format&fit=crop&q=80',
+    alt: 'Sneakers and footwear',
+    accent: '#F97316',
+  },
+  jewellery: {
+    image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&auto=format&fit=crop&q=80',
+    alt: 'Jewellery and pendants',
+    accent: '#EAB308',
+  },
+  appliances: {
+    image: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?w=800&auto=format&fit=crop&q=80',
+    alt: 'Home and kitchen appliances',
+    accent: '#14B8A6',
+  },
+  powerbanks: {
+    image: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=800&auto=format&fit=crop&q=80',
+    alt: 'Power banks and charging',
+    accent: '#F59E0B',
+  },
+  'laptop-accessories': {
+    image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&auto=format&fit=crop&q=80',
+    alt: 'Laptop stands, cooling pads and accessories',
+    accent: '#6366F1',
+  },
+  'mobile-accessories': {
+    image: 'https://images.unsplash.com/photo-1585060544812-6b45742d762f?w=800&auto=format&fit=crop&q=80',
+    alt: 'Mobile accessories',
+    accent: '#3B82F6',
+  },
+  bags: {
+    image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&auto=format&fit=crop&q=80',
+    alt: 'Bags, backpacks and luggage',
+    accent: '#F97316',
+  },
   auto: {
     image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&auto=format&fit=crop&q=80',
     alt: 'Automotive electronics and accessories',
@@ -104,8 +154,8 @@ export const CATEGORY_ASSETS: Record<string, { image: string; alt: string; accen
 export const EDITORIAL_ASSETS = {
   topDeals: {
     title: 'Top Deals. Bigger Savings.',
-    tagline: 'VERIFIED PRICE DROPS',
-    description: 'Verified Amazon India price drops, checked by our team — see the price and the date it was last verified before stock runs out.',
+    tagline: 'BIGGEST DISCOUNTS VS MRP',
+    description: 'Biggest discounts vs MRP on Amazon India — see the price and the date it was last verified before you buy.',
     image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1200&auto=format&fit=crop&q=80',
     cta: 'Explore Daily Deals',
     targetRoute: '/deals',
@@ -113,23 +163,23 @@ export const EDITORIAL_ASSETS = {
   setup: {
     title: 'Smart Picks For Your Setup',
     tagline: 'CURATED DESK WORKSPACE',
-    description: 'Elevate your daily workstation with color-accurate displays, mechanical switches, and studio audio.',
+    description: 'Laptop stands, cooling pads, keyboards and mice that make a study desk actually comfortable.',
     image: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=1200&auto=format&fit=crop&q=80',
     cta: 'Shop Setup Essentials',
-    targetRoute: '/category/laptops',
+    targetRoute: '/category/laptop-accessories',
   },
   everyday: {
     title: 'Upgrade Your Everyday',
     tagline: 'SMART LIVING & HOME',
-    description: 'Robotic vacuums, air fryers, and smart climate controls designed to save hours of routine effort.',
+    description: 'Air fryers, vacuums, kettles and home essentials that make everyday living easier.',
     image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=1200&auto=format&fit=crop&q=80',
     cta: 'Explore Home Tech',
     targetRoute: '/category/home-appliances',
   },
   trending: {
     title: "Discover What's Trending",
-    tagline: 'COMMUNITY TOP-RATED',
-    description: 'Flagships, foldables, and wearable trackers with verified ratings above 4.5 stars.',
+    tagline: 'MOST CLICKED NOW',
+    description: 'The products shoppers are clicking on most right now — earbuds, watches, kitchen picks and more.',
     image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1200&auto=format&fit=crop&q=80',
     cta: 'View Trending Gear',
     targetRoute: '/products',

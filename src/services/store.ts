@@ -340,7 +340,13 @@ class FindoraStore {
           onAuthStateChanged(auth, async (user) => {
             if (user) {
               const emailLower = (user.email || '').toLowerCase().trim();
-              const isBootstrappedAdmin = emailLower === 'aryasingh2366@gmail.com' || emailLower === 'admin@findora.com';
+              // Operational admin is the Findora account (findorame@gmail.com).
+              // The founder's personal Gmail stays bootstrapped, but it is not
+              // used for day-to-day affiliate work.
+              const isBootstrappedAdmin =
+                emailLower === 'findorame@gmail.com' ||
+                emailLower === 'aryasingh2366@gmail.com' ||
+                emailLower === 'admin@findora.com';
               const isBootstrappedEditor = emailLower === 'editor@findora.com';
               const targetRole = isBootstrappedAdmin ? 'admin' : (isBootstrappedEditor ? 'editor' : 'shopper');
 
@@ -424,8 +430,9 @@ class FindoraStore {
             } else {
 
               this.currentUser = null;
-              this.wishlist = [];
-              localStorage.removeItem(STORAGE_KEYS.WISHLIST);
+              // Keep the guest wishlist in localStorage — signing out must
+              // not delete a shopper's saved products.
+              this.wishlist = getFromStorage(STORAGE_KEYS.WISHLIST, []);
               if (unsubscribeWishlist) {
 
                 unsubscribeWishlist();
@@ -445,8 +452,9 @@ class FindoraStore {
     // Keep local categories as they might be static
     this.categories = getFromStorage(STORAGE_KEYS.CATEGORIES, INITIAL_CATEGORIES);
     this.compareIds = getFromStorage(STORAGE_KEYS.COMPARE, []);
-    this.wishlist = [];
-    localStorage.removeItem(STORAGE_KEYS.WISHLIST);
+    // Guest wishlist: kept in localStorage so shoppers can save products
+    // without an account. It is merged into Firestore only on sign-in.
+    this.wishlist = getFromStorage(STORAGE_KEYS.WISHLIST, []);
     this.clicks = getFromStorage(STORAGE_KEYS.CLICKS, []);
     
     // Temporarily load mock data so the UI isn't completely empty before Firebase loads
@@ -1113,9 +1121,8 @@ class FindoraStore {
     return this.wishlist.includes(productId);
   }
   toggleWishlist(productId: string): boolean {
-    if (!this.currentUser) {
-      return false;
-    }
+    // Guests can wishlist too — it lives in localStorage until sign-in,
+    // when the auth listener merges it into the Firestore wishlist.
     const isAlreadyWishlisted = this.wishlist.includes(productId);
     if (isAlreadyWishlisted) {
       this.wishlist = this.wishlist.filter((id) => id !== productId);
@@ -1133,9 +1140,10 @@ class FindoraStore {
         }).catch(() => {});
       }
     }
-    
-    // Save to Firebase
-    if (typeof window !== 'undefined') {
+
+    // Always persist locally; sync to Firestore only when signed in.
+    saveToStorage(STORAGE_KEYS.WISHLIST, this.wishlist);
+    if (typeof window !== 'undefined' && this.currentUser) {
       import('../lib/firebase').then(({ db }) => {
         import('firebase/firestore').then(({ doc, setDoc }) => {
           setDoc(doc(db, 'wishlists', this.currentUser!.id), {
@@ -1144,7 +1152,7 @@ class FindoraStore {
         });
       });
     }
-    
+
     notifyChange();
     return this.isInWishlist(productId);
   }

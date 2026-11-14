@@ -19,9 +19,9 @@ import {
   ShieldCheck,
   RefreshCw,
   Eye,
-  DollarSign,
   Copy,
   BarChart3,
+  Database,
 } from 'lucide-react';
 import { BulkImport } from './BulkImport';
 import { DraftsDashboard } from './DraftsDashboard';
@@ -53,8 +53,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   const currentUser = store.getCurrentUser();
 
 
-  const isAdmin = true;
-  const isEditor = true;
+  // Roles come from the signed-in account (Firestore users doc or the
+  // bootstrapped admin list in services/store.ts) — never hardcoded true.
+  const isAdmin = currentUser?.role === 'admin';
+  const isEditor = currentUser?.role === 'editor' || isAdmin;
 
   const products = store.getAllProductsWithPrices(false); // including unpublished
   const stores = store.getStores();
@@ -244,7 +246,10 @@ if (authLoading) {
   // --- Metrics Calculation ---
   const totalOffersCount = products.reduce((acc, p) => acc + p.offers.length, 0);
   const totalClicksCount = clicks.length;
-  const estimatedRevenue = totalClicksCount * 45; // ~₹45 per outbound lead average
+  // NOTE: clicks are NOT revenue. Amazon Associates reports are the only
+  // source for orders/commissions — Findora never estimates earnings from
+  // clicks (an old "~₹45 per click" formula used to live here; removed).
+  const publishedCount = products.filter((p) => p.published !== false).length;
   const featuredCount = products.filter((p) => p.featured).length;
 
   // --- Product Management Handlers ---
@@ -297,23 +302,24 @@ if (authLoading) {
   };
 
   const handleOpenNewProduct = () => {
+    // New products start EMPTY. The old template pre-filled a fake phone
+    // image, invented specs (Display/Processor/Camera...), a 4.8 rating
+    // with 120 reviews, and made-up pros/cons — never ship invented data.
     setEditingProduct({
       name: '',
       slug: '',
       brand: '',
-      category: categories[0]?.slug || 'smartphones',
+      category: categories[0]?.slug || '',
       shortDescription: '',
       description: '',
-      images: ['https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80'],
-      specifications: { Display: '', Processor: '', Storage: '', Camera: '', Battery: '' },
-      whyFindora: 'Exceptional flagship performance and balanced ergonomics.',
-      pros: ['Premium build quality', 'Long battery life', 'Fast charging'],
-      cons: ['High price tag', 'No headphone jack'],
-      tags: ['electronics', 'flagship'],
-      rating: 4.8,
-      reviewCount: 120,
-      badge: 'New Arrival',
-      published: true,
+      images: [],
+      specifications: {},
+      whyFindora: '',
+      pros: [],
+      cons: [],
+      tags: [],
+      badge: '',
+      published: false,
       featured: false,
     });
     setEditingProductOffers([{ storeId: '', price: "" as any, originalPrice: "" as any, affiliateUrl: '', availability: 'in_stock', currency: 'INR', sourceType: 'manual' }]);
@@ -645,6 +651,16 @@ if (authLoading) {
           </button>
           {isAdmin && (
             <button
+              onClick={() => onNavigate('/admin/data-center')}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full text-xs font-bold transition-all shadow-md shadow-indigo-600/20 flex items-center gap-1.5"
+            >
+              <Database className="w-4 h-4" />
+              <span className="hidden sm:inline">Data Center</span>
+              <span className="sm:hidden">Data</span>
+            </button>
+          )}
+          {isAdmin && (
+            <button
               onClick={() => onNavigate('/admin/analytics')}
               className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full text-xs font-bold transition-all shadow-md shadow-emerald-600/20 flex items-center gap-1.5"
             >
@@ -831,7 +847,7 @@ if (authLoading) {
                 {totalOffersCount}
               </div>
               <span className="text-xs text-emerald-600 font-medium mt-1 block">
-                Across {stores.length} connected retailers
+                Amazon India only
               </span>
             </div>
 
@@ -851,14 +867,14 @@ if (authLoading) {
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Est. Affiliate Value
+                  Published Live
                 </span>
-                <DollarSign className="w-4 h-4 text-amber-600" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               </div>
-              <div className="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-2">
-                {formatINR(estimatedRevenue)}
+              <div className="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-2">
+                {publishedCount}
               </div>
-              <span className="text-xs text-slate-400 mt-1 block">Based on referral transactions</span>
+              <span className="text-xs text-slate-400 mt-1 block">of {products.length} products live on site</span>
             </div>
           </div>
 

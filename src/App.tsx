@@ -23,6 +23,7 @@ import { AuthPage } from './pages/public/AuthPages';
 import { LegalPage } from './pages/public/LegalPages';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AnalyticsDashboard } from './pages/admin/AnalyticsDashboard';
+import { DataCenter } from './pages/admin/DataCenter';
 import { analytics } from './services/analytics';
 
 export default function App() {
@@ -145,6 +146,11 @@ export default function App() {
       return <AnalyticsDashboard onNavigate={handleNavigate} />;
     }
 
+    // 12b. Admin Data Center — one hub for health, access, tracker & inventory
+    if (pathPart === '/admin/data-center') {
+      return <DataCenter onNavigate={handleNavigate} />;
+    }
+
     // 13. Admin Dashboard
     if (pathPart === '/admin') {
       return <AdminDashboard onNavigate={handleNavigate} />;
@@ -184,7 +190,7 @@ export default function App() {
         </div>
         <h2 className="text-3xl font-extrabold text-white mb-3 tracking-tight">Page Not Found</h2>
         <p className="text-sm text-slate-400 mb-8 max-w-sm mx-auto leading-relaxed">
-          The link or product you followed doesn't match an active page on Findora. Explore our live catalog or search across top retailers.
+          The link or product you followed doesn't match an active page on Findora. Explore our live catalog or search on Amazon India.
         </p>
         <button
           onClick={() => handleNavigate('/')}
