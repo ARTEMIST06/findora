@@ -2,24 +2,53 @@ import express from "express";
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import path from "path";
-import { initializeApp, getApps } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
 import fs from 'fs';
 
-let adminApp: any = null;
+// Firebase Admin is loaded LAZILY (see getAdminApp/getAdminAuth below),
+// never at module top level. Reason: firebase-admin pulls in jwks-rsa,
+// which requires the ESM-only `jose` package. On a Node runtime without
+// require(esm) support that chain throws at import time and takes the
+// whole API down — including /api/health, which needs no auth at all.
+// Only the two token-verifying routes ever touch Firebase Admin, and only
+// when a request actually arrives.
 let firebaseConfig: any = null;
 try {
   const configPath = path.join(process.cwd(), 'firebase-applet-config.json');
   if (fs.existsSync(configPath)) {
-    const configStr = fs.readFileSync(configPath, 'utf8');
-    firebaseConfig = JSON.parse(configStr);
-    // getApps() guard: warm serverless invocations must not re-initialize.
-    adminApp = getApps().length
-      ? getApps()[0]
-      : initializeApp({ projectId: firebaseConfig.projectId });
+    firebaseConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
   }
 } catch (e) {
-  console.error("Firebase Admin initialization failed:", e);
+  console.error("Firebase config read failed:", e);
+}
+
+let adminApp: any = null;
+let adminInitPromise: Promise<any> | null = null;
+
+async function getAdminApp(): Promise<any> {
+  if (adminApp) return adminApp;
+  if (!firebaseConfig) return null;
+  if (!adminInitPromise) {
+    adminInitPromise = (async () => {
+      const { initializeApp, getApps } = await import('firebase-admin/app');
+      // getApps() guard: warm serverless invocations must not re-initialize.
+      adminApp = getApps().length
+        ? getApps()[0]
+        : initializeApp({ projectId: firebaseConfig.projectId });
+      return adminApp;
+    })().catch((e) => {
+      adminInitPromise = null;
+      console.error("Firebase Admin initialization failed:", e);
+      return null;
+    });
+  }
+  return adminInitPromise;
+}
+
+async function getAdminAuth(): Promise<any> {
+  const app = await getAdminApp();
+  if (!app) return null;
+  const { getAuth } = await import('firebase-admin/auth');
+  return getAuth(app);
 }
 
 async function getUserRole(idToken: string, uid: string, email?: string): Promise<string> {
@@ -232,11 +261,12 @@ export const app = express();
       }
       const idToken = authHeader.split('Bearer ')[1];
       
-      if (!adminApp || !firebaseConfig) {
+      const adminAuth = await getAdminAuth();
+      if (!adminAuth || !firebaseConfig) {
         return res.status(500).json({ success: false, message: "Server configuration not ready" });
       }
-      
-      const decodedToken = await getAuth(adminApp).verifyIdToken(idToken);
+
+      const decodedToken = await adminAuth.verifyIdToken(idToken);
       const uid = decodedToken.uid;
       
       console.log(`[SECURITY] Processing backend data cleanup for user: ${uid}`);
@@ -281,8 +311,9 @@ export const app = express();
       if (authHeader && authHeader.startsWith('Bearer ')) {
         const idToken = authHeader.split('Bearer ')[1];
         try {
-          if (adminApp) {
-            const decoded = await getAuth(adminApp).verifyIdToken(idToken);
+          const adminAuth = await getAdminAuth();
+          if (adminAuth) {
+            const decoded = await adminAuth.verifyIdToken(idToken);
             const role = await getUserRole(idToken, decoded.uid, decoded.email);
             if (role === 'shopper') {
               return res.status(403).json({
