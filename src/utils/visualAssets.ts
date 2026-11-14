@@ -148,6 +148,49 @@ export const CATEGORY_ASSETS: Record<string, { image: string; alt: string; accen
     alt: 'Automotive electronics and accessories',
     accent: '#64748B',
   },
+  // Aliases for the top live catalogue categories (derived slugs) — they
+  // reuse the matching photo above so category tiles and the homepage
+  // showcase never fall back to a bare icon for a big category.
+  shoes: {
+    image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&auto=format&fit=crop&q=80',
+    alt: 'Sneakers and footwear',
+    accent: '#F97316',
+  },
+  apparels: {
+    image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&auto=format&fit=crop&q=80',
+    alt: 'Curated fashion and apparel',
+    accent: '#F43F5E',
+  },
+  'home-kitchen': {
+    image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&auto=format&fit=crop&q=80',
+    alt: 'Smart kitchen and culinary appliances',
+    accent: '#10B981',
+  },
+  'kitchen-home-appliances': {
+    image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&auto=format&fit=crop&q=80',
+    alt: 'Smart kitchen and culinary appliances',
+    accent: '#10B981',
+  },
+  'large-appliances': {
+    image: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?w=800&auto=format&fit=crop&q=80',
+    alt: 'Home and kitchen appliances',
+    accent: '#14B8A6',
+  },
+  accessories: {
+    image: 'https://images.unsplash.com/photo-1585060544812-6b45742d762f?w=800&auto=format&fit=crop&q=80',
+    alt: 'Mobile accessories',
+    accent: '#3B82F6',
+  },
+  'clothing-accessories': {
+    image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&auto=format&fit=crop&q=80',
+    alt: 'Curated fashion and apparel',
+    accent: '#F43F5E',
+  },
+  cookware: {
+    image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=800&auto=format&fit=crop&q=80',
+    alt: 'Smart kitchen and culinary appliances',
+    accent: '#10B981',
+  },
 };
 
 // Curated Editorial Banners

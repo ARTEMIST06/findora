@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   Sparkles,
   ChevronLeft,
@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { useFindoraStore } from '../../services/store';
+import { analytics } from '../../services/analytics';
 import { formatINR } from '../../utils/formatters';
 import { ProductWithPrices } from '../../types';
 import { getProductImage, handleImageFallback } from '../../utils/visualAssets';
@@ -44,7 +45,25 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
   const touchStartYRef = useRef<number | null>(null);
   const prefersReducedMotion = useReducedMotion();
 
-  const totalProducts = eligibleProducts.length;
+  // The Spotlight pool is CURATED, not the whole catalogue in list order:
+  // biggest discount vs MRP first, then real engagement (clicks x3 + views),
+  // then newest. Capped at 24 so the rotation cycles through genuinely
+  // good picks instead of 212 arbitrary products.
+  const spotlightPool = useMemo(() => {
+    const clicks = store.getAffiliateClicks();
+    const perf = analytics.getProductPerformanceData(eligibleProducts, clicks, []);
+    const score = new Map(perf.map((p) => [p.productId, p.amazonClicks * 3 + p.views]));
+    const sorted = [...eligibleProducts].sort((a, b) => {
+      const discount = (b.maxDiscountPercent || 0) - (a.maxDiscountPercent || 0);
+      if (discount !== 0) return discount;
+      const engagement = (score.get(b.id) || 0) - (score.get(a.id) || 0);
+      if (engagement !== 0) return engagement;
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    });
+    return sorted.slice(0, 24);
+  }, [allProducts, store]);
+
+  const totalProducts = spotlightPool.length;
 
   // Stable references for rotation across renders without recreating listeners or resetting intervals
   const totalProductsRef = useRef(totalProducts);
@@ -55,7 +74,7 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
 
   // Safe active product
   const activeProduct: ProductWithPrices | undefined =
-    totalProducts > 0 ? eligibleProducts[currentIndex % totalProducts] : undefined;
+    totalProducts > 0 ? spotlightPool[currentIndex % totalProducts] : undefined;
 
   // Reset index if product list shrinks
   useEffect(() => {
@@ -274,7 +293,7 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
                   <div className="relative aspect-square w-full rounded-2xl bg-white p-3 border border-slate-200/90 flex items-center justify-center overflow-hidden shadow-inner group-hover:border-blue-500/30 transition-colors">
                     {/* Discount badge on image */}
                     {activeProduct.maxDiscountPercent && activeProduct.maxDiscountPercent > 0 && (
-                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-rose-500 text-slate-900 shadow-md flex items-center gap-0.5 z-10">
+                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-rose-500 text-white shadow-md flex items-center gap-0.5 z-10">
                         <Tag className="w-2.5 h-2.5" />
                         {activeProduct.maxDiscountPercent}%
                       </span>
@@ -363,7 +382,7 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
       </div>
 
       {/* Bottom Controls Strip: Prev / Indicators / Next */}
-      <div className="relative z-10 px-4 sm:px-6 py-3 bg-[#050811]/90 border-t border-slate-200/80 flex items-center justify-between">
+      <div className="relative z-10 px-4 sm:px-6 py-3 bg-slate-50 border-t border-slate-200/80 flex items-center justify-between">
         {/* Previous Button */}
         <button
           onClick={(e) => {

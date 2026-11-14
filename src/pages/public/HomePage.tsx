@@ -2,6 +2,7 @@ import React from 'react';
 import { SEOHead } from '../../components/common/SEOHead';
 import { HeroSection } from '../../components/public/HeroSection';
 import { PopularCategories } from '../../components/public/PopularCategories';
+import { CategoryShowcase } from '../../components/public/CategoryShowcase';
 import { TrendingProducts } from '../../components/public/TrendingProducts';
 import { StoreBannerStrip } from '../../components/public/StoreBannerStrip';
 import { BestDealsSection } from '../../components/public/BestDealsSection';
@@ -25,6 +26,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
       />
       <HeroSection onNavigate={onNavigate} />
       <PopularCategories onNavigate={onNavigate} />
+      <CategoryShowcase onNavigate={onNavigate} />
       <TrendingProducts onNavigate={onNavigate} />
       <StoreBannerStrip onNavigate={onNavigate} />
       <BestDealsSection onNavigate={onNavigate} />
