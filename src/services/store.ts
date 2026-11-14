@@ -494,9 +494,17 @@ class FindoraStore {
 
     const allOffers = this.offers.filter((o) => o.productId === product.id);
 
-    // Filter valid offers
+    // Filter valid offers. Availability arrives in mixed case from CSV
+    // imports ('InStock' vs 'in_stock'), so compare case-insensitively —
+    // otherwise an in-stock offer is dropped here, lowestPrice becomes
+    // undefined and the card/detail header shows "Unavailable"/"Check
+    // Price" even though the offer table shows the price fine.
+    const isAvailable = (a?: string) => {
+      const n = (a || '').toLowerCase().replace(/[\s_]/g, '');
+      return n === 'instock' || n === 'preorder' || n === 'limitedstock';
+    };
     const productOffers = allOffers
-      .filter((o) => o.availability === 'in_stock' || o.availability === 'pre_order' || o.availability === 'limited_stock')
+      .filter((o) => isAvailable(o.availability))
       .filter(o => o.price != null && o.price > 0)
       .sort((a, b) => a.price - b.price);
 
