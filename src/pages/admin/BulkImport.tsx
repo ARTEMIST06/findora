@@ -5,6 +5,18 @@ import * as XLSX from 'xlsx';
 import { findoraStore as store } from '../../services/store';
 import { Product, PriceOffer, Store } from '../../types';
 
+// CSVs carry availability as 'InStock' (capitalised, no underscore); the
+// store compares it case-insensitively, but store the canonical value so
+// every consumer sees 'in_stock' / 'out_of_stock' / 'pre_order' /
+// 'limited_stock'. Unknown values default to in_stock.
+const normalizeAvailability = (v?: string): 'in_stock' | 'out_of_stock' | 'pre_order' | 'limited_stock' => {
+  const n = (v || '').toLowerCase().replace(/[\s_]/g, '');
+  if (n === 'outofstock') return 'out_of_stock';
+  if (n === 'preorder') return 'pre_order';
+  if (n === 'limitedstock') return 'limited_stock';
+  return 'in_stock';
+};
+
 interface ProcessedRow {
   id: string;
   raw: any;
@@ -144,7 +156,7 @@ export function BulkImport() {
           price: parseFloat(row.currentPrice || row.Price || 0) || 0,
           originalPrice: parseFloat(row.mrp || row.MRP || 0) || undefined,
           merchantProductId: row.merchantProductId || '',
-          availability: (row.availability || 'in_stock') as any
+          availability: normalizeAvailability(row.availability)
         },
         existingProductId: row.productId || undefined
       };
