@@ -389,7 +389,7 @@ export function BulkImport() {
                 <div className="flex space-x-3 w-full sm:w-auto">
                   <button 
                     onClick={() => handleImport(true)}
-                    disabled={isImporting || processedRows.filter(r => r.overallStatus === 'ready').length === 0}
+                    disabled={isImporting || !processedRows.some(r => r.validationStatus === 'valid' && r.duplicateStatus !== 'duplicate_offer')}
                     className="flex-1 sm:flex-none px-4 py-2 bg-amber-50 text-amber-700 rounded-xl text-sm font-bold hover:bg-amber-100 disabled:opacity-50"
                   >
                     Import as Draft
