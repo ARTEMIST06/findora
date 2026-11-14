@@ -163,10 +163,13 @@ export const EDITORIAL_ASSETS = {
   setup: {
     title: 'Smart Picks For Your Setup',
     tagline: 'CURATED DESK WORKSPACE',
-    description: 'Laptop stands, cooling pads, keyboards and mice that make a study desk actually comfortable.',
+    description: 'Study tables, desks and workspace furniture that make a study desk actually comfortable.',
     image: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=1200&auto=format&fit=crop&q=80',
     cta: 'Shop Setup Essentials',
-    targetRoute: '/category/laptop-accessories',
+    // Was '/category/laptop-accessories' — that category has ZERO published
+    // products (the laptop stands/keyboards are unpublished drafts), so the
+    // banner led to an empty page. Study & Home Office Furniture is live.
+    targetRoute: '/category/study-home-office-furniture',
   },
   everyday: {
     title: 'Upgrade Your Everyday',
@@ -174,7 +177,9 @@ export const EDITORIAL_ASSETS = {
     description: 'Air fryers, vacuums, kettles and home essentials that make everyday living easier.',
     image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=1200&auto=format&fit=crop&q=80',
     cta: 'Explore Home Tech',
-    targetRoute: '/category/home-appliances',
+    // Was '/category/home-appliances' — only 1 product lives there.
+    // Kitchen & Home Appliances is the real, populated home-tech shelf.
+    targetRoute: '/category/kitchen-home-appliances',
   },
   trending: {
     title: "Discover What's Trending",

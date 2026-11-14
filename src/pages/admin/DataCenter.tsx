@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Activity,
   ArrowLeft,
@@ -18,7 +18,6 @@ import { useFindoraStore } from '../../services/store';
 import { analytics } from '../../services/analytics';
 import type {
   AggregatedSearchQuery,
-  CategoryAnalyticsMetric,
   ProductPerformanceMetric,
   UserMetricsRecord,
   VisitorFunnelMetric,
@@ -26,7 +25,7 @@ import type {
 import { fetchAdminLoginHistory } from '../../services/audit';
 import type { AdminLoginHistoryRecord } from '../../services/audit';
 import { formatINR, formatRelativeTime } from '../../utils/formatters';
-import { deriveCategories } from '../../utils/categories';
+import { deriveCategories, productMatchesCategory } from '../../utils/categories';
 
 interface DataCenterProps {
   onNavigate: (route: string) => void;
@@ -52,7 +51,6 @@ export const DataCenter: React.FC<DataCenterProps> = ({ onNavigate }) => {
   const [zeroResultSearches, setZeroResultSearches] = useState<AggregatedSearchQuery[]>([]);
   const [loginHistory, setLoginHistory] = useState<AdminLoginHistoryRecord[]>([]);
   const [userMetrics, setUserMetrics] = useState<UserMetricsRecord | null>(null);
-  const [brands, setBrands] = useState<any[]>([]);
   const [draftDocs, setDraftDocs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
@@ -85,18 +83,16 @@ export const DataCenter: React.FC<DataCenterProps> = ({ onNavigate }) => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [searchesRes, loginsRes, usersRes, brandsRes, draftsRes] = await Promise.all([
+      const [searchesRes, loginsRes, usersRes, draftsRes] = await Promise.all([
         analytics.fetchSearchAnalytics(),
         fetchAdminLoginHistory(),
         analytics.fetchAuthenticatedUserMetrics(),
-        store.getBrands(),
         store.getDrafts(),
       ]);
       setTopSearches(searchesRes.topSearches);
       setZeroResultSearches(searchesRes.zeroResultSearches);
       setLoginHistory(loginsRes);
       setUserMetrics(usersRes);
-      setBrands(brandsRes);
       setDraftDocs(draftsRes);
       setLastRefreshedAt(new Date());
     } catch (err) {
@@ -115,18 +111,28 @@ export const DataCenter: React.FC<DataCenterProps> = ({ onNavigate }) => {
   }, [isAdmin, isEditor]);
 
   // --- Inventory (live from the store) ---
-  const allProducts = useMemo(() => store.getAllProductsWithPrices(false), [store]);
-  const publishedProducts = useMemo(() => allProducts.filter((p) => p.published !== false), [allProducts]);
-  const draftProducts = useMemo(() => allProducts.filter((p) => p.published === false), [allProducts]);
-  const offers = useMemo(() => store.getOffers(), [store]);
-  const clicks = useMemo(() => store.getAffiliateClicks(), [store]);
-  const stores = useMemo(() => store.getStores(), [store]);
-  const categories = useMemo(() => store.getCategories(), [store]);
-  const users = useMemo(() => store.getUsers(), [store]);
-  const derivedCats = useMemo(() => deriveCategories(publishedProducts), [publishedProducts]);
+  // NOTE: these are computed fresh on EVERY render, deliberately NOT
+  // useMemo'd on [store]. The store object is a referentially stable
+  // singleton — useMemo([store]) never recomputed, so the Data Center kept
+  // showing the first render's numbers (45 products from the stale cache)
+  // while the public site showed the live 203. The component re-renders on
+  // every store change (useSyncExternalStore), so plain derivation stays
+  // fresh; the lists are small (hundreds of products), so this is cheap.
+  const allProducts = store.getAllProductsWithPrices(false);
+  const publishedProducts = allProducts.filter((p) => p.published !== false);
+  const draftProducts = allProducts.filter((p) => p.published === false);
+  const offers = store.getOffers();
+  const clicks = store.getAffiliateClicks();
+  const stores = store.getStores();
+  const categories = store.getCategories();
+  const users = store.getUsers();
+  const derivedCats = deriveCategories(publishedProducts);
+  // Brands live on the products themselves (the Firestore brands collection
+  // is empty) — derive the unique set from the catalogue.
+  const brandNames = [...new Set(allProducts.map((p) => p.brand).filter(Boolean))].sort();
 
   // Affiliate tag audit — the money link check.
-  const tagAudit = useMemo(() => {
+  const tagAudit = (() => {
     let onNewTag = 0;
     let onOtherLink = 0;
     let missing = 0;
@@ -137,20 +143,28 @@ export const DataCenter: React.FC<DataCenterProps> = ({ onNavigate }) => {
       else onOtherLink += 1;
     }
     return { onNewTag, onOtherLink, missing, total: offers.length };
-  }, [offers]);
+  })();
 
   // --- Tracker ---
-  const productMetrics: ProductPerformanceMetric[] = useMemo(
-    () => analytics.getProductPerformanceData(publishedProducts, clicks, []),
-    [publishedProducts, clicks]
-  );
-  const topByClicks = useMemo(() => [...productMetrics].sort((a, b) => b.amazonClicks - a.amazonClicks).slice(0, 10), [productMetrics]);
-  const topByViews = useMemo(() => [...productMetrics].sort((a, b) => b.views - a.views).slice(0, 10), [productMetrics]);
-  const categoryMetrics: CategoryAnalyticsMetric[] = useMemo(
-    () => analytics.getCategoryAnalytics(categories, publishedProducts, clicks),
-    [categories, publishedProducts, clicks]
-  );
-  const funnel: VisitorFunnelMetric = useMemo(() => {
+  const productMetrics: ProductPerformanceMetric[] = analytics.getProductPerformanceData(publishedProducts, clicks, []);
+  const topByClicks = [...productMetrics].sort((a, b) => b.amazonClicks - a.amazonClicks).slice(0, 10);
+  const topByViews = [...productMetrics].sort((a, b) => b.views - a.views).slice(0, 10);
+  // Clicks per derived category (productId -> product -> normalized
+  // category), NOT the Admin taxonomy — the taxonomy surfaces stored typos
+  // like "Large Appiliances" as if they were categories.
+  const clicksByCategory = derivedCats
+    .map((c) => {
+      const ids = new Set(
+        publishedProducts.filter((p) => productMatchesCategory(p.category, c.key)).map((p) => p.id)
+      );
+      return {
+        name: c.name,
+        productCount: c.count,
+        affiliateClicks: clicks.filter((cl) => ids.has(cl.productId)).length,
+      };
+    })
+    .sort((a, b) => b.affiliateClicks - a.affiliateClicks);
+  const funnel: VisitorFunnelMetric = (() => {
     // Same modelled estimate as AnalyticsDashboard: total visitors is an
     // estimate from registered users + clicks, NOT a measured count.
     const totalVisitorsEstimate = Math.max(
@@ -158,11 +172,10 @@ export const DataCenter: React.FC<DataCenterProps> = ({ onNavigate }) => {
       clicks.length > 0 ? clicks.length * 4 : 48
     );
     return analytics.getVisitorFunnel(totalVisitorsEstimate, publishedProducts.length, clicks.length);
-  }, [userMetrics, publishedProducts.length, clicks.length]);
-  const recentClicks = useMemo(
-    () => [...clicks].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10),
-    [clicks]
-  );
+  })();
+  const recentClicks = [...clicks]
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, 10);
 
   const gaConfigured = analytics.isGA4Configured();
   const gaId = analytics.getGA4MeasurementId();
@@ -263,7 +276,7 @@ export const DataCenter: React.FC<DataCenterProps> = ({ onNavigate }) => {
               <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Firestore (live sync)</span>
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             </div>
-            <div className="text-xl font-extrabold text-white mt-2">{allProducts.length} products loaded</div>
+            <div className="text-xl font-extrabold text-white mt-2">{store.hasLiveProducts() ? `${allProducts.length} products loaded` : 'Syncing live data…'}</div>
             <p className="text-xs text-slate-400 mt-1">Real-time listeners active for products, offers, stores and clicks. Database: ai-studio-findora-704a9471.</p>
           </div>
           <div className="p-5 rounded-2xl bg-[#0D1322] border border-slate-800">
@@ -431,13 +444,13 @@ export const DataCenter: React.FC<DataCenterProps> = ({ onNavigate }) => {
               </ul>
             )}
             <h3 className="text-sm font-bold text-white mt-5 mb-3">Clicks by category</h3>
-            {categoryMetrics.length === 0 ? (
-              <p className="text-xs text-slate-400">No category data yet.</p>
+            {clicksByCategory.filter((c) => c.affiliateClicks > 0).length === 0 ? (
+              <p className="text-xs text-slate-400">No clicks recorded yet — categories will rank here once shoppers tap through to Amazon.</p>
             ) : (
               <ul className="text-sm space-y-1.5">
-                {[...categoryMetrics].sort((a, b) => b.affiliateClicks - a.affiliateClicks).slice(0, 8).map((m) => (
-                  <li key={m.category} className="flex justify-between gap-3">
-                    <span className="text-slate-200 capitalize">{m.category}</span>
+                {clicksByCategory.filter((c) => c.affiliateClicks > 0).slice(0, 8).map((m) => (
+                  <li key={m.name} className="flex justify-between gap-3">
+                    <span className="text-slate-200 capitalize">{m.name}</span>
                     <span className="text-slate-400">{m.productCount} products · {m.affiliateClicks} clicks</span>
                   </li>
                 ))}
@@ -460,7 +473,7 @@ export const DataCenter: React.FC<DataCenterProps> = ({ onNavigate }) => {
             { label: 'Products (total)', value: allProducts.length, sub: `${publishedProducts.length} published · ${draftProducts.length} drafts` },
             { label: 'Price offers', value: offers.length, sub: `${stores.length} store${stores.length === 1 ? '' : 's'} — Amazon India` },
             { label: 'Categories (real)', value: derivedCats.length, sub: `${categories.length} in Admin taxonomy` },
-            { label: 'Brands', value: brands.length, sub: 'from Firestore' },
+            { label: 'Brands', value: brandNames.length, sub: 'unique brands in the catalogue' },
             { label: 'Draft docs', value: draftDocs.length, sub: 'Drafts-page system (separate from product drafts)' },
             { label: 'Registered users', value: users.length, sub: userMetrics ? `${userMetrics.googleAuthUsers} Google · ${userMetrics.emailAuthUsers} email` : '—' },
             { label: 'Affiliate clicks', value: clicks.length, sub: 'recorded outbound clicks' },

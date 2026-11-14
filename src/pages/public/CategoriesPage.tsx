@@ -14,6 +14,9 @@ interface CategoriesPageProps {
 export const CategoriesPage: React.FC<CategoriesPageProps> = ({ onNavigate }) => {
   const store = useFindoraStore();
   const products = store.getAllProductsWithPrices(true);
+  // Counts are quoted only after the first live Firestore snapshot — before
+  // that the list can be a stale cache.
+  const liveSynced = store.hasLiveProducts();
   // Derived from the live catalogue — counts are real, and every tile opens
   // a category that actually has products. (The old page counted
   // `product.category === category.slug`, which missed almost everything
@@ -41,8 +44,9 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ onNavigate }) =>
             Browse All Product Categories
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            {categories.length} categories · {products.length} verified products on Amazon India.
-            Every count below is live.
+            {liveSynced
+              ? `${categories.length} categories · ${products.length} verified products on Amazon India. Every count below is live.`
+              : 'Loading the live catalogue…'}
           </p>
         </div>
       </Reveal>
