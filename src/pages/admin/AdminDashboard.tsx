@@ -526,7 +526,7 @@ if (authLoading) {
       storeId: stores[0]?.id || 'store-amazon',
       price: 99999,
       originalPrice: 109999,
-      affiliateUrl: 'https://amazon.in/?tag=findora-21',
+      affiliateUrl: 'https://amazon.in/?tag=arya0611-21',
       inStock: true,
       shippingNote: 'Free Next-Day Delivery with Prime',
     });
@@ -579,7 +579,7 @@ if (authLoading) {
       logo: '',
       websiteUrl: 'https://',
       affiliateParamKey: 'tag',
-      defaultAffiliateTag: 'findora-21',
+      defaultAffiliateTag: 'arya0611-21',
       active: true,
     });
     setIsStoreModalOpen(true);
@@ -1616,7 +1616,7 @@ if (authLoading) {
                   onChange={(e) =>
                     setEditingOffer({ ...editingOffer, affiliateUrl: e.target.value })
                   }
-                  placeholder="https://amazon.in/dp/...?tag=findora-21"
+                  placeholder="https://amazon.in/dp/...?tag=arya0611-21"
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
                 />
               </div>
@@ -1714,7 +1714,7 @@ if (authLoading) {
                     onChange={(e) =>
                       setEditingStore({ ...editingStore, defaultAffiliateTag: e.target.value })
                     }
-                    placeholder="findora-21"
+                    placeholder="arya0611-21"
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500"
                   />
                 </div>
