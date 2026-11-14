@@ -85,14 +85,14 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
   if (isPageLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-12 animate-pulse">
-        <div className="h-4 w-1/3 bg-slate-800 rounded-full"></div>
+        <div className="h-4 w-1/3 bg-slate-100 rounded-full"></div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-          <div className="lg:col-span-5 aspect-square bg-slate-900 rounded-3xl border border-slate-800"></div>
+          <div className="lg:col-span-5 aspect-square bg-white rounded-3xl border border-slate-200"></div>
           <div className="lg:col-span-7 space-y-4">
-            <div className="h-6 w-1/4 bg-slate-800 rounded-full"></div>
-            <div className="h-10 w-3/4 bg-slate-800 rounded-xl"></div>
-            <div className="h-20 w-full bg-slate-800 rounded-2xl"></div>
-            <div className="h-32 w-full bg-slate-900 rounded-3xl mt-6 border border-slate-800"></div>
+            <div className="h-6 w-1/4 bg-slate-100 rounded-full"></div>
+            <div className="h-10 w-3/4 bg-slate-100 rounded-xl"></div>
+            <div className="h-20 w-full bg-slate-100 rounded-2xl"></div>
+            <div className="h-32 w-full bg-white rounded-3xl mt-6 border border-slate-200"></div>
           </div>
         </div>
       </div>
@@ -107,11 +107,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
           description="The requested product was not found in our catalog. Browse our live catalog or search on Amazon India via Findora."
           noIndex={true}
         />
-        <div className="w-16 h-16 rounded-2xl bg-[#0D1322] border border-slate-800 flex items-center justify-center mb-4 text-slate-500">
-          <AlertTriangle className="w-8 h-8 text-amber-400" />
+        <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mb-4 text-slate-600">
+          <AlertTriangle className="w-8 h-8 text-amber-600" />
         </div>
-        <h2 className="text-2xl font-bold text-white mb-2">Product Not Found</h2>
-        <p className="text-slate-400 mb-6 max-w-sm">
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Product Not Found</h2>
+        <p className="text-slate-600 mb-6 max-w-sm">
           The requested product or link may have been updated, removed, or doesn't exist in our catalog.
         </p>
         <button
@@ -254,30 +254,30 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
       />
 
       {/* Breadcrumbs */}
-      <nav className="flex items-center gap-2 text-xs text-slate-400 overflow-x-auto whitespace-nowrap pb-1 no-scrollbar">
-        <button onClick={() => onNavigate('/')} className="hover:text-blue-400 transition-colors">
+      <nav className="flex items-center gap-2 text-xs text-slate-600 overflow-x-auto whitespace-nowrap pb-1 no-scrollbar">
+        <button onClick={() => onNavigate('/')} className="hover:text-blue-600 transition-colors">
           Home
         </button>
         <ChevronRight className="w-3.5 h-3.5 shrink-0 text-slate-600" />
-        <button onClick={() => onNavigate('/products')} className="hover:text-blue-400 transition-colors">
+        <button onClick={() => onNavigate('/products')} className="hover:text-blue-600 transition-colors">
           Products
         </button>
         <ChevronRight className="w-3.5 h-3.5 shrink-0 text-slate-600" />
         <button
           onClick={() => onNavigate(`/category/${slugifyCategoryLabel(product.category)}`)}
-          className="hover:text-blue-400 capitalize transition-colors"
+          className="hover:text-blue-600 capitalize transition-colors"
         >
           {product.category}
         </button>
         <ChevronRight className="w-3.5 h-3.5 shrink-0 text-slate-600" />
-        <span className="text-white font-medium truncate max-w-xs">{product.name}</span>
+        <span className="text-slate-900 font-medium truncate max-w-xs">{product.name}</span>
       </nav>
 
       {/* Top Overview: Gallery & Highlights */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
         {/* Left: Product Images Gallery */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="aspect-square w-full rounded-3xl bg-[#080D1A] border border-slate-800/80 p-8 flex items-center justify-center relative overflow-hidden shadow-2xl">
+          <div className="aspect-square w-full rounded-3xl bg-[#080D1A] border border-slate-200/80 p-8 flex items-center justify-center relative overflow-hidden shadow-2xl">
             {/* Ambient Glow */}
             <div className="absolute inset-0 product-backdrop-glow pointer-events-none"></div>
 
@@ -320,19 +320,19 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
           <div>
             {/* Brand — ratings are NOT shown: stored ratings are unverified. */}
             <div className="flex items-center justify-between gap-2 mb-3">
-              <span className="text-xs font-extrabold uppercase tracking-wider text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full">
+              <span className="text-xs font-extrabold uppercase tracking-wider text-blue-600 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full">
                 {product.brand}
               </span>
-              <span className="text-xs text-slate-500 font-medium capitalize">{product.category}</span>
+              <span className="text-xs text-slate-600 font-medium capitalize">{product.category}</span>
             </div>
 
             {/* Product Title */}
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
               {product.name}
             </h1>
 
             {/* Short Description */}
-            <p className="mt-3 text-sm sm:text-base text-slate-300 leading-relaxed">
+            <p className="mt-3 text-sm sm:text-base text-slate-700 leading-relaxed">
               {product.shortDescription || 'No description available for this product.'}
             </p>
 
@@ -344,7 +344,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">
+                    <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">
                       Price on Amazon
                     </span>
                     {product.maxDiscountPercent ? (
@@ -355,11 +355,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                   </div>
                   
                   <div className="flex items-baseline gap-3 mt-2 flex-wrap">
-                    <span className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                      {product.lowestPrice ? formatINR(product.lowestPrice) : <span className="text-2xl text-slate-500">Unavailable</span>}
+                    <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                      {product.lowestPrice ? formatINR(product.lowestPrice) : <span className="text-2xl text-slate-600">Unavailable</span>}
                     </span>
                     {bestOffer?.originalPrice && product.lowestPrice && bestOffer.originalPrice > product.lowestPrice && (
-                      <span className="text-sm text-slate-500 line-through font-medium">
+                      <span className="text-sm text-slate-600 line-through font-medium">
                         MRP {formatINR(bestOffer.originalPrice)}
                       </span>
                     )}
@@ -373,11 +373,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                   </div>
                   
                   {product.bestStore && (
-                    <p className="text-xs sm:text-sm text-slate-300 font-medium mt-2 flex items-center gap-1.5">
-                      <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                      <span>Best price at <strong className="text-white font-bold">{product.bestStore.name}</strong></span>
+                    <p className="text-xs sm:text-sm text-slate-700 font-medium mt-2 flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>Best price at <strong className="text-slate-900 font-bold">{product.bestStore.name}</strong></span>
                       {bestOffer?.shippingNote && (
-                        <span className="text-slate-500 font-normal hidden sm:inline">• {bestOffer.shippingNote}</span>
+                        <span className="text-slate-600 font-normal hidden sm:inline">• {bestOffer.shippingNote}</span>
                       )}
                     </p>
                   )}
@@ -410,7 +410,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                   ) : (
                     <button
                       disabled
-                      className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-slate-800 text-slate-500 font-bold text-sm flex items-center justify-center gap-2 shrink-0 cursor-not-allowed border border-slate-700"
+                      className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-slate-100 text-slate-600 font-bold text-sm flex items-center justify-center gap-2 shrink-0 cursor-not-allowed border border-slate-300"
                     >
                       <span>Price link unavailable</span>
                     </button>
@@ -449,7 +449,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                 onClick={handleShare}
                 className="flex-1 min-w-[120px] py-2.5 px-4 rounded-full border bg-[#0D1322] text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all"
               >
-                <Share2 className="w-4 h-4 text-slate-400" />
+                <Share2 className="w-4 h-4 text-slate-600" />
                 <span>Share</span>
               </button>
             </div>
@@ -457,12 +457,12 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
 
           {/* "Why Findora Picked It" Callout Box */}
           {product.whyFindora && (
-            <div className="p-5 rounded-3xl bg-[#0D1426] border border-blue-500/30 text-slate-300 shadow-xl mt-6">
+            <div className="p-5 rounded-3xl bg-[#0D1426] border border-blue-500/30 text-slate-700 shadow-xl mt-6">
               <div className="flex items-center gap-2 font-bold text-blue-300 text-sm mb-2">
-                <Sparkles className="w-4 h-4 text-cyan-400" />
+                <Sparkles className="w-4 h-4 text-cyan-600" />
                 <span>Why Findora Recommends This</span>
               </div>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
+              <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-normal">
                 {product.whyFindora}
               </p>
             </div>
@@ -471,13 +471,13 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
       </div>
 
       {/* Verified Amazon India offer — Findora lists one store only. */}
-      <section className="space-y-5 pt-8 border-t border-slate-800/80">
+      <section className="space-y-5 pt-8 border-t border-slate-200/80">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
               Verified Amazon India Offer
             </h2>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-sm text-slate-600 mt-1">
               One checked offer from Amazon India, with the price and the date it was last verified.
             </p>
           </div>
@@ -488,10 +488,10 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
 
         {/* Table Container */}
         {sortedOffers.length > 0 ? (
-          <div className="bg-[#0D1322]/90 rounded-3xl border border-slate-800/80 overflow-hidden shadow-2xl">
+          <div className="bg-white/90 rounded-3xl border border-slate-200/80 overflow-hidden shadow-2xl">
             <div className="overflow-x-auto no-scrollbar">
               <table className="w-full text-left text-sm min-w-[600px]">
-                <thead className="bg-[#070B14] text-slate-400 border-b border-slate-800 text-xs font-bold uppercase tracking-wider">
+                <thead className="bg-white text-slate-600 border-b border-slate-200 text-xs font-bold uppercase tracking-wider">
                   <tr>
                     <th className="py-4 px-4 sm:px-6">Merchant</th>
                     <th className="py-4 px-4">Price</th>
@@ -500,7 +500,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                     <th className="py-4 px-4 sm:px-6 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-slate-200/60">
                   {sortedOffers.map((offer, idx) => {
                     const storeObj = stores.find((s) => s.id === offer.storeId);
                     const isLowest = idx === 0;
@@ -512,14 +512,14 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                     return (
                       <tr
                         key={offer.id}
-                        className={`hover:bg-slate-800/40 transition-colors group ${
+                        className={`hover:bg-slate-100/40 transition-colors group ${
                           isLowest ? 'bg-blue-600/10' : ''
                         }`}
                       >
                         {/* Merchant */}
                         <td className="py-4 px-4 sm:px-6">
                           <div className="flex items-center gap-3">
-                            <span className="font-bold text-white text-sm">
+                            <span className="font-bold text-slate-900 text-sm">
                               {storeObj?.name || 'Amazon India'}
                             </span>
                           </div>
@@ -529,17 +529,17 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                         <td className="py-4 px-4">
                           <div className="flex flex-col">
                             <div className="flex items-center gap-2">
-                              <span className="text-base font-extrabold text-white">
+                              <span className="text-base font-extrabold text-slate-900">
                                 {formatINR(offer.price)}
                               </span>
                               {discount > 0 && (
-                                <span className="inline-flex items-center text-[10px] font-bold text-emerald-400 bg-emerald-500/15 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                                <span className="inline-flex items-center text-[10px] font-bold text-emerald-600 bg-emerald-500/15 px-1.5 py-0.5 rounded border border-emerald-500/30">
                                   {discount}% OFF
                                 </span>
                               )}
                             </div>
                             {offer.originalPrice && offer.originalPrice > offer.price && (
-                              <span className="text-xs text-slate-500 line-through font-medium">
+                              <span className="text-xs text-slate-600 line-through font-medium">
                                 MRP {formatINR(offer.originalPrice)}
                               </span>
                             )}
@@ -547,12 +547,12 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                         </td>
 
                         {/* Shipping */}
-                        <td className="py-4 px-4 hidden md:table-cell text-xs text-slate-400 font-medium">
+                        <td className="py-4 px-4 hidden md:table-cell text-xs text-slate-600 font-medium">
                           {offer.shippingNote || 'Standard Delivery'}
                         </td>
 
                         {/* Last Updated */}
-                        <td className="py-4 px-4 hidden lg:table-cell text-xs text-slate-500 font-medium">
+                        <td className="py-4 px-4 hidden lg:table-cell text-xs text-slate-600 font-medium">
                           <div className="flex items-center gap-1">
                             <Clock className="w-3.5 h-3.5" />
                             <span>{formatRelativeTime(offer.lastUpdated)}</span>
@@ -591,7 +591,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                           ) : (
                             <button
                               disabled
-                              className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold transition-all bg-slate-900 text-slate-500 w-[120px] cursor-not-allowed border border-slate-800"
+                              className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold transition-all bg-white text-slate-600 w-[120px] cursor-not-allowed border border-slate-200"
                             >
                               <span>Price unavailable</span>
                             </button>
@@ -605,24 +605,24 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
             </div>
           </div>
         ) : (
-          <div className="bg-[#0D1322] border border-slate-800 border-dashed rounded-3xl p-10 text-center">
-            <h3 className="text-white font-bold mb-1">No Offers Available</h3>
-            <p className="text-slate-400 text-sm">We couldn't find any live pricing for this product right now. Set a price alert to be notified when it returns.</p>
+          <div className="bg-white border border-slate-200 border-dashed rounded-3xl p-10 text-center">
+            <h3 className="text-slate-900 font-bold mb-1">No Offers Available</h3>
+            <p className="text-slate-600 text-sm">We couldn't find any live pricing for this product right now. Set a price alert to be notified when it returns.</p>
           </div>
         )}
       </section>
 
       {/* Pros & Cons Section */}
       {(product.pros.length > 0 || product.cons.length > 0) && (
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-800/80">
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-200/80">
           {/* Pros */}
           {product.pros.length > 0 && (
-            <div className="p-6 rounded-3xl bg-[#0D1322]/80 border border-emerald-500/20 shadow-xl">
-              <div className="flex items-center gap-2 text-emerald-400 font-extrabold text-base mb-4">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            <div className="p-6 rounded-3xl bg-white/80 border border-emerald-500/20 shadow-xl">
+              <div className="flex items-center gap-2 text-emerald-600 font-extrabold text-base mb-4">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                 <span>Strengths & Highlights</span>
               </div>
-              <ul className="space-y-3 text-sm text-slate-300 font-normal">
+              <ul className="space-y-3 text-sm text-slate-700 font-normal">
                 {product.pros.map((pro, idx) => (
                   <li key={idx} className="flex items-start gap-2.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 shrink-0"></span>
@@ -635,12 +635,12 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
 
           {/* Cons */}
           {product.cons.length > 0 && (
-            <div className="p-6 rounded-3xl bg-[#0D1322]/80 border border-rose-500/20 shadow-xl">
-              <div className="flex items-center gap-2 text-rose-400 font-extrabold text-base mb-4">
-                <XCircle className="w-5 h-5 text-rose-400" />
+            <div className="p-6 rounded-3xl bg-white/80 border border-rose-500/20 shadow-xl">
+              <div className="flex items-center gap-2 text-rose-600 font-extrabold text-base mb-4">
+                <XCircle className="w-5 h-5 text-rose-600" />
                 <span>Things to Consider</span>
               </div>
-              <ul className="space-y-3 text-sm text-slate-300 font-normal">
+              <ul className="space-y-3 text-sm text-slate-700 font-normal">
                 {product.cons.map((con, idx) => (
                   <li key={idx} className="flex items-start gap-2.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-2 shrink-0"></span>
@@ -654,8 +654,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
       )}
 
       {/* Detailed Tabs: Specifications, Price History Chart, Full Review */}
-      <section className="space-y-6 pt-6 border-t border-slate-800/80">
-        <div className="flex items-center gap-2 border-b border-slate-800 pb-2 overflow-x-auto no-scrollbar">
+      <section className="space-y-6 pt-6 border-t border-slate-200/80">
+        <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab('specs')}
             className={`px-5 py-2.5 text-xs sm:text-sm font-bold rounded-full transition-all whitespace-nowrap ${
@@ -674,7 +674,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
-            <TrendingDown className={`w-4 h-4 ${activeTab === 'history' ? 'text-white' : 'text-emerald-400'}`} />
+            <TrendingDown className={`w-4 h-4 ${activeTab === 'history' ? 'text-slate-900' : 'text-emerald-600'}`} />
             <span>Price History & Alerts</span>
           </button>
           {product.description && (
@@ -693,37 +693,37 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
 
         {/* Tab 1: Specs */}
         {activeTab === 'specs' && (
-          <div className="bg-[#0D1322]/90 rounded-3xl border border-slate-800/80 p-6 sm:p-8 overflow-hidden shadow-2xl">
+          <div className="bg-white/90 rounded-3xl border border-slate-200/80 p-6 sm:p-8 overflow-hidden shadow-2xl">
             {Object.keys(product.specifications).length > 0 ? (
               <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-1 text-sm">
                 {Object.entries(product.specifications).map(([key, val]) => (
-                  <div key={key} className="flex flex-col py-3.5 border-b border-slate-800/80">
-                    <dt className="text-slate-400 font-medium text-xs mb-1 uppercase tracking-wider">{key}</dt>
-                    <dd className="text-white font-bold text-sm sm:text-base">{val}</dd>
+                  <div key={key} className="flex flex-col py-3.5 border-b border-slate-200/80">
+                    <dt className="text-slate-600 font-medium text-xs mb-1 uppercase tracking-wider">{key}</dt>
+                    <dd className="text-slate-900 font-bold text-sm sm:text-base">{val}</dd>
                   </div>
                 ))}
               </dl>
             ) : (
-              <p className="text-slate-400 text-sm italic">No technical specifications available for this model.</p>
+              <p className="text-slate-600 text-sm italic">No technical specifications available for this model.</p>
             )}
           </div>
         )}
 
         {/* Tab 2: Price History Chart */}
         {activeTab === 'history' && (
-          <div className="bg-[#0D1322]/90 rounded-3xl border border-slate-800/80 p-6 sm:p-8 space-y-8 shadow-2xl">
+          <div className="bg-white/90 rounded-3xl border border-slate-200/80 p-6 sm:p-8 space-y-8 shadow-2xl">
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
               <div className="max-w-xl">
-                <h3 className="font-extrabold text-white text-xl tracking-tight">Recorded Price Trend</h3>
-                <p className="text-sm text-slate-400 mt-1 leading-relaxed">
+                <h3 className="font-extrabold text-slate-900 text-xl tracking-tight">Recorded Price Trend</h3>
+                <p className="text-sm text-slate-600 mt-1 leading-relaxed">
                   Recorded prices for this product, when available — so you can tell a real discount from an inflated sale price.
                 </p>
               </div>
 
               {/* Price Alert Signup */}
-              <div className="bg-[#070B14] p-5 rounded-2xl border border-blue-500/30 shrink-0 w-full md:w-auto shadow-lg">
-                <h4 className="font-bold text-white text-sm flex items-center gap-1.5 mb-3">
-                  <BellRing className="w-4 h-4 text-blue-400" /> Wait for a better price?
+              <div className="bg-white p-5 rounded-2xl border border-blue-500/30 shrink-0 w-full md:w-auto shadow-lg">
+                <h4 className="font-bold text-slate-900 text-sm flex items-center gap-1.5 mb-3">
+                  <BellRing className="w-4 h-4 text-blue-600" /> Wait for a better price?
                 </h4>
                 {!currentUser ? (
                   <button
@@ -738,7 +738,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                 ) : (
                   <form onSubmit={handlePriceAlertSubmit} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 font-medium">₹</span>
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600 font-medium">₹</span>
                       <input
                         type="number"
                         required
@@ -747,7 +747,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                         value={targetPrice}
                         onChange={(e) => setTargetPrice(e.target.value)}
                         placeholder="Target price..."
-                        className="pl-8 pr-4 py-2 text-xs font-bold text-white rounded-full border border-slate-700 outline-none focus:border-blue-500 w-full sm:w-40 bg-[#0A0F1D]"
+                        className="pl-8 pr-4 py-2 text-xs font-bold text-slate-900 rounded-full border border-slate-300 outline-none focus:border-blue-500 w-full sm:w-40 bg-[#0A0F1D]"
                         disabled={isSettingAlert}
                       />
                     </div>
@@ -773,12 +773,12 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
               return (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="bg-[#080D1A] border border-emerald-500/30 p-4 rounded-2xl">
-                    <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider mb-1">Lowest Recorded</p>
-                    <p className="text-xl font-extrabold text-white">{lowestHistory ? formatINR(lowestHistory) : 'N/A'}</p>
+                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-1">Lowest Recorded</p>
+                    <p className="text-xl font-extrabold text-slate-900">{lowestHistory ? formatINR(lowestHistory) : 'N/A'}</p>
                   </div>
-                  <div className="bg-[#080D1A] border border-slate-800 p-4 rounded-2xl">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Highest Recorded</p>
-                    <p className="text-xl font-extrabold text-white">{highestHistory ? formatINR(highestHistory) : 'N/A'}</p>
+                  <div className="bg-[#080D1A] border border-slate-200 p-4 rounded-2xl">
+                    <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">Highest Recorded</p>
+                    <p className="text-xl font-extrabold text-slate-900">{highestHistory ? formatINR(highestHistory) : 'N/A'}</p>
                   </div>
                 </div>
               );
@@ -813,10 +813,10 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-full flex flex-col items-center justify-center text-slate-400 bg-[#070B14] rounded-2xl border border-slate-800 border-dashed">
-                  <TrendingDown className="w-10 h-10 mb-3 opacity-40 text-blue-400" />
-                  <p className="text-base font-bold text-white">No price history available yet</p>
-                  <p className="text-xs mt-1 max-w-sm text-center text-slate-500">Price history will appear on this chart as Findora tracks this product's price fluctuations over time.</p>
+                <div className="h-full flex flex-col items-center justify-center text-slate-600 bg-white rounded-2xl border border-slate-200 border-dashed">
+                  <TrendingDown className="w-10 h-10 mb-3 opacity-40 text-blue-600" />
+                  <p className="text-base font-bold text-slate-900">No price history available yet</p>
+                  <p className="text-xs mt-1 max-w-sm text-center text-slate-600">Price history will appear on this chart as Findora tracks this product's price fluctuations over time.</p>
                 </div>
               )}
             </div>
@@ -828,7 +828,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
           <div className="bg-[#0D1322]/90 rounded-3xl border border-slate-800/80 p-6 sm:p-8 text-sm text-slate-300 leading-loose space-y-6 shadow-2xl font-normal">
             <p>{product.description}</p>
             {product.tags && product.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-800">
+              <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-200">
                 {product.tags.map((tag) => (
                   <span
                     key={tag}
@@ -844,11 +844,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
       </section>
 
       {/* Trust & Transparency */}
-      <section className="bg-[#0D1322]/80 rounded-3xl p-6 border border-slate-800/80 mt-10 mb-24 lg:mb-10 text-xs sm:text-sm text-slate-400 leading-relaxed">
+      <section className="bg-white/80 rounded-3xl p-6 border border-slate-200/80 mt-10 mb-24 lg:mb-10 text-xs sm:text-sm text-slate-600 leading-relaxed">
         <div className="flex gap-4">
-          <Info className="w-6 h-6 shrink-0 text-blue-400" />
+          <Info className="w-6 h-6 shrink-0 text-blue-600" />
           <div className="space-y-2">
-            <p><strong className="text-white font-semibold">Transparency Disclosure:</strong> Findora is an independent price comparison service. When you click a "Check Price" link and make a purchase on a merchant's website, we may earn an affiliate commission at no extra cost to you. This supports our platform.</p>
+            <p><strong className="text-slate-900 font-semibold">Transparency Disclosure:</strong> Findora is an independent price comparison service. When you click a "Check Price" link and make a purchase on a merchant's website, we may earn an affiliate commission at no extra cost to you. This supports our platform.</p>
             <p>Prices, discounts, and inventory availability are controlled by the merchants and are subject to change without notice. The final price and terms of sale are always confirmed at the merchant's checkout. Findora does not process your transaction.</p>
           </div>
         </div>
@@ -856,12 +856,12 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
 
       {/* Similar Products */}
       {similarProducts.length > 0 && (
-        <section className="space-y-6 pt-8 border-t border-slate-800/80 pb-20 lg:pb-0">
+        <section className="space-y-6 pt-8 border-t border-slate-200/80 pb-20 lg:pb-0">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl sm:text-2xl font-extrabold text-white">Similar Alternatives</h2>
+            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900">Similar Alternatives</h2>
             <button
               onClick={() => onNavigate(`/category/${slugifyCategoryLabel(product.category)}`)}
-              className="text-xs sm:text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors"
+              className="text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-300 transition-colors"
             >
               View category →
             </button>
@@ -875,10 +875,10 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
       )}
 
       {/* Mobile Sticky Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-[#070B14]/95 backdrop-blur-xl border-t border-slate-800 shadow-2xl z-40 lg:hidden flex items-center justify-between gap-4">
+      <div className="fixed bottom-0 left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-white/95 backdrop-blur-xl border-t border-slate-200 shadow-2xl z-40 lg:hidden flex items-center justify-between gap-4">
         <div className="flex flex-col min-w-0">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Price on Amazon</span>
-          <span className="text-xl font-extrabold text-white truncate">
+          <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Price on Amazon</span>
+          <span className="text-xl font-extrabold text-slate-900 truncate">
             {product.lowestPrice ? formatINR(product.lowestPrice) : 'N/A'}
           </span>
         </div>
@@ -917,7 +917,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
               Check Price
             </a>
           ) : (
-            <button disabled className="px-6 py-3 bg-slate-800 text-slate-500 rounded-full font-bold text-sm whitespace-nowrap border border-slate-700 cursor-not-allowed">
+            <button disabled className="px-6 py-3 bg-slate-100 text-slate-600 rounded-full font-bold text-sm whitespace-nowrap border border-slate-300 cursor-not-allowed">
               Price link unavailable
             </button>
           )}
@@ -927,9 +927,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
       {/* Share Modal */}
       {isShareModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
-          <div className="bg-[#0D1322] rounded-3xl w-full max-w-sm shadow-2xl border border-slate-800 overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-slate-800 bg-[#070B14]">
-              <h3 className="font-extrabold text-white text-lg">Share Product</h3>
+          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl border border-slate-200 overflow-hidden">
+            <div className="flex items-center justify-between p-5 border-b border-slate-200 bg-white">
+              <h3 className="font-extrabold text-slate-900 text-lg">Share Product</h3>
               <button
                 onClick={() => setIsShareModalOpen(false)}
                 className="p-1.5 rounded-full text-slate-400 hover:text-white transition-colors bg-slate-800"

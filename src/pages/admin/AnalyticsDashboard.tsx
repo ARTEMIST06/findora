@@ -366,7 +366,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
         </div>
         <div className="space-y-2">
           <h2 className="text-xl font-bold text-slate-900">Admin Authentication Required</h2>
-          <p className="text-xs text-slate-500 leading-relaxed">
+          <p className="text-xs text-slate-600 leading-relaxed">
             The Findora Analytics and Audit Console is restricted to authenticated administrators. Please sign in with your administrator credentials.
           </p>
         </div>
@@ -419,7 +419,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
   const ga4Id = analytics.getGA4MeasurementId();
 
   return (
-    <div className="admin-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 min-h-screen text-slate-100">
+    <div className="admin-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 min-h-screen text-slate-900">
       <SEOHead
         title="Analytics & Audit Console | Findora"
         description="Findora internal analytics, visitor behavior, and security audit log."
@@ -427,22 +427,22 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
         noIndex={true}
       />
       {/* Top Header & Context Actions */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-200">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
-            <div className="p-2.5 bg-blue-600/20 border border-blue-500/30 text-blue-400 rounded-2xl shadow-lg shadow-blue-500/10">
-              <BarChart3 className="w-5 h-5 text-cyan-400" />
+            <div className="p-2.5 bg-blue-600/20 border border-blue-500/30 text-blue-600 rounded-2xl shadow-lg shadow-blue-500/10">
+              <BarChart3 className="w-5 h-5 text-cyan-600" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                   Findora Analytics & Audit
                 </h1>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-emerald-500/10 border border-emerald-500/30 text-emerald-600">
                   Admin Exclusive
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-600">
                 Visitor behavioral funnels, Amazon affiliate conversions, query insights, and security audit log.
               </p>
             </div>
@@ -500,7 +500,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
             title="Refresh Analytics Metrics"
             className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 transition-colors flex items-center gap-1.5 shadow-2xs disabled:opacity-50"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-blue-600' : 'text-slate-500'}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-blue-600' : 'text-slate-600'}`} />
             <span className="hidden sm:inline">Refresh</span>
           </button>
 
@@ -535,7 +535,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
               className="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-800"
             />
           </div>
-          <span className="text-slate-400 text-[11px]">Filtered analytics will display data within specified window.</span>
+          <span className="text-slate-600 text-[11px]">Filtered analytics will display data within specified window.</span>
         </div>
       )}
 
@@ -572,7 +572,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
           </div>
         </div>
 
-        <div className="shrink-0 flex items-center gap-3 text-[11px] text-slate-500">
+        <div className="shrink-0 flex items-center gap-3 text-[11px] text-slate-600">
           <Clock className="w-3.5 h-3.5" />
           <span>Updated {formatRelativeTime(lastRefreshedAt.toISOString())}</span>
         </div>
@@ -617,7 +617,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
           <div className="flex items-center justify-between">
             <h2 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
               <span>Key Performance Indicators</span>
-              <span className="text-xs font-normal text-slate-500">({dateRange} aggregate)</span>
+              <span className="text-xs font-normal text-slate-600">({dateRange} aggregate)</span>
             </h2>
           </div>
 
@@ -625,14 +625,14 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Total Visitors */}
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
-              <div className="flex items-center justify-between text-slate-500">
+              <div className="flex items-center justify-between text-slate-600">
                 <span className="text-xs font-bold uppercase tracking-wider">Total Visitors</span>
                 <Users className="w-4 h-4 text-blue-600" />
               </div>
               <div className="text-2xl sm:text-3xl font-black text-slate-900">
                 {funnelMetrics.totalVisitors.toLocaleString()}
               </div>
-              <div className="text-[11px] text-slate-500 flex items-center justify-between">
+              <div className="text-[11px] text-slate-600 flex items-center justify-between">
                 <span>Unique: {Math.round(funnelMetrics.totalVisitors * 0.82)}</span>
                 <span className="text-emerald-600 font-semibold">+12% vs prior</span>
               </div>
@@ -640,14 +640,14 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
 
             {/* Sessions */}
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
-              <div className="flex items-center justify-between text-slate-500">
+              <div className="flex items-center justify-between text-slate-600">
                 <span className="text-xs font-bold uppercase tracking-wider">Total Sessions</span>
                 <Activity className="w-4 h-4 text-indigo-600" />
               </div>
               <div className="text-2xl sm:text-3xl font-black text-slate-900">
                 {Math.round(funnelMetrics.totalVisitors * 1.4).toLocaleString()}
               </div>
-              <div className="text-[11px] text-slate-500 flex items-center justify-between">
+              <div className="text-[11px] text-slate-600 flex items-center justify-between">
                 <span>Avg 1.4 sessions/user</span>
                 <span className="text-emerald-600 font-semibold">+8% vs prior</span>
               </div>
@@ -655,14 +655,14 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
 
             {/* Product Views */}
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
-              <div className="flex items-center justify-between text-slate-500">
+              <div className="flex items-center justify-between text-slate-600">
                 <span className="text-xs font-bold uppercase tracking-wider">Product Views</span>
                 <Eye className="w-4 h-4 text-emerald-600" />
               </div>
               <div className="text-2xl sm:text-3xl font-black text-slate-900">
                 {funnelMetrics.productViews.toLocaleString()}
               </div>
-              <div className="text-[11px] text-slate-500 flex items-center justify-between">
+              <div className="text-[11px] text-slate-600 flex items-center justify-between">
                 <span>Detail pages: {funnelMetrics.productDetailViews}</span>
                 <span className="text-emerald-600 font-semibold">+15% vs prior</span>
               </div>
@@ -670,14 +670,14 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
 
             {/* Amazon Affiliate Clicks */}
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
-              <div className="flex items-center justify-between text-slate-500">
+              <div className="flex items-center justify-between text-slate-600">
                 <span className="text-xs font-bold uppercase tracking-wider">Affiliate Clicks</span>
                 <MousePointerClick className="w-4 h-4 text-amber-600" />
               </div>
               <div className="text-2xl sm:text-3xl font-black text-amber-600">
                 {allClicks.length.toLocaleString()}
               </div>
-              <div className="text-[11px] text-slate-500 flex items-center justify-between">
+              <div className="text-[11px] text-slate-600 flex items-center justify-between">
                 <span>Overall CTR: {funnelMetrics.overallCtr}%</span>
                 <span className="text-emerald-600 font-semibold">+18% vs prior</span>
               </div>
@@ -685,56 +685,56 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
 
             {/* Returning vs New Visitors */}
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
-              <div className="flex items-center justify-between text-slate-500">
+              <div className="flex items-center justify-between text-slate-600">
                 <span className="text-xs font-bold uppercase tracking-wider">New vs Returning</span>
                 <TrendingUp className="w-4 h-4 text-purple-600" />
               </div>
               <div className="text-xl font-extrabold text-slate-900">
                 {Math.round(funnelMetrics.totalVisitors * 0.72)} / {Math.round(funnelMetrics.totalVisitors * 0.28)}
               </div>
-              <div className="text-[11px] text-slate-500">
+              <div className="text-[11px] text-slate-600">
                 72% New Visitors • 28% Returning
               </div>
             </div>
 
             {/* Authenticated Users */}
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
-              <div className="flex items-center justify-between text-slate-500">
+              <div className="flex items-center justify-between text-slate-600">
                 <span className="text-xs font-bold uppercase tracking-wider">Logged-in Users</span>
                 <Users className="w-4 h-4 text-sky-600" />
               </div>
               <div className="text-xl font-extrabold text-slate-900">
                 {userMetrics.totalUsers.toLocaleString()} accounts
               </div>
-              <div className="text-[11px] text-slate-500">
+              <div className="text-[11px] text-slate-600">
                 {userMetrics.googleAuthUsers} Google • {userMetrics.emailAuthUsers} Email
               </div>
             </div>
 
             {/* Avg Engagement Time */}
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
-              <div className="flex items-center justify-between text-slate-500">
+              <div className="flex items-center justify-between text-slate-600">
                 <span className="text-xs font-bold uppercase tracking-wider">Avg Engagement</span>
                 <Clock className="w-4 h-4 text-teal-600" />
               </div>
               <div className="text-xl font-extrabold text-slate-900">
                 2m 44s
               </div>
-              <div className="text-[11px] text-slate-500">
+              <div className="text-[11px] text-slate-600">
                 High comparison dwell time
               </div>
             </div>
 
             {/* Bounce Rate */}
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
-              <div className="flex items-center justify-between text-slate-500">
+              <div className="flex items-center justify-between text-slate-600">
                 <span className="text-xs font-bold uppercase tracking-wider">Engagement Rate</span>
                 <Percent className="w-4 h-4 text-rose-600" />
               </div>
               <div className="text-xl font-extrabold text-slate-900">
                 68.4%
               </div>
-              <div className="text-[11px] text-slate-500">
+              <div className="text-[11px] text-slate-600">
                 31.6% bounce rate (healthy)
               </div>
             </div>
@@ -753,12 +753,12 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                 <TrendingUp className="w-4 h-4 text-blue-600" />
                 <span>Findora Visitor Conversion Funnel</span>
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-600">
                 Progression from initial catalog discovery to final outbound Amazon merchant referral.
               </p>
             </div>
             <div className="text-right">
-              <span className="text-xs font-semibold text-slate-500">Affiliate Conversion Rate: </span>
+              <span className="text-xs font-semibold text-slate-600">Affiliate Conversion Rate: </span>
               <span className="text-sm font-black text-amber-600">{funnelMetrics.overallCtr}%</span>
             </div>
           </div>
@@ -767,15 +767,15 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Step 1: Visitors */}
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2 relative">
-              <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
                 1. Total Visitors
               </div>
               <div className="text-2xl font-black text-slate-900">
                 {funnelMetrics.totalVisitors.toLocaleString()}
               </div>
-              <p className="text-[11px] text-slate-500">100% of incoming traffic</p>
+              <p className="text-[11px] text-slate-600">100% of incoming traffic</p>
               <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden mt-2">
-                <div className="bg-slate-800 h-full w-full rounded-full" />
+                <div className="bg-slate-100 h-full w-full rounded-full" />
               </div>
             </div>
 
@@ -847,7 +847,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
               <span className="font-bold text-slate-900">Browse-Only Visitors: </span>
               <span>{funnelMetrics.nonClickingVisitors.toLocaleString()} visitors inspected product details but did not trigger an outbound affiliate redirect.</span>
             </div>
-            <span className="text-[11px] font-semibold text-slate-500">Strictly aggregated; individual visitors remain anonymous.</span>
+            <span className="text-[11px] font-semibold text-slate-600">Strictly aggregated; individual visitors remain anonymous.</span>
           </div>
         </div>
       )}
@@ -865,7 +865,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                   <ExternalLink className="w-4 h-4 text-blue-600" />
                   <span>Clicks by Store</span>
                 </h3>
-                <p className="text-[11px] text-slate-500">Distribution of outbound affiliate redirects across merchants</p>
+                <p className="text-[11px] text-slate-600">Distribution of outbound affiliate redirects across merchants</p>
               </div>
               <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full">
                 {allClicks.length} Total Clicks
@@ -901,7 +901,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                 ))}
               </div>
             ) : (
-              <div className="p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl border border-slate-100">
+              <div className="p-6 text-center text-xs text-slate-600 bg-slate-50 rounded-2xl border border-slate-100">
                 No outbound affiliate clicks recorded yet.
               </div>
             )}
@@ -915,7 +915,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                   <Clock className="w-4 h-4 text-emerald-600" />
                   <span>Clicks Over Time</span>
                 </h3>
-                <p className="text-[11px] text-slate-500">Daily trajectory of shopper outbound purchase intent</p>
+                <p className="text-[11px] text-slate-600">Daily trajectory of shopper outbound purchase intent</p>
               </div>
               <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
                 Past 7 Days
@@ -935,7 +935,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                         style={{ height: `${heightPct}%` }}
                       />
                     </div>
-                    <span className="text-[10px] text-slate-500 truncate w-full font-medium" title={day.label}>
+                    <span className="text-[10px] text-slate-600 truncate w-full font-medium" title={day.label}>
                       {day.label.split(',')[0]}
                     </span>
                   </div>
@@ -957,7 +957,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                 <ShoppingBag className="w-4 h-4 text-emerald-600" />
                 <span>Product Performance Table</span>
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-600">
                 Views, wishlist adds, and verified Amazon outbound clicks per catalog item.
               </p>
             </div>
@@ -970,14 +970,14 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                   placeholder="Search products..."
                   value={productSearch}
                   onChange={(e) => setProductSearch(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                  className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder:text-slate-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none" />
+                <Search className="w-3.5 h-3.5 text-slate-600 absolute left-2.5 top-2.5 pointer-events-none" />
               </div>
 
               {/* Sort selector */}
               <div className="flex items-center gap-1.5 text-xs">
-                <span className="text-slate-500 font-semibold">Sort by:</span>
+                <span className="text-slate-600 font-semibold">Sort by:</span>
                 <select
                   value={productSortBy}
                   onChange={(e) => setProductSortBy(e.target.value as any)}
@@ -996,7 +996,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-slate-600 border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                <tr className="border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
                   <th className="py-3 px-3">Product Name</th>
                   <th className="py-3 px-3">Category</th>
                   <th className="py-3 px-3 text-right">Views</th>
@@ -1019,13 +1019,13 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                               className="w-8 h-8 rounded-lg object-contain bg-slate-50 border border-slate-200 shrink-0"
                             />
                           ) : (
-                            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 shrink-0">
+                            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
                               <ShoppingBag className="w-4 h-4" />
                             </div>
                           )}
                           <div className="truncate">
                             <span className="truncate block font-bold text-slate-900">{p.name}</span>
-                            <span className="text-[10px] text-slate-400 font-normal">{p.brand}</span>
+                            <span className="text-[10px] text-slate-600 font-normal">{p.brand}</span>
                           </div>
                         </div>
                       </td>
@@ -1059,7 +1059,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-slate-400">
+                    <td colSpan={7} className="py-8 text-center text-slate-600">
                       No products match the selected criteria.
                     </td>
                   </tr>
@@ -1083,7 +1083,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                   <Search className="w-4 h-4 text-blue-600" />
                   <span>Top Search Queries</span>
                 </h3>
-                <p className="text-[11px] text-slate-500">Most frequent shopper keyword queries</p>
+                <p className="text-[11px] text-slate-600">Most frequent shopper keyword queries</p>
               </div>
               <span className="text-xs font-bold text-blue-600">{topSearches.length} tracked</span>
             </div>
@@ -1093,10 +1093,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                 topSearches.map((s, idx) => (
                   <div key={s.query} className="py-2.5 flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2.5">
-                      <span className="w-5 text-center font-bold text-slate-400 text-[11px]">{idx + 1}</span>
+                      <span className="w-5 text-center font-bold text-slate-600 text-[11px]">{idx + 1}</span>
                       <span className="font-bold text-slate-900 capitalize">{s.query}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-slate-500 text-[11px]">
+                    <div className="flex items-center gap-3 text-slate-600 text-[11px]">
                       <span>{s.resultsCount} products</span>
                       <span className="px-2 py-0.5 rounded-full font-bold bg-blue-50 text-blue-700">
                         {s.count} searches
@@ -1105,7 +1105,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                   </div>
                 ))
               ) : (
-                <p className="py-8 text-center text-slate-400 text-xs">
+                <p className="py-8 text-center text-slate-600 text-xs">
                   No search queries logged yet. Test searching in the top navigation bar!
                 </p>
               )}
@@ -1120,7 +1120,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                   <Sparkles className="w-4 h-4 text-amber-500" />
                   <span>Searches with No Matching Products</span>
                 </h3>
-                <p className="text-[11px] text-slate-500">Catalog expansion opportunities based on shopper intent</p>
+                <p className="text-[11px] text-slate-600">Catalog expansion opportunities based on shopper intent</p>
               </div>
               <span className="text-xs font-bold text-amber-600">{zeroResultSearches.length} opportunities</span>
             </div>
@@ -1131,7 +1131,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                   <div key={s.query} className="py-2.5 flex items-center justify-between text-xs">
                     <div>
                       <span className="font-bold text-slate-900 block capitalize">{s.query}</span>
-                      <span className="text-[10px] text-slate-400">
+                      <span className="text-[10px] text-slate-600">
                         Last searched {formatRelativeTime(s.lastSearched)}
                       </span>
                     </div>
@@ -1149,7 +1149,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                   </div>
                 ))
               ) : (
-                <div className="py-8 text-center text-slate-400 text-xs space-y-1">
+                <div className="py-8 text-center text-slate-600 text-xs space-y-1">
                   <p>All user searches currently match catalog products!</p>
                   <p className="text-[10px]">When a search returns 0 items, it will automatically populate here as a product addition opportunity.</p>
                 </div>
@@ -1172,7 +1172,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                   <Layers className="w-4 h-4 text-purple-600" />
                   <span>Category Performance</span>
                 </h3>
-                <p className="text-[11px] text-slate-500">Views and conversion by catalog category</p>
+                <p className="text-[11px] text-slate-600">Views and conversion by catalog category</p>
               </div>
             </div>
 
@@ -1181,13 +1181,13 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                 <div key={cat.category} className="py-3 flex items-center justify-between text-xs">
                   <div>
                     <span className="font-bold text-slate-900 capitalize block">{cat.category}</span>
-                    <span className="text-[10px] text-slate-400">
+                    <span className="text-[10px] text-slate-600">
                       {cat.productCount} products listed • {cat.views} views
                     </span>
                   </div>
                   <div className="text-right">
                     <span className="font-extrabold text-amber-600 block">{cat.affiliateClicks} clicks</span>
-                    <span className="text-[10px] font-semibold text-slate-500">{cat.ctr}% CTR</span>
+                    <span className="text-[10px] font-semibold text-slate-600">{cat.ctr}% CTR</span>
                   </div>
                 </div>
               ))}
@@ -1202,7 +1202,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                   <Globe className="w-4 h-4 text-blue-600" />
                   <span>Traffic Sources & Acquisition</span>
                 </h3>
-                <p className="text-[11px] text-slate-500">Distribution of inbound visitors and referral leads</p>
+                <p className="text-[11px] text-slate-600">Distribution of inbound visitors and referral leads</p>
               </div>
             </div>
 
@@ -1211,7 +1211,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                 <div key={source.source} className="py-3 flex items-center justify-between text-xs">
                   <div>
                     <span className="font-bold text-slate-900 block">{source.source}</span>
-                    <span className="text-[10px] text-slate-400">
+                    <span className="text-[10px] text-slate-600">
                       {source.engagedSessions} engaged sessions
                     </span>
                   </div>
@@ -1244,9 +1244,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                 <div key={d.device} className="space-y-1.5 text-xs">
                   <div className="flex items-center justify-between font-semibold">
                     <span className="flex items-center gap-2 text-slate-800">
-                      {d.device === 'Mobile' && <Smartphone className="w-3.5 h-3.5 text-slate-400" />}
-                      {d.device === 'Desktop' && <Monitor className="w-3.5 h-3.5 text-slate-400" />}
-                      {d.device === 'Tablet' && <Tablet className="w-3.5 h-3.5 text-slate-400" />}
+                      {d.device === 'Mobile' && <Smartphone className="w-3.5 h-3.5 text-slate-600" />}
+                      {d.device === 'Desktop' && <Monitor className="w-3.5 h-3.5 text-slate-600" />}
+                      {d.device === 'Tablet' && <Tablet className="w-3.5 h-3.5 text-slate-600" />}
                       {d.device}
                     </span>
                     <span className="text-slate-600 font-bold">{d.percentage}% ({d.count.toLocaleString()} visits)</span>
@@ -1272,11 +1272,11 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                 <div key={g.country} className="py-2.5 flex items-center justify-between text-xs">
                   <div>
                     <span className="font-bold text-slate-900 block">{g.country}</span>
-                    <span className="text-[10px] text-slate-400">{g.region}</span>
+                    <span className="text-[10px] text-slate-600">{g.region}</span>
                   </div>
                   <div className="text-right">
                     <span className="font-bold text-slate-900">{g.visitors} visitors</span>
-                    <span className="text-[10px] text-slate-400 block">{g.percentage}%</span>
+                    <span className="text-[10px] text-slate-600 block">{g.percentage}%</span>
                   </div>
                 </div>
               ))}
@@ -1296,15 +1296,15 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                 <Users className="w-4 h-4 text-blue-600" />
                 <span>Authenticated User Accounts</span>
               </h3>
-              <p className="text-xs text-slate-500">Registered shopper and administrator user statistics</p>
+              <p className="text-xs text-slate-600">Registered shopper and administrator user statistics</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-              <span className="text-[11px] font-bold text-slate-500 uppercase">Total Accounts</span>
+              <span className="text-[11px] font-bold text-slate-600 uppercase">Total Accounts</span>
               <div className="text-2xl font-black text-slate-900 mt-1">{userMetrics.totalUsers}</div>
-              <span className="text-[10px] text-slate-400">In Firestore users</span>
+              <span className="text-[10px] text-slate-600">In Firestore users</span>
             </div>
             <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100">
               <span className="text-[11px] font-bold text-emerald-800 uppercase">Active (30d)</span>
@@ -1341,7 +1341,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                 <UserCheck className="w-4 h-4 text-emerald-600" />
                 <span>Privileged Account Login History</span>
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-600">
                 Audit history of administrator and editor sessions. Zero credentials or passwords recorded.
               </p>
             </div>
@@ -1350,7 +1350,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-slate-600 border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                <tr className="border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
                   <th className="py-3 px-3">User & Email</th>
                   <th className="py-3 px-3">Assigned Role</th>
                   <th className="py-3 px-3">Last Login Time</th>
@@ -1364,7 +1364,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                     <tr key={rec.userId} className="hover:bg-slate-50/80 transition-colors">
                       <td className="py-3 px-3">
                         <span className="font-bold text-slate-900 block">{rec.name}</span>
-                        <span className="text-[11px] text-slate-400">{rec.email}</span>
+                        <span className="text-[11px] text-slate-600">{rec.email}</span>
                       </td>
                       <td className="py-3 px-3">
                         <span
@@ -1381,7 +1381,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                         <span className="font-medium text-slate-800 block">
                           {formatRelativeTime(rec.lastLogin)}
                         </span>
-                        <span className="text-[10px] text-slate-400">
+                        <span className="text-[10px] text-slate-600">
                           {new Date(rec.lastLogin).toLocaleString()}
                         </span>
                       </td>
@@ -1400,7 +1400,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                               </span>
                             ))
                           ) : (
-                            <span className="text-[10px] text-slate-400">Active session</span>
+                            <span className="text-[10px] text-slate-600">Active session</span>
                           )}
                         </div>
                       </td>
@@ -1408,7 +1408,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-slate-400">
+                    <td colSpan={5} className="py-8 text-center text-slate-600">
                       No privileged login records located in security log.
                     </td>
                   </tr>
@@ -1435,7 +1435,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                   Immutable
                 </span>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-600">
                 Tamper-proof record of admin and editor actions: product creations, publish transitions, affiliate link updates, and AI generation.
               </p>
             </div>
@@ -1445,7 +1445,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                 onClick={handleExportAuditLogs}
                 className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 transition-colors flex items-center gap-1.5 shadow-2xs"
               >
-                <Download className="w-3.5 h-3.5 text-slate-500" />
+                <Download className="w-3.5 h-3.5 text-slate-600" />
                 <span>Export JSON</span>
               </button>
             </div>
@@ -1460,9 +1460,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                 placeholder="Search audit events by user, target..."
                 value={auditSearchQuery}
                 onChange={(e) => setAuditSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                className="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder:text-slate-600 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
               />
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-slate-600 absolute left-2.5 top-2.5 pointer-events-none" />
             </div>
 
             {/* Actor filter */}
@@ -1507,7 +1507,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-slate-600 border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                <tr className="border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
                   <th className="py-3 px-3">Actor</th>
                   <th className="py-3 px-3">Role</th>
                   <th className="py-3 px-3">Action</th>
@@ -1527,7 +1527,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                             <span className="font-bold text-slate-900 block truncate max-w-[180px]">
                               {log.actorEmail}
                             </span>
-                            <span className="text-[10px] text-slate-400 font-mono">
+                            <span className="text-[10px] text-slate-600 font-mono">
                               UID: {log.actorUid.slice(0, 8)}...
                             </span>
                           </td>
@@ -1563,7 +1563,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                             <span className="font-semibold text-slate-900 truncate block">
                               {log.targetName || log.targetId || 'System Entity'}
                             </span>
-                            <span className="text-[10px] text-slate-400 capitalize">
+                            <span className="text-[10px] text-slate-600 capitalize">
                               Type: {log.targetType}
                             </span>
                           </td>
@@ -1571,7 +1571,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                             <span className="text-slate-800 font-medium block">
                               {formatRelativeTime(log.timestamp)}
                             </span>
-                            <span className="text-[10px] text-slate-400">
+                            <span className="text-[10px] text-slate-600">
                               {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                             </span>
                           </td>
@@ -1585,7 +1585,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                                 {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                               </button>
                             ) : (
-                              <span className="text-[10px] text-slate-400">—</span>
+                              <span className="text-[10px] text-slate-600">—</span>
                             )}
                           </td>
                         </tr>
@@ -1603,7 +1603,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                   })
                 ) : (
                   <tr>
-                    <td colSpan={6} className="py-10 text-center text-slate-400 space-y-1">
+                    <td colSpan={6} className="py-10 text-center text-slate-600 space-y-1">
                       <p>No audit events match the selected criteria.</p>
                       <p className="text-[11px]">Actions like publishing products, saving drafts, and running AI Copilot are recorded here.</p>
                     </td>

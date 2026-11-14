@@ -205,11 +205,11 @@ if (authLoading) {
   if (!currentUser) {
     return (
       <div className="flex flex-col items-center justify-center py-32 px-4 text-center">
-        <div className="w-20 h-20 rounded-3xl bg-[#0D1322] border border-slate-800 flex items-center justify-center mx-auto mb-5 shadow-xl">
-          <ShieldCheck className="w-10 h-10 text-slate-500" />
+        <div className="w-20 h-20 rounded-3xl bg-white border border-slate-200 flex items-center justify-center mx-auto mb-5 shadow-xl">
+          <ShieldCheck className="w-10 h-10 text-slate-600" />
         </div>
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-2">Authentication Required</h2>
-        <p className="text-sm text-slate-400 max-w-sm mb-6">You must be logged in with administrative credentials to access this control center.</p>
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Authentication Required</h2>
+        <p className="text-sm text-slate-600 max-w-sm mb-6">You must be logged in with administrative credentials to access this control center.</p>
         <button
           onClick={() => onNavigate('/login')}
           className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-full font-bold text-xs transition-all shadow-lg shadow-indigo-500/20"
@@ -224,12 +224,12 @@ if (authLoading) {
   if (currentUser?.role !== 'admin' && currentUser?.role !== 'editor') {
     return (
       <div className="max-w-xl mx-auto px-4 py-24 text-center">
-        <div className="w-20 h-20 rounded-3xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto mb-5 shadow-xl">
+        <div className="w-20 h-20 rounded-3xl bg-rose-500/10 border border-rose-500/30 text-rose-600 flex items-center justify-center mx-auto mb-5 shadow-xl">
           <ShieldCheck className="w-10 h-10" />
         </div>
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-2">Access Denied</h2>
-        <p className="text-sm text-slate-400 max-w-sm mx-auto mb-6">
-          Your current account role is <strong className="text-white">{currentUser?.role || 'Shopper'}</strong>. This area requires Administrator or Editor permissions.
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Access Denied</h2>
+        <p className="text-sm text-slate-600 max-w-sm mx-auto mb-6">
+          Your current account role is <strong className="text-slate-900">{currentUser?.role || 'Shopper'}</strong>. This area requires Administrator or Editor permissions.
         </p>
         <div className="flex justify-center gap-3">
           <button
@@ -619,7 +619,7 @@ if (authLoading) {
   };
 
   return (
-    <div className="admin-container max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8 min-h-screen text-slate-100">
+    <div className="admin-container max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8 min-h-screen text-slate-900">
       <SEOHead 
         title="Admin Dashboard | Findora"
         description="Manage products, store pricing, and track affiliate clicks in the Findora admin dashboard."
@@ -627,17 +627,17 @@ if (authLoading) {
         noIndex={true}
       />
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
         <div>
-          <div className="inline-flex items-center gap-2 text-xs font-bold text-blue-400 uppercase tracking-wider mb-1">
-            <LayoutDashboard className="w-4 h-4 text-cyan-400" />
+          <div className="inline-flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">
+            <LayoutDashboard className="w-4 h-4 text-cyan-600" />
             <span>Findora Platform Management</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Admin & Pricing Control Center
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Logged in as <strong className="text-white">{currentUser?.name}</strong> ({currentUser?.role})
+          <p className="text-xs sm:text-sm text-slate-600 mt-1">
+            Logged in as <strong className="text-slate-900">{currentUser?.name}</strong> ({currentUser?.role})
           </p>
         </div>
 
@@ -646,7 +646,7 @@ if (authLoading) {
             onClick={() => onNavigate('/')}
             className="px-4 py-2 border border-slate-700 bg-[#0D1322] hover:bg-slate-800 rounded-full text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition-colors"
           >
-            <Eye className="w-4 h-4 text-slate-400" />
+            <Eye className="w-4 h-4 text-slate-600" />
             <span>View Public Site</span>
           </button>
           {isAdmin && (
@@ -673,7 +673,7 @@ if (authLoading) {
             onClick={() => setActiveTab('bulk-import')}
             className="px-4 py-2 border border-slate-700 bg-[#0D1322] hover:bg-slate-800 rounded-full text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition-colors"
           >
-            <FileUp className="w-4 h-4 text-slate-400" />
+            <FileUp className="w-4 h-4 text-slate-600" />
             <span className="hidden sm:inline">Import Products</span>
             <span className="sm:hidden">Import</span>
           </button>
@@ -682,7 +682,7 @@ if (authLoading) {
             disabled={isExporting}
             className="px-4 py-2 border border-slate-700 bg-[#0D1322] hover:bg-slate-800 rounded-full text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition-colors disabled:opacity-50"
           >
-            {isExporting ? <RefreshCw className="w-4 h-4 animate-spin text-slate-400" /> : <Download className="w-4 h-4 text-slate-400" />}
+            {isExporting ? <RefreshCw className="w-4 h-4 animate-spin text-slate-600" /> : <Download className="w-4 h-4 text-slate-600" />}
             <span className="hidden sm:inline">{isExporting ? 'Exporting...' : 'Export Products'}</span>
             <span className="sm:hidden">{isExporting ? 'Wait' : 'Export'}</span>
           </button>
@@ -697,7 +697,7 @@ if (authLoading) {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-2 border-b border-slate-800 text-xs sm:text-sm font-semibold">
+      <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-2 border-b border-slate-200 text-xs sm:text-sm font-semibold">
         <button
           onClick={() => setActiveTab('overview')}
           className={`px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shrink-0 ${
@@ -823,7 +823,7 @@ if (authLoading) {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
                   Total Catalog
                 </span>
                 <Package className="w-4 h-4 text-blue-600" />
@@ -831,14 +831,14 @@ if (authLoading) {
               <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">
                 {products.length}
               </div>
-              <span className="text-xs text-slate-400 mt-1 block">
+              <span className="text-xs text-slate-600 mt-1 block">
                 {featuredCount} featured on homepage
               </span>
             </div>
 
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
                   Live Store Prices
                 </span>
                 <Tag className="w-4 h-4 text-emerald-600" />
@@ -853,7 +853,7 @@ if (authLoading) {
 
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
                   Referral Clicks
                 </span>
                 <MousePointerClick className="w-4 h-4 text-indigo-600" />
@@ -861,12 +861,12 @@ if (authLoading) {
               <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">
                 {totalClicksCount}
               </div>
-              <span className="text-xs text-slate-400 mt-1 block">Outbound store redirects</span>
+              <span className="text-xs text-slate-600 mt-1 block">Outbound store redirects</span>
             </div>
 
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
                   Published Live
                 </span>
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
@@ -874,7 +874,7 @@ if (authLoading) {
               <div className="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-2">
                 {publishedCount}
               </div>
-              <span className="text-xs text-slate-400 mt-1 block">of {products.length} products live on site</span>
+              <span className="text-xs text-slate-600 mt-1 block">of {products.length} products live on site</span>
             </div>
           </div>
 
@@ -890,7 +890,7 @@ if (authLoading) {
                 >
                   <Plus className="w-5 h-5 text-blue-600 mb-2" />
                   <span className="text-slate-900">Add New Device</span>
-                  <span className="text-[10px] text-slate-400 font-normal">
+                  <span className="text-[10px] text-slate-600 font-normal">
                     Create new product entry
                   </span>
                 </button>
@@ -901,7 +901,7 @@ if (authLoading) {
                 >
                   <Tag className="w-5 h-5 text-emerald-600 mb-2" />
                   <span className="text-slate-900">Update Prices</span>
-                  <span className="text-[10px] text-slate-400 font-normal">
+                  <span className="text-[10px] text-slate-600 font-normal">
                     Adjust verified Amazon India prices
                   </span>
                 </button>
@@ -912,7 +912,7 @@ if (authLoading) {
                 >
                   <Store className="w-5 h-5 text-indigo-600 mb-2" />
                   <span className="text-slate-900">Manage Retailers</span>
-                  <span className="text-[10px] text-slate-400 font-normal">
+                  <span className="text-[10px] text-slate-600 font-normal">
                     Affiliate tags & domains
                   </span>
                 </button>
@@ -926,7 +926,7 @@ if (authLoading) {
                 >
                   <RefreshCw className="w-5 h-5 text-rose-600 mb-2" />
                   <span className="text-slate-900">Reset Demo Data</span>
-                  <span className="text-[10px] text-slate-400 font-normal">
+                  <span className="text-[10px] text-slate-600 font-normal">
                     Restore mock catalog
                   </span>
                 </button>
@@ -947,17 +947,17 @@ if (authLoading) {
                         <span className="font-bold text-slate-900 block truncate max-w-[240px]">
                           {c.productName}
                         </span>
-                        <span className="text-slate-400 text-[11px]">
+                        <span className="text-slate-600 text-[11px]">
                           Clicked <strong className="text-slate-700">{c.storeName}</strong> ({formatINR(c.price)})
                         </span>
                       </div>
-                      <span className="text-[10px] text-slate-400">
+                      <span className="text-[10px] text-slate-600">
                         {formatRelativeTime(c.timestamp)}
                       </span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs text-slate-400 py-6 text-center">
+                  <p className="text-xs text-slate-600 py-6 text-center">
                     No clicks recorded yet. Click "Check Price" on any product to simulate!
                   </p>
                 )}
@@ -1008,7 +1008,7 @@ if (authLoading) {
           <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200">
             <div>
               <h3 className="font-bold text-slate-900 text-sm">Store Pricing Matrix</h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-600">
                 Manage the verified Amazon India offer for each product.
               </p>
             </div>
@@ -1029,7 +1029,7 @@ if (authLoading) {
                     />
                     <div>
                       <h4 className="font-bold text-slate-900 text-xs sm:text-sm">{prod.name}</h4>
-                      <span className="text-[11px] text-slate-400">
+                      <span className="text-[11px] text-slate-600">
                         Lowest price: <strong className="text-emerald-600">{formatINR(prod.lowestPrice)}</strong>
                       </span>
                     </div>
@@ -1061,7 +1061,7 @@ if (authLoading) {
                               {formatINR(offer.price)}
                             </span>
                             {offer.originalPrice && (
-                              <span className="text-xs text-slate-400 line-through ml-2">
+                              <span className="text-xs text-slate-600 line-through ml-2">
                                 MRP {formatINR(offer.originalPrice)}
                               </span>
                             )}
@@ -1069,10 +1069,10 @@ if (authLoading) {
                         </div>
 
                         <div className="flex items-center gap-4">
-                          <span className="text-slate-500 text-[11px] hidden md:inline truncate max-w-xs">
+                          <span className="text-slate-600 text-[11px] hidden md:inline truncate max-w-xs">
                             {offer.shippingNote || 'Standard'}
                           </span>
-                          <span className="text-[10px] text-slate-400">
+                          <span className="text-[10px] text-slate-600">
                             Updated {formatRelativeTime(offer.lastUpdated)}
                           </span>
 
@@ -1082,7 +1082,7 @@ if (authLoading) {
                               setEditingOffer({ ...offer });
                               setIsOfferModalOpen(true);
                             }}
-                            className="p-1 text-slate-400 hover:text-blue-600"
+                            className="p-1 text-slate-600 hover:text-blue-600"
                             title="Edit price"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
@@ -1090,7 +1090,7 @@ if (authLoading) {
 
                           <button
                             onClick={() => handleDeleteOffer(offer.id)}
-                            className="p-1 text-slate-400 hover:text-rose-600"
+                            className="p-1 text-slate-600 hover:text-rose-600"
                             title="Delete offer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1112,7 +1112,7 @@ if (authLoading) {
           <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200">
             <div>
               <h3 className="font-bold text-slate-900 text-sm">Partner Retailers</h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-600">
                 Configure supported ecommerce storefronts, base domains, and affiliate tracking tags.
               </p>
             </div>
@@ -1136,13 +1136,13 @@ if (authLoading) {
                     <h4 className="font-bold text-slate-900 text-base">{s.name}</h4>
                     <span
                       className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        s.active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'
+                        s.active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'
                       }`}
                     >
                       {s.active ? 'Active' : 'Disabled'}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">{s.websiteUrl}</p>
+                  <p className="text-xs text-slate-600 mt-1">{s.websiteUrl}</p>
                   <div className="mt-3 text-[11px] text-slate-600 space-y-1">
                     <div>
                       Tag Parameter: <code className="text-blue-600 font-mono">{s.affiliateParamKey}</code>
@@ -1160,7 +1160,7 @@ if (authLoading) {
                       setEditingStore({ ...s });
                       setIsStoreModalOpen(true);
                     }}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                    className="p-1.5 rounded-lg text-slate-600 hover:text-blue-600 hover:bg-blue-50"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
@@ -1176,14 +1176,14 @@ if (authLoading) {
         <div className="space-y-4">
           <div className="bg-white p-4 rounded-2xl border border-slate-200">
             <h3 className="font-bold text-slate-900 text-sm">Affiliate Outbound Referral Log</h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-600">
               Live tracking log of every user click on "Check Price" or "Go to Deal" across all stores.
             </p>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200">
+              <thead className="bg-slate-50 text-slate-600 uppercase tracking-wider font-semibold border-b border-slate-200">
                 <tr>
                   <th className="py-3.5 px-4">Product</th>
                   <th className="py-3.5 px-4">Merchant Store</th>
@@ -1199,7 +1199,7 @@ if (authLoading) {
                       <td className="py-3 px-4 font-bold text-slate-900">{click.productName}</td>
                       <td className="py-3 px-4 text-blue-600 font-semibold">{click.storeName}</td>
                       <td className="py-3 px-4 font-bold text-slate-900">{formatINR(click.price)}</td>
-                      <td className="py-3 px-4 text-slate-500">
+                      <td className="py-3 px-4 text-slate-600">
                         {new Date(click.timestamp).toLocaleString()}
                       </td>
                       <td className="py-3 px-4 text-right">
@@ -1207,7 +1207,7 @@ if (authLoading) {
                           href={click.affiliateUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-slate-400 hover:text-blue-600"
+                          className="inline-flex items-center gap-1 text-slate-600 hover:text-blue-600"
                         >
                           <span>Visit</span>
                           <ExternalLink className="w-3 h-3" />
@@ -1217,7 +1217,7 @@ if (authLoading) {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-slate-400">
+                    <td colSpan={5} className="py-8 text-center text-slate-600">
                       No clicks recorded yet.
                     </td>
                   </tr>
@@ -1230,7 +1230,7 @@ if (authLoading) {
 
       {/* MODAL: ADD / EDIT PRODUCT */}
       {isProductModalOpen && editingProduct && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 bg-slate-50/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl my-8">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <h3 className="font-bold text-slate-900 text-lg">
@@ -1238,7 +1238,7 @@ if (authLoading) {
               </h3>
               <button
                 onClick={() => setIsProductModalOpen(false)}
-                className="p-1 rounded-md text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-md text-slate-600 hover:text-slate-600"
               >
                 ✕
               </button>
@@ -1299,7 +1299,7 @@ if (authLoading) {
                     )}
                   </div>
                   {fetchResult && !fetchResult.success && (
-                    <div className="text-xs text-slate-500 mt-2">
+                    <div className="text-xs text-slate-600 mt-2">
                       Please verify/enter the information manually below.
                     </div>
                   )}
@@ -1567,13 +1567,13 @@ if (authLoading) {
 
       {/* MODAL: ADD / EDIT STORE OFFER */}
       {isOfferModalOpen && editingOffer && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-50/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="font-bold text-slate-900 text-base">Configure Store Price</h3>
               <button
                 onClick={() => setIsOfferModalOpen(false)}
-                className="p-1 rounded-md text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-md text-slate-600 hover:text-slate-600"
               >
                 ✕
               </button>
@@ -1672,13 +1672,13 @@ if (authLoading) {
 
       {/* MODAL: ADD / EDIT STORE */}
       {isStoreModalOpen && editingStore && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-50/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="font-bold text-slate-900 text-base">Store Settings</h3>
               <button
                 onClick={() => setIsStoreModalOpen(false)}
-                className="p-1 rounded-md text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-md text-slate-600 hover:text-slate-600"
               >
                 ✕
               </button>

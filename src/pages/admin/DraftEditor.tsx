@@ -693,7 +693,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
           {/* Direct Open Amazon action in top bar */}
           <OpenAmazonButton url={draft.productUrl} size="sm" />
 
-          <span className="text-xs font-semibold text-slate-500 hidden sm:inline">
+          <span className="text-xs font-semibold text-slate-600 hidden sm:inline">
             {saveStatus === 'saving' && 'Saving...'}
             {saveStatus === 'saved' && '✓ Saved'}
             {saveStatus === 'unsaved' && 'Unsaved changes'}
@@ -721,7 +721,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
       {/* Draft Header Metadata */}
       <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs flex flex-wrap gap-6 items-center">
         <div>
-          <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Added By</label>
+          <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1">Added By</label>
           <select 
             value={draft.addedByUserId || ''} 
             onChange={(e) => handleAddedByChange(e.target.value)}
@@ -734,7 +734,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
         </div>
 
         <div>
-          <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Status</label>
+          <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1">Status</label>
           <div className="font-bold text-xs text-slate-900 px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-200">
             {formatDraftStatus(derivedStatus)}
           </div>
@@ -742,7 +742,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
 
         <div className="flex-1 min-w-[200px]">
           <div className="flex items-center justify-between mb-1">
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Completion</label>
+            <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider">Completion</label>
             <span className="font-bold text-slate-900 text-xs">{completionPercent}%</span>
           </div>
           <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -776,7 +776,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
                   </span>
                 )}
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-600">
                 Auto-suggests Why Findora Picked It, Badges, Pros & Cons. Manual edits are always protected.
               </p>
             </div>
@@ -836,7 +836,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
           <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-5">
             <h3 className="font-bold text-slate-900 text-base border-b border-slate-100 pb-3 flex items-center justify-between">
               <span>Core Product Details</span>
-              <span className="text-xs font-normal text-slate-400">Step 1</span>
+              <span className="text-xs font-normal text-slate-600">Step 1</span>
             </h3>
             
             <div className="space-y-4">
@@ -892,7 +892,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
                   <span>Short Description *</span>
-                  <span className="text-[10px] text-slate-400 font-normal">Used by AI Copilot for context</span>
+                  <span className="text-[10px] text-slate-600 font-normal">Used by AI Copilot for context</span>
                 </label>
                 <textarea
                   value={draft.shortPitch || ''}
@@ -931,7 +931,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
                       {aiStatusMessage}
                     </span>
                   ) : (
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-slate-600">
                       Auto-generates content once Brand, Title, Category, and Short Description are entered.
                     </span>
                   )}
@@ -960,7 +960,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
                     Fast Track
                   </span>
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-600 mt-0.5">
                   Open the Amazon product page directly, generate your affiliate link, and paste below.
                 </p>
               </div>
@@ -1052,7 +1052,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
                     title="Test affiliate link in new tab"
                     className="px-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 flex items-center gap-1.5 shrink-0 transition-colors shadow-2xs"
                   >
-                    <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+                    <ExternalLink className="w-3.5 h-3.5 text-slate-600" />
                     Test Link
                   </a>
                 )}
@@ -1125,9 +1125,9 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
               <div>
                 <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
                   <span>Generated Content</span>
-                  <span className="text-xs font-normal text-slate-400">Step 3</span>
+                  <span className="text-xs font-normal text-slate-600">Step 3</span>
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-600 mt-0.5">
                   AI automatically prepares editorial highlights, buyer value points, and SEO metadata.
                 </p>
               </div>
@@ -1240,7 +1240,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
                     <button
                       type="button"
                       onClick={() => removePro(index)}
-                      className="p-1 text-slate-400 hover:text-red-500"
+                      className="p-1 text-slate-600 hover:text-red-500"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -1299,7 +1299,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
                     <button
                       type="button"
                       onClick={() => removeCon(index)}
-                      className="p-1 text-slate-400 hover:text-red-500"
+                      className="p-1 text-slate-600 hover:text-red-500"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -1340,7 +1340,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
                     </span>
                   ) : null}
                 </label>
-                <span className="text-[10px] text-slate-400 font-mono">{(draft.seoTitle || '').length}/60</span>
+                <span className="text-[10px] text-slate-600 font-mono">{(draft.seoTitle || '').length}/60</span>
               </div>
               <input
                 type="text"
@@ -1367,7 +1367,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
                     </span>
                   ) : null}
                 </label>
-                <span className="text-[10px] text-slate-400 font-mono">{(draft.seoDescription || '').length}/160</span>
+                <span className="text-[10px] text-slate-600 font-mono">{(draft.seoDescription || '').length}/160</span>
               </div>
               <textarea
                 value={draft.seoDescription || ''}
@@ -1405,7 +1405,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
                     <button
                       type="button"
                       onClick={() => removeTag(t)}
-                      className="text-slate-400 hover:text-slate-600 ml-0.5"
+                      className="text-slate-600 hover:text-slate-600 ml-0.5"
                     >
                       ✕
                     </button>
@@ -1465,7 +1465,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
                 return (
                   <li key={f.key} className="flex items-center gap-2">
                     {isMissing ? (
-                      <div className="w-4 h-4 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center shrink-0">
+                      <div className="w-4 h-4 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
                          <span className="text-[9px]">✕</span>
                       </div>
                     ) : (
@@ -1473,7 +1473,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
                         <Check className="w-2.5 h-2.5" />
                       </div>
                     )}
-                    <span className={isMissing ? 'text-slate-400' : 'text-slate-800 font-medium'}>
+                    <span className={isMissing ? 'text-slate-600' : 'text-slate-800 font-medium'}>
                       {f.label}
                     </span>
                   </li>
@@ -1495,13 +1495,13 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
 
             {/* Quick Amazon Link Card in Sidebar */}
             <div className="pt-3 border-t border-slate-100 space-y-2">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+              <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
                 Quick Action
               </span>
               <OpenAmazonButton url={draft.productUrl} size="md" className="w-full justify-center" />
             </div>
             
-            <div className="pt-2 text-[11px] text-slate-400 space-y-1">
+            <div className="pt-2 text-[11px] text-slate-600 space-y-1">
               <p>Draft ID: <span className="font-mono">{draft.id}</span></p>
               <p>Created: {new Date(draft.createdAt || Date.now()).toLocaleDateString()}</p>
               {draft.generatedAt && (
@@ -1514,7 +1514,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
 
       {/* Confirmation Modal when Manual Edits will be overwritten */}
       {isConfirmModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white/50 backdrop-blur-xs animate-in fade-in">
           <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 space-y-4">
             <div className="flex items-center gap-3 text-amber-600">
               <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center shrink-0">
@@ -1522,7 +1522,7 @@ export const DraftEditor: React.FC<{ draftId: string; onBack: () => void }> = ({
               </div>
               <div>
                 <h4 className="font-bold text-slate-900 text-base">Overwriting Manual Edits</h4>
-                <p className="text-xs text-slate-500">Some fields were customized by you</p>
+                <p className="text-xs text-slate-600">Some fields were customized by you</p>
               </div>
             </div>
 

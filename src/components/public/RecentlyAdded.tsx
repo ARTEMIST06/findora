@@ -21,20 +21,20 @@ export const RecentlyAdded: React.FC<RecentlyAddedProps> = ({ onNavigate }) => {
     <section className="py-8 max-w-7xl mx-auto px-4 sm:px-6">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
         <div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">
-            <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">
+            <Sparkles className="w-3.5 h-3.5 text-blue-600" />
             <span>Latest Arrivals</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Newly Discovered Products
           </h2>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-slate-600 mt-1">
             Freshly indexed prices and specs, with verified Amazon India offers.
           </p>
         </div>
         <button
           onClick={() => onNavigate('/products')}
-          className="text-xs sm:text-sm font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1 group self-start sm:self-auto"
+          className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-300 flex items-center gap-1 group self-start sm:self-auto"
         >
           <span>View all {products.length} products</span>
           <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />

@@ -185,11 +185,11 @@ export default function App() {
     // Fallback: 404
     return (
       <div className="max-w-lg mx-auto py-28 px-4 text-center">
-        <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+        <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-600">
           <span className="text-2xl font-bold">404</span>
         </div>
-        <h2 className="text-3xl font-extrabold text-white mb-3 tracking-tight">Page Not Found</h2>
-        <p className="text-sm text-slate-400 mb-8 max-w-sm mx-auto leading-relaxed">
+        <h2 className="text-3xl font-extrabold text-slate-900 mb-3 tracking-tight">Page Not Found</h2>
+        <p className="text-sm text-slate-600 mb-8 max-w-sm mx-auto leading-relaxed">
           The link or product you followed doesn't match an active page on Findora. Explore our live catalog or search on Amazon India.
         </p>
         <button
@@ -206,7 +206,7 @@ export default function App() {
     <HelmetProvider>
       <ToastProvider>
         <Analytics />
-        <div className="min-h-screen flex flex-col bg-[#070B14] bg-mesh-dark font-sans text-slate-100 antialiased selection:bg-blue-600 selection:text-white">
+        <div className="min-h-screen flex flex-col bg-slate-50 bg-mesh-dark font-sans text-slate-900 antialiased selection:bg-blue-600 selection:text-white">
           {/* Global Navigation Bar */}
           <Navbar currentRoute={currentPath} onNavigate={handleNavigate} />
 

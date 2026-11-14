@@ -30,24 +30,24 @@ export const DealsPage: React.FC<DealsPageProps> = ({ onNavigate }) => {
         ]}
       />
       {/* Header */}
-      <div className="pb-6 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="pb-6 border-b border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 uppercase tracking-widest mb-1.5 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
-            <Flame className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 uppercase tracking-widest mb-1.5 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+            <Flame className="w-3.5 h-3.5 fill-amber-400 text-amber-600" />
             <span>Biggest Discounts vs MRP</span>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mt-1">
+          <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-1">
             Top Deals & Maximum Savings
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-600 mt-1">
             Discounts are the gap between the stored Amazon India price and its MRP — nothing inflated, nothing invented.
           </p>
         </div>
 
         {/* Filter by discount tier */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400 font-medium hidden sm:inline">Discount:</span>
-          <div className="inline-flex rounded-full bg-[#0D1322] p-1 border border-slate-800">
+          <span className="text-xs text-slate-600 font-medium hidden sm:inline">Discount:</span>
+          <div className="inline-flex rounded-full bg-white p-1 border border-slate-200">
             {[5, 10, 15, 20].map((disc) => (
               <button
                 key={disc}
@@ -55,7 +55,7 @@ export const DealsPage: React.FC<DealsPageProps> = ({ onNavigate }) => {
                 className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   minDiscount === disc
                     ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
-                    : 'text-slate-400 hover:text-white'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 {disc}%+ Off
@@ -73,8 +73,8 @@ export const DealsPage: React.FC<DealsPageProps> = ({ onNavigate }) => {
           ))}
         </div>
       ) : (
-        <div className="text-center py-24 bg-[#0D1322]/80 rounded-3xl border border-slate-800/80 p-8 shadow-xl">
-          <p className="text-slate-400 text-sm">
+        <div className="text-center py-24 bg-white/80 rounded-3xl border border-slate-200/80 p-8 shadow-xl">
+          <p className="text-slate-600 text-sm">
             No deals found with {minDiscount}%+ discount right now.
           </p>
           <button

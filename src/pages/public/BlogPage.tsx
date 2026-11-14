@@ -60,8 +60,8 @@ export function BlogPage({ onNavigate }: { onNavigate: (path: string) => void })
   ];
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">
-      <h1 className="text-3xl font-extrabold text-white mb-2">Buying Guides &amp; Blog</h1>
-      <p className="text-slate-400 mb-8">
+      <h1 className="text-3xl font-extrabold text-slate-900 mb-2">Buying Guides &amp; Blog</h1>
+      <p className="text-slate-600 mb-8">
         Short, honest buying guides. New guides are added as the catalogue grows — nothing here is
         auto-generated filler.
       </p>
@@ -70,10 +70,10 @@ export function BlogPage({ onNavigate }: { onNavigate: (path: string) => void })
           <button
             key={g.title}
             onClick={() => onNavigate(g.path)}
-            className="text-left p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-indigo-400/50 transition-colors"
+            className="text-left p-5 rounded-2xl bg-slate-900/[0.03] border border-slate-200 hover:border-indigo-400/50 transition-colors"
           >
-            <h2 className="text-lg font-bold text-white mb-1">{g.title}</h2>
-            <p className="text-sm text-slate-400">{g.text}</p>
+            <h2 className="text-lg font-bold text-slate-900 mb-1">{g.title}</h2>
+            <p className="text-sm text-slate-600">{g.text}</p>
           </button>
         ))}
       </div>

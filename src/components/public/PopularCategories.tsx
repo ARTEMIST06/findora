@@ -28,10 +28,10 @@ export const PopularCategories: React.FC<PopularCategoriesProps> = ({ onNavigate
       <Reveal>
         <div className="flex items-end justify-between mb-3 px-1">
           <div>
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
               Shop by category
             </span>
-            <h2 className="text-lg sm:text-xl font-extrabold text-white tracking-tight">
+            <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
               {liveSynced
                 ? `${derived.length} categories · ${products.length} products`
                 : 'Loading the live catalogue…'}
@@ -39,7 +39,7 @@ export const PopularCategories: React.FC<PopularCategoriesProps> = ({ onNavigate
           </div>
           <button
             onClick={() => onNavigate('/categories')}
-            className="text-xs sm:text-sm font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1.5 transition-colors group shrink-0"
+            className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-300 flex items-center gap-1.5 transition-colors group shrink-0"
           >
             <span>View all</span>
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -58,15 +58,15 @@ export const PopularCategories: React.FC<PopularCategoriesProps> = ({ onNavigate
                   }}
                   className={`group flex flex-col items-center justify-center shrink-0 w-24 sm:w-28 py-3.5 px-2 rounded-2xl border transition-all duration-200 card-lift ${
                     isActive
-                      ? 'bg-blue-600/15 border-blue-500/60 shadow-lg shadow-blue-500/20 text-white'
-                      : 'bg-[#0D1322]/80 border-slate-800/80 hover:bg-[#131E35] hover:border-slate-700 text-slate-300 hover:text-white'
+                      ? 'bg-blue-600/15 border-blue-500/60 shadow-lg shadow-blue-500/20 text-blue-700'
+                      : 'bg-white/80 border-slate-200/80 hover:bg-slate-50 hover:border-slate-300 text-slate-700 hover:text-slate-900'
                   }`}
                 >
                   <div
                     className={`w-9 h-9 rounded-xl flex items-center justify-center mb-2 transition-transform duration-200 group-hover:scale-110 ${
                       isActive
                         ? 'bg-blue-500 text-white shadow-md shadow-blue-500/30'
-                        : 'bg-[#10172A] text-slate-400 group-hover:text-blue-400 border border-slate-800'
+                        : 'bg-[#10172A] text-slate-600 group-hover:text-blue-600 border border-slate-200'
                     }`}
                   >
                     <CategoryIcon categoryKey={cat.key} className="w-5 h-5" />
@@ -74,7 +74,7 @@ export const PopularCategories: React.FC<PopularCategoriesProps> = ({ onNavigate
                   <span className="text-xs font-semibold tracking-tight text-center truncate max-w-full">
                     {cat.name}
                   </span>
-                  <span className="text-[10px] text-slate-500 font-medium mt-0.5">
+                  <span className="text-[10px] text-slate-600 font-medium mt-0.5">
                     {cat.count} {cat.count === 1 ? 'item' : 'items'}
                   </span>
                 </button>
@@ -83,13 +83,13 @@ export const PopularCategories: React.FC<PopularCategoriesProps> = ({ onNavigate
             {/* More tile */}
             <button
               onClick={() => onNavigate('/categories')}
-              className="group flex flex-col items-center justify-center shrink-0 w-24 sm:w-28 py-3.5 px-2 rounded-2xl border border-dashed border-slate-700 hover:border-blue-500/50 bg-transparent text-slate-400 hover:text-white transition-all duration-200"
+              className="group flex flex-col items-center justify-center shrink-0 w-24 sm:w-28 py-3.5 px-2 rounded-2xl border border-dashed border-slate-300 hover:border-blue-500/50 bg-transparent text-slate-600 hover:text-slate-900 transition-all duration-200"
             >
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2 bg-[#10172A] border border-slate-800 group-hover:text-blue-400 transition-transform duration-200 group-hover:scale-110">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2 bg-[#10172A] border border-slate-200 group-hover:text-blue-600 transition-transform duration-200 group-hover:scale-110">
                 <MoreHorizontal className="w-5 h-5" />
               </div>
               <span className="text-xs font-semibold tracking-tight text-center">More</span>
-              <span className="text-[10px] text-slate-500 font-medium mt-0.5">
+              <span className="text-[10px] text-slate-600 font-medium mt-0.5">
                 all categories
               </span>
             </button>

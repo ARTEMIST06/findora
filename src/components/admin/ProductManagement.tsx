@@ -628,14 +628,14 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by title, brand, category, tags, or store (Amazon India)..."
-              className="w-full pl-9 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium"
+              className="w-full pl-9 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-600 outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium"
             />
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />
+            <Search className="w-4 h-4 text-slate-600 absolute left-3 top-3 pointer-events-none" />
             {searchQuery && (
               <button
                 id="clear-search-btn"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-3 p-0.5 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-200"
+                className="absolute right-3 top-3 p-0.5 text-slate-600 hover:text-slate-600 rounded-full hover:bg-slate-200"
                 title="Clear search"
               >
                 <X className="w-3.5 h-3.5" />
@@ -644,8 +644,8 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold shrink-0">
-              <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
+            <div className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold shrink-0">
+              <ArrowUpDown className="w-3.5 h-3.5 text-slate-600" />
               <span className="hidden sm:inline">Sort:</span>
             </div>
             <select
@@ -665,7 +665,7 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
 
         {/* Row 2: Specific Filters */}
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 text-xs">
-          <div className="flex items-center gap-1 text-slate-400 font-bold text-[11px] uppercase tracking-wider mr-1 shrink-0">
+          <div className="flex items-center gap-1 text-slate-600 font-bold text-[11px] uppercase tracking-wider mr-1 shrink-0">
             <SlidersHorizontal className="w-3 h-3" />
             <span>Filters:</span>
           </div>
@@ -778,7 +778,7 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
       </div>
 
       {/* 4. RESULTS SUMMARY & ACTIVE CHIPS */}
-      <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-slate-500">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-slate-600">
         <div>
           Showing{' '}
           <strong className="text-slate-900 font-bold">
@@ -786,7 +786,7 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
           </strong>{' '}
           of <strong className="text-slate-900 font-bold">{unifiedItems.length}</strong> products
           {activeStatusTab !== 'all' && (
-            <span className="ml-1 text-slate-400">
+            <span className="ml-1 text-slate-600">
               (in <span className="capitalize font-semibold text-slate-600">{activeStatusTab}</span>)
             </span>
           )}
@@ -794,7 +794,7 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
 
         {hasActiveFilters && (
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[11px] font-semibold text-slate-400">Active filters:</span>
+            <span className="text-[11px] font-semibold text-slate-600">Active filters:</span>
             {searchQuery && (
               <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-800 px-2 py-0.5 rounded-md text-[11px] font-medium">
                 Search: "{searchQuery}"
@@ -851,7 +851,7 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
       <div className="hidden md:block bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs" id="products-table">
-            <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200 uppercase tracking-wider">
+            <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200 uppercase tracking-wider">
               <tr>
                 <th className="py-3.5 px-4 font-bold text-slate-600">Product</th>
                 <th className="py-3.5 px-3 font-bold text-slate-600">Category</th>
@@ -881,7 +881,7 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
                             loading="lazy"
                           />
                         ) : (
-                          <ImageIcon className="w-5 h-5 text-slate-300" />
+                          <ImageIcon className="w-5 h-5 text-slate-700" />
                         )}
                       </div>
                       <div className="min-w-0">
@@ -895,7 +895,7 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
+                        <div className="flex items-center gap-2 text-[11px] text-slate-600 mt-0.5">
                           <span className="font-semibold text-slate-600">{item.brand}</span>
                           {item.lowestPrice ? (
                             <>
@@ -1006,7 +1006,7 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
                   </td>
 
                   {/* Column 6: Updated */}
-                  <td className="py-3.5 px-3 text-slate-500 text-[11px] whitespace-nowrap">
+                  <td className="py-3.5 px-3 text-slate-600 text-[11px] whitespace-nowrap">
                     {formatDate(item.updatedAt || item.createdAt)}
                   </td>
 
@@ -1063,7 +1063,7 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
                         <button
                           id={`btn-view-${item.id}`}
                           onClick={() => onNavigate(`/product/${item.slug}`)}
-                          className="p-1.5 text-slate-400 hover:text-blue-600 rounded-lg hover:bg-slate-100 transition-colors"
+                          className="p-1.5 text-slate-600 hover:text-blue-600 rounded-lg hover:bg-slate-100 transition-colors"
                           title="View live product"
                         >
                           <Eye className="w-3.5 h-3.5" />
@@ -1075,7 +1075,7 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
                         <button
                           id={`btn-add-offer-${item.id}`}
                           onClick={() => onOpenAddOffer(item.id)}
-                          className="p-1.5 text-slate-400 hover:text-emerald-600 rounded-lg hover:bg-slate-100 transition-colors"
+                          className="p-1.5 text-slate-600 hover:text-emerald-600 rounded-lg hover:bg-slate-100 transition-colors"
                           title="Add / manage store offers"
                         >
                           <Plus className="w-3.5 h-3.5" />
@@ -1086,7 +1086,7 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
                       <button
                         id={`btn-delete-${item.id}`}
                         onClick={() => handleDeleteItem(item)}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+                        className="p-1.5 text-slate-600 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
                         title="Delete product"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -1118,16 +1118,16 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
                     className="w-full h-full object-contain"
                   />
                 ) : (
-                  <ImageIcon className="w-6 h-6 text-slate-300" />
+                  <ImageIcon className="w-6 h-6 text-slate-700" />
                 )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
                     {item.brand}
                   </span>
-                  <span className="text-slate-300">•</span>
-                  <span className="text-[10px] text-slate-500 capitalize">
+                  <span className="text-slate-700">•</span>
+                  <span className="text-[10px] text-slate-600 capitalize">
                     {item.category}
                   </span>
                 </div>
@@ -1189,7 +1189,7 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
 
             {/* Mobile Actions Toolbar */}
             <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
-              <span className="text-[11px] text-slate-400">
+              <span className="text-[11px] text-slate-600">
                 Updated {formatDate(item.updatedAt || item.createdAt)}
               </span>
 
@@ -1232,7 +1232,7 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
                 {!item.isDraft && item.slug && item.status === 'published' && (
                   <button
                     onClick={() => onNavigate(`/product/${item.slug}`)}
-                    className="p-1.5 text-slate-500 hover:text-blue-600 rounded-lg hover:bg-slate-100"
+                    className="p-1.5 text-slate-600 hover:text-blue-600 rounded-lg hover:bg-slate-100"
                     title="View live"
                   >
                     <Eye className="w-4 h-4" />
@@ -1241,7 +1241,7 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
 
                 <button
                   onClick={() => handleDeleteItem(item)}
-                  className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50"
+                  className="p-1.5 text-slate-600 hover:text-rose-600 rounded-lg hover:bg-rose-50"
                   title="Delete"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -1258,7 +1258,7 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
           id="product-empty-state"
           className="bg-white rounded-2xl border border-slate-200/90 p-10 text-center space-y-4 shadow-2xs"
         >
-          <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+          <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-600 flex items-center justify-center mx-auto">
             <PackageSearch className="w-7 h-7" />
           </div>
 
@@ -1274,7 +1274,7 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
                 ? 'No published products yet'
                 : 'No products in catalog yet'}
             </h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <p className="text-xs text-slate-600 leading-relaxed">
               {hasActiveFilters
                 ? 'Try adjusting your search terms, changing categories, or clearing active filters.'
                 : activeStatusTab === 'draft'

@@ -23,20 +23,20 @@ export const BestDealsSection: React.FC<BestDealsSectionProps> = ({ onNavigate }
     <section className="py-8 max-w-7xl mx-auto px-4 sm:px-6">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
         <div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 uppercase tracking-widest mb-1 px-3 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
-            <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 uppercase tracking-widest mb-1 px-3 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+            <Flame className="w-3.5 h-3.5 text-amber-600 fill-amber-400" />
             <span>Aggressive Discounts</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-1">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
             Prices Worth Checking Today
           </h2>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-slate-600 mt-1">
             Biggest savings vs MRP on Amazon India — the discount is the gap between the stored price and its MRP.
           </p>
         </div>
         <button
           onClick={() => onNavigate('/deals')}
-          className="text-xs sm:text-sm font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1 group self-start sm:self-auto"
+          className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-300 flex items-center gap-1 group self-start sm:self-auto"
         >
           <span>Explore all deals</span>
           <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />

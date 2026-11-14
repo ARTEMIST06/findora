@@ -147,7 +147,7 @@ export const Logo: React.FC<LogoProps> = ({
         <div className="flex items-center tracking-tight leading-none">
           <span
             className={`font-extrabold tracking-tight ${textSizes[size]} ${
-              isDark ? 'text-[#0B132B]' : 'text-white'
+              isDark ? 'text-[#0B132B]' : 'text-slate-900'
             }`}
           >
             Find
@@ -162,14 +162,14 @@ export const Logo: React.FC<LogoProps> = ({
           </span>
           <span
             className={`font-extrabold tracking-tight ${textSizes[size]} ${
-              isDark ? 'text-[#0B132B]' : 'text-white'
+              isDark ? 'text-[#0B132B]' : 'text-slate-900'
             }`}
           >
             ra
           </span>
           <span
             className={`font-semibold ml-0.5 self-start text-[10px] ${
-              isDark ? 'text-blue-600' : 'text-blue-400'
+              isDark ? 'text-blue-600' : 'text-blue-600'
             }`}
           >
             ™
@@ -179,7 +179,7 @@ export const Logo: React.FC<LogoProps> = ({
         {showTagline && (
           <span
             className={`hidden sm:block font-medium tracking-wide mt-0.5 ${taglineSizes[size]} ${
-              isDark ? 'text-slate-600' : 'text-slate-400'
+              isDark ? 'text-slate-600' : 'text-slate-600'
             }`}
           >
             Find it. Compare it. Buy smarter.

@@ -59,11 +59,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
   return (
     <div
       onClick={() => onNavigate(`/product/${product.slug}`)}
-      className="group relative bg-[#0D1322]/90 hover:bg-[#121B30] rounded-2xl border border-slate-800/80 hover:border-blue-500/50 shadow-xl hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 flex flex-col overflow-hidden cursor-pointer backdrop-blur-sm card-lift"
+      className="group relative bg-white/90 hover:bg-[#121B30] rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-xl hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 flex flex-col overflow-hidden cursor-pointer backdrop-blur-sm card-lift"
       id={`product-card-${product.id}`}
     >
       {/* Top Image Stage */}
-      <div className="relative aspect-square w-full bg-[#080D1A] p-5 flex items-center justify-center overflow-hidden border-b border-slate-800/60">
+      <div className="relative aspect-square w-full bg-[#080D1A] p-5 flex items-center justify-center overflow-hidden border-b border-slate-200/60">
         {/* Ambient Backlight Glow */}
         <div className="absolute inset-0 product-backdrop-glow pointer-events-none"></div>
 
@@ -93,7 +93,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
             onClick={handleWishlistToggle}
             className={`p-2 rounded-full transition-all shadow-md backdrop-blur-md ${
               isWishlisted
-                ? 'bg-rose-500/30 text-rose-400 border border-rose-500/60'
+                ? 'bg-rose-500/30 text-rose-600 border border-rose-500/60'
                 : 'bg-black/40 text-slate-300 hover:text-rose-400 hover:bg-black/70 border border-white/10 opacity-80 group-hover:opacity-100'
             }`}
             title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
@@ -106,7 +106,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
             onClick={handleCompareToggle}
             className={`p-2 rounded-full transition-all shadow-md backdrop-blur-md ${
               isCompared
-                ? 'bg-blue-500/30 text-blue-400 border border-blue-500/60'
+                ? 'bg-blue-500/30 text-blue-600 border border-blue-500/60'
                 : 'bg-black/40 text-slate-300 hover:text-blue-400 hover:bg-black/70 border border-white/10 opacity-80 group-hover:opacity-100'
             }`}
             title={isCompared ? 'Remove from compare' : 'Add to compare'}
@@ -127,34 +127,34 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
       </div>
 
       {/* Content Body */}
-      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between bg-[#0D1322]/80">
+      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between bg-white/80">
         <div>
           {/* Brand row — ratings are NOT shown: stored ratings are unverified,
               so Findora never presents a star score it cannot stand behind. */}
           <div className="flex items-center justify-between gap-2 mb-2 text-[11px]">
-            <span className="font-bold text-slate-400 uppercase tracking-wider">{product.brand}</span>
-            <span className="text-slate-500 font-medium capitalize truncate">{product.category}</span>
+            <span className="font-bold text-slate-600 uppercase tracking-wider">{product.brand}</span>
+            <span className="text-slate-600 font-medium capitalize truncate">{product.category}</span>
           </div>
 
           {/* Product Title */}
-          <h3 className="font-semibold text-slate-100 text-sm leading-snug line-clamp-2 group-hover:text-blue-400 transition-colors">
+          <h3 className="font-semibold text-slate-900 text-sm leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors">
             {product.name}
           </h3>
         </div>
 
         {/* Price Block & Store availability */}
-        <div className="pt-3.5 mt-3 border-t border-slate-800/80 flex flex-col gap-3">
+        <div className="pt-3.5 mt-3 border-t border-slate-200/80 flex flex-col gap-3">
           <div className="flex items-baseline justify-between gap-2">
             <div>
-              <span className="text-[10px] text-slate-400 block font-medium uppercase tracking-wider mb-0.5">
+              <span className="text-[10px] text-slate-600 block font-medium uppercase tracking-wider mb-0.5">
                 Price on Amazon
               </span>
               <div className="flex items-baseline gap-2">
-                <span className="text-lg font-extrabold text-white tracking-tight">
-                  {product.lowestPrice ? formatINR(product.lowestPrice) : <span className="text-sm text-slate-400">Check Price</span>}
+                <span className="text-lg font-extrabold text-slate-900 tracking-tight">
+                  {product.lowestPrice ? formatINR(product.lowestPrice) : <span className="text-sm text-slate-600">Check Price</span>}
                 </span>
                 {product.offers[0]?.originalPrice && product.offers[0].originalPrice > (product.lowestPrice || 0) && (
-                  <span className="text-xs text-slate-500 line-through font-medium">
+                  <span className="text-xs text-slate-600 line-through font-medium">
                     {formatINR(product.offers[0].originalPrice)}
                   </span>
                 )}
@@ -163,9 +163,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
 
             {product.bestStore && (
               <div className="text-right">
-                <span className="text-[10px] text-slate-500 block uppercase tracking-wider mb-0.5">Best at</span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-300 bg-[#070B14] px-2 py-0.5 rounded-md border border-slate-800 shadow-sm">
-                  <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                <span className="text-[10px] text-slate-600 block uppercase tracking-wider mb-0.5">Best at</span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 shadow-sm">
+                  <ShieldCheck className="w-3 h-3 text-emerald-600" />
                   {product.bestStore.name.replace(' India', '')}
                 </span>
               </div>
@@ -174,9 +174,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
 
           {/* Store Availability — Findora lists Amazon India only. */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[10px] text-slate-500 uppercase tracking-wider">Available on:</span>
+            <span className="text-[10px] text-slate-600 uppercase tracking-wider">Available on:</span>
             <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">
-              <ShieldCheck className="w-3 h-3 text-emerald-400" />
+              <ShieldCheck className="w-3 h-3 text-emerald-600" />
               Amazon India
             </span>
           </div>
@@ -222,7 +222,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
                   e.stopPropagation();
                   showToast('Price link unavailable', 'info');
                 }}
-                className="w-full py-2 px-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-400 text-xs font-medium transition-all flex items-center justify-center gap-1 border border-slate-700/60"
+                className="w-full py-2 px-2 rounded-xl bg-slate-100/80 hover:bg-slate-100 text-slate-600 text-xs font-medium transition-all flex items-center justify-center gap-1 border border-slate-300/60"
                 title="Price link unavailable"
               >
                 <span className="truncate">Price unavailable</span>

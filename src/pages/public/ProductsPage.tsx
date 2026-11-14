@@ -201,18 +201,18 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
       />
       
       {/* Header with Title & Sort */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800/80">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200/80">
         <div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-400 uppercase tracking-widest mb-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 uppercase tracking-widest mb-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-cyan-600" />
             <span>Product Catalog</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             {pageTitle}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-600 mt-1">
             {liveSynced ? (
-              <>Showing <strong className="text-white font-bold">{filteredProducts.length}</strong> verified products on Amazon India</>
+              <>Showing <strong className="text-slate-900 font-bold">{filteredProducts.length}</strong> verified products on Amazon India</>
             ) : (
               'Loading the live catalogue…'
             )}
@@ -223,9 +223,9 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
           {/* Mobile Filter Toggle */}
           <button
             onClick={() => setIsMobileFilterOpen(true)}
-            className="lg:hidden px-3.5 py-2 rounded-full border border-slate-700 text-xs font-semibold text-slate-200 bg-[#0D1322] hover:bg-slate-800 flex items-center gap-2 shadow-sm"
+            className="lg:hidden px-3.5 py-2 rounded-full border border-slate-300 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 flex items-center gap-2 shadow-sm"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-blue-400" />
+            <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600" />
             <span>Filters</span>
             {activeFilterCount > 0 && (
               <span className="bg-blue-600 text-white rounded-full px-1.5 py-0.2 text-[10px] font-bold">
@@ -236,12 +236,12 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
 
           {/* Sort Dropdown */}
           <div className="flex items-center gap-2 text-xs">
-            <span className="text-slate-400 hidden sm:inline font-medium">Sort by:</span>
+            <span className="text-slate-600 hidden sm:inline font-medium">Sort by:</span>
             <div className="relative">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="appearance-none bg-[#0D1322] border border-slate-700/80 rounded-full px-3.5 py-2 pr-8 text-xs font-semibold text-slate-200 outline-none focus:border-blue-500 cursor-pointer shadow-md"
+                className="appearance-none bg-white border border-slate-300/80 rounded-full px-3.5 py-2 pr-8 text-xs font-semibold text-slate-700 outline-none focus:border-blue-500 cursor-pointer shadow-md"
               >
                 <option value="relevance">Featured & Relevant</option>
                 <option value="price_asc">Lowest Price First</option>
@@ -249,7 +249,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
                 <option value="discount">Biggest Discount (%)</option>
                 <option value="newest">Newly Listed</option>
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate-600 absolute right-2.5 top-2.5 pointer-events-none" />
             </div>
           </div>
         </div>
@@ -258,10 +258,10 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
       {/* Main Grid: Sidebar Filters + Products */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 pt-6">
         {/* Desktop Sidebar Filters */}
-        <aside className="hidden lg:block space-y-6 bg-[#0D1322]/80 border border-slate-800/80 rounded-3xl p-5 backdrop-blur-md h-fit sticky top-24 shadow-xl">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-            <div className="flex items-center gap-2 text-sm font-bold text-white">
-              <Filter className="w-4 h-4 text-blue-400" />
+        <aside className="hidden lg:block space-y-6 bg-white/80 border border-slate-200/80 rounded-3xl p-5 backdrop-blur-md h-fit sticky top-24 shadow-xl">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+            <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
+              <Filter className="w-4 h-4 text-blue-600" />
               <span>Filters</span>
               {activeFilterCount > 0 && (
                 <span className="bg-blue-600/30 text-blue-300 border border-blue-500/30 px-2 py-0.2 rounded-full text-xs font-semibold">
@@ -272,7 +272,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
             {activeFilterCount > 0 && (
               <button
                 onClick={handleClearFilters}
-                className="text-xs text-rose-400 hover:text-rose-300 font-semibold"
+                className="text-xs text-rose-600 hover:text-rose-300 font-semibold"
               >
                 Clear all
               </button>
@@ -281,7 +281,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
 
           {/* Search Filter */}
           <div className="space-y-2">
-            <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
+            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
               Search Keyword
             </label>
             <div className="relative">
@@ -292,13 +292,13 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
                 placeholder="Filter by keyword..."
                 className="w-full pl-8 pr-3 py-2 text-xs bg-[#070B14] border border-slate-700/80 rounded-full text-white placeholder-slate-500 outline-none focus:border-blue-500"
               />
-              <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
+              <Search className="w-3.5 h-3.5 text-slate-600 absolute left-3 top-2.5" />
             </div>
           </div>
 
           {/* Categories Filter */}
           <div className="space-y-2">
-            <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
+            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
               Category
             </label>
             <div className="space-y-1 text-xs">
@@ -311,7 +311,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
                 }`}
               >
                 <span>All Categories</span>
-                <span className="text-[10px] text-slate-500">{allProducts.length}</span>
+                <span className="text-[10px] text-slate-600">{allProducts.length}</span>
               </button>
               {categories.map((c) => {
                 const count = c.count;
@@ -326,7 +326,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
                     }`}
                   >
                     <span>{c.name}</span>
-                    <span className="text-[10px] text-slate-500">{count}</span>
+                    <span className="text-[10px] text-slate-600">{count}</span>
                   </button>
                 );
               })}
@@ -334,21 +334,21 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
           </div>
 
           {/* Brands Filter */}
-          <div className="space-y-2 pt-3 border-t border-slate-800">
-            <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
+          <div className="space-y-2 pt-3 border-t border-slate-200">
+            <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
               Brand
             </label>
             <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1 scrollbar-thin">
               {allBrands.map((brand) => (
                 <label
                   key={brand}
-                  className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer hover:text-white"
+                  className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer hover:text-slate-900"
                 >
                   <input
                     type="checkbox"
                     checked={selectedBrands.includes(brand)}
                     onChange={() => toggleBrand(brand)}
-                    className="rounded bg-[#070B14] border-slate-700 text-blue-600 focus:ring-blue-500/30"
+                    className="rounded bg-white border-slate-300 text-blue-600 focus:ring-blue-500/30"
                   />
                   <span>{brand}</span>
                 </label>
@@ -357,10 +357,10 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
           </div>
 
           {/* Max Price Range Slider */}
-          <div className="space-y-2 pt-3 border-t border-slate-800">
+          <div className="space-y-2 pt-3 border-t border-slate-200">
             <div className="flex justify-between text-xs">
-              <span className="font-bold text-slate-300 uppercase tracking-wider">Max Price</span>
-              <span className="font-bold text-blue-400">
+              <span className="font-bold text-slate-700 uppercase tracking-wider">Max Price</span>
+              <span className="font-bold text-blue-600">
                 {maxPrice >= 300000 ? 'Any Price' : `₹${maxPrice.toLocaleString('en-IN')}`}
               </span>
             </div>
@@ -373,7 +373,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
               onChange={(e) => setMaxPrice(Number(e.target.value))}
               className="w-full accent-blue-500"
             />
-            <div className="flex justify-between text-[10px] text-slate-500">
+            <div className="flex justify-between text-[10px] text-slate-600">
               <span>₹10,000</span>
               <span>₹3,00,000+</span>
             </div>
@@ -384,13 +384,13 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
         <div className="lg:col-span-3">
           {/* Active filter pills */}
           {activeFilterCount > 0 && (
-            <div className="flex flex-wrap items-center gap-2 mb-6 p-3 bg-[#0D1322] rounded-2xl border border-slate-800">
-              <span className="text-xs text-slate-400 font-medium">Active:</span>
+            <div className="flex flex-wrap items-center gap-2 mb-6 p-3 bg-white rounded-2xl border border-slate-200">
+              <span className="text-xs text-slate-600 font-medium">Active:</span>
               {selectedCategory !== 'all' && (
                 <span className="inline-flex items-center gap-1.5 text-xs bg-blue-500/10 border border-blue-500/30 text-blue-300 px-2.5 py-1 rounded-full">
                   Category: {categoryNameForSlug(allProducts, selectedCategory)}
                   <button onClick={() => setSelectedCategory('all')}>
-                    <X className="w-3 h-3 text-blue-400 hover:text-white" />
+                    <X className="w-3 h-3 text-blue-600 hover:text-slate-900" />
                   </button>
                 </span>
               )}
@@ -401,7 +401,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
                 >
                   {b}
                   <button onClick={() => toggleBrand(b)}>
-                    <X className="w-3 h-3 text-blue-400 hover:text-white" />
+                    <X className="w-3 h-3 text-blue-600 hover:text-slate-900" />
                   </button>
                 </span>
               ))}
@@ -409,13 +409,13 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
                 <span className="inline-flex items-center gap-1.5 text-xs bg-blue-500/10 border border-blue-500/30 text-blue-300 px-2.5 py-1 rounded-full">
                   Under ₹{maxPrice.toLocaleString('en-IN')}
                   <button onClick={() => setMaxPrice(300000)}>
-                    <X className="w-3 h-3 text-blue-400 hover:text-white" />
+                    <X className="w-3 h-3 text-blue-600 hover:text-slate-900" />
                   </button>
                 </span>
               )}
               <button
                 onClick={handleClearFilters}
-                className="text-xs text-rose-400 hover:text-rose-300 font-semibold ml-auto"
+                className="text-xs text-rose-600 hover:text-rose-300 font-semibold ml-auto"
               >
                 Reset All
               </button>
@@ -426,11 +426,11 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
           {!liveSynced ? (
             <div>
               <div className="text-center py-10 px-4">
-                <p className="text-sm text-slate-400">Loading the live catalogue…</p>
+                <p className="text-sm text-slate-600">Loading the live catalogue…</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5" aria-hidden="true">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="rounded-3xl border border-slate-800 bg-[#0D1322] h-80 animate-pulse" />
+                  <div key={i} className="rounded-3xl border border-slate-200 bg-white h-80 animate-pulse" />
                 ))}
               </div>
             </div>
@@ -441,12 +441,12 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
               ))}
             </div>
           ) : (
-            <div className="text-center py-20 px-4 bg-[#0D1322] rounded-3xl border border-slate-800">
-              <div className="w-16 h-16 rounded-2xl bg-slate-800/80 flex items-center justify-center mx-auto mb-4 text-slate-400 border border-slate-700">
+            <div className="text-center py-20 px-4 bg-white rounded-3xl border border-slate-200">
+              <div className="w-16 h-16 rounded-2xl bg-slate-100/80 flex items-center justify-center mx-auto mb-4 text-slate-600 border border-slate-300">
                 <Search className="w-7 h-7" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">No products match your filters</h3>
-              <p className="text-sm text-slate-400 max-w-sm mx-auto mb-6">
+              <h3 className="text-xl font-bold text-slate-900 mb-2">No products match your filters</h3>
+              <p className="text-sm text-slate-600 max-w-sm mx-auto mb-6">
                 Try widening your price range or clearing brand selections.
               </p>
               <button

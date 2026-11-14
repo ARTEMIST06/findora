@@ -181,7 +181,7 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
           {label} {required && <span className="text-rose-500">*</span>}
         </label>
         {imageUrl && (
-          <span className="text-[11px] text-slate-400 font-medium truncate max-w-[200px]" title={imageUrl}>
+          <span className="text-[11px] text-slate-600 font-medium truncate max-w-[200px]" title={imageUrl}>
             {(() => {
               try {
                 return new URL(imageUrl).hostname;
@@ -202,7 +202,7 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
               {/* Loading State Spinner */}
               {isLoading && !hasError && (
                 <div className="absolute inset-0 bg-slate-50 flex items-center justify-center z-10">
-                  <Loader2 className="w-6 h-6 text-slate-400 animate-spin" />
+                  <Loader2 className="w-6 h-6 text-slate-600 animate-spin" />
                 </div>
               )}
 
@@ -211,7 +211,7 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
                 <div className="flex flex-col items-center justify-center text-center p-2">
                   <ImageOff className="w-8 h-8 text-amber-500 mb-1" />
                   <span className="text-[10px] font-bold text-amber-700 leading-tight">Image load failed</span>
-                  <span className="text-[9px] text-slate-400">Broken URL</span>
+                  <span className="text-[9px] text-slate-600">Broken URL</span>
                 </div>
               ) : (
                 <img
@@ -242,7 +242,7 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
                     {hasError ? 'Broken Image URL' : 'Image Configured'}
                   </span>
                 </div>
-                <p className="text-xs font-mono text-slate-500 break-all line-clamp-2 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                <p className="text-xs font-mono text-slate-600 break-all line-clamp-2 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
                   {imageUrl}
                 </p>
               </div>
@@ -276,7 +276,7 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
                     href={imageUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+                    className="p-1.5 text-slate-600 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
                     title="Open original image in new tab"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -294,11 +294,11 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
             disabled ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         >
-          <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 shadow-2xs flex items-center justify-center text-slate-400 group-hover:text-blue-600 group-hover:scale-105 transition-all mb-2">
+          <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 shadow-2xs flex items-center justify-center text-slate-600 group-hover:text-blue-600 group-hover:scale-105 transition-all mb-2">
             <ImageIcon className="w-6 h-6" />
           </div>
           <h4 className="text-xs font-bold text-slate-800 mb-0.5">No Product Image Added</h4>
-          <p className="text-[11px] text-slate-500 max-w-xs mb-3">
+          <p className="text-[11px] text-slate-600 max-w-xs mb-3">
             Add an image URL from Amazon, brand website, or CDN.
           </p>
           <button
@@ -312,12 +312,12 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
       )}
 
       {helperText && (
-        <p className="text-[11px] text-slate-400">{helperText}</p>
+        <p className="text-[11px] text-slate-600">{helperText}</p>
       )}
 
       {/* Change / Replace Image Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
           <div 
             className="bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-6 shadow-2xl space-y-5"
             onClick={(e) => e.stopPropagation()}
@@ -326,12 +326,12 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="text-base font-bold text-slate-900">Manage Product Image</h3>
-                <p className="text-xs text-slate-500">Provide an image URL or upload an asset</p>
+                <p className="text-xs text-slate-600">Provide an image URL or upload an asset</p>
               </div>
               <button
                 type="button"
                 onClick={handleCloseModal}
-                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
+                className="p-1.5 text-slate-600 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -343,7 +343,7 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
                 type="button"
                 onClick={() => { setActiveTab('url'); setUploadError(null); }}
                 className={`flex-1 py-1.5 rounded-lg transition-all ${
-                  activeTab === 'url' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                  activeTab === 'url' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-800'
                 }`}
               >
                 Image URL (Recommended)
@@ -352,7 +352,7 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
                 type="button"
                 onClick={() => { setActiveTab('upload'); setUrlValidationError(null); }}
                 className={`flex-1 py-1.5 rounded-lg transition-all ${
-                  activeTab === 'upload' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                  activeTab === 'upload' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-800'
                 }`}
               >
                 Upload File
@@ -383,7 +383,7 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
                       {urlValidationError}
                     </p>
                   )}
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-slate-600">
                     Supports high-resolution product URLs from Amazon, brand stores, and CDNs.
                   </p>
                 </div>
@@ -399,7 +399,7 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
                     />
                     <div className="text-xs text-slate-600 truncate">
                       <span className="font-semibold block text-slate-900">Valid URL Format</span>
-                      <span className="text-[11px] text-slate-400 truncate">{urlInput.trim()}</span>
+                      <span className="text-[11px] text-slate-600 truncate">{urlInput.trim()}</span>
                     </div>
                   </div>
                 )}
@@ -437,7 +437,7 @@ export const ProductImageManager: React.FC<ProductImageManagerProps> = ({
                     onChange={handleFileSelection}
                     className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-slate-200 rounded-xl p-1 cursor-pointer"
                   />
-                  <div className="text-[11px] text-slate-400 space-y-0.5">
+                  <div className="text-[11px] text-slate-600 space-y-0.5">
                     <p>Supported: JPEG, PNG, WEBP, GIF (Max 5MB)</p>
                     <p>Images are securely hosted on cloud storage without bloating database records.</p>
                   </div>
