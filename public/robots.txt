@@ -22,4 +22,4 @@ Disallow: /compare
 Disallow: /profile
 Disallow: /api/
 
-Sitemap: https://findora.in/sitemap.xml
+Sitemap: https://findora-one.vercel.app/sitemap.xml

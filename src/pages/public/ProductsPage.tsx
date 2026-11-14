@@ -17,6 +17,11 @@ import {
   productMatchesCategory,
   categoryNameForSlug,
 } from '../../utils/categories';
+import {
+  matchesSearchQuery,
+  searchRelevance,
+  productSearchHaystack,
+} from '../../utils/search';
 
 interface ProductsPageProps {
   onNavigate: (route: string) => void;
@@ -76,15 +81,11 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
   const filteredProducts = useMemo(() => {
     return allProducts
       .filter((product) => {
-        // Query filter
+        // Query filter — word-level matching (see utils/search): every word
+        // of the query must appear in the name/brand/category/tags, so
+        // "Solimo Planter" finds "Solimo Flower Planter ...".
         if (searchQuery.trim()) {
-          const q = searchQuery.toLowerCase();
-          const matches =
-            product.name.toLowerCase().includes(q) ||
-            product.brand.toLowerCase().includes(q) ||
-            product.category.toLowerCase().includes(q) ||
-            product.tags.some((t) => t.toLowerCase().includes(q));
-          if (!matches) return false;
+          if (!matchesSearchQuery(productSearchHaystack(product), searchQuery)) return false;
         }
 
         // Category filter (normalised: stored strings like "Home & Kitchen"
@@ -118,6 +119,14 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
         if (sortBy === 'newest') {
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         }
+        // Default ('relevance'): with a search query, exact-phrase matches
+        // first, then name-leading matches, then all-words matches.
+        if (searchQuery.trim()) {
+          const rel =
+            searchRelevance(productSearchHaystack(b), searchQuery) -
+            searchRelevance(productSearchHaystack(a), searchQuery);
+          if (rel !== 0) return rel;
+        }
         return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
       });
   }, [
@@ -128,6 +137,16 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
     maxPrice,
     sortBy,
   ]);
+
+  // Picks shown when a search returns nothing — newest published products,
+  // so the page never ends in a dead end.
+  const popularPicks = useMemo(
+    () =>
+      [...allProducts]
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+        .slice(0, 8),
+    [allProducts]
+  );
 
   // Track category view
   React.useEffect(() => {
@@ -447,14 +466,39 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-2">No products match your filters</h3>
               <p className="text-sm text-slate-600 max-w-sm mx-auto mb-6">
-                Try widening your price range or clearing brand selections.
+                {searchQuery.trim()
+                  ? `Nothing matched "${searchQuery.trim()}". Try one of these instead, or clear your filters.`
+                  : 'Try widening your price range or clearing brand selections.'}
               </p>
+              {searchQuery.trim() && (
+                <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
+                  {['earbuds', 'power bank', 'smartwatch', 'kurta', 'air fryer'].map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setSearchQuery(s)}
+                      className="px-3.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-xs font-semibold text-slate-700 transition-colors"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
               <button
                 onClick={handleClearFilters}
                 className="px-6 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-lg shadow-indigo-500/20"
               >
                 Clear all filters
               </button>
+              {searchQuery.trim() && popularPicks.length > 0 && (
+                <div className="mt-12 text-left">
+                  <h4 className="text-sm font-bold text-slate-900 mb-4 text-center">Browse these instead</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+                    {popularPicks.map((product) => (
+                      <ProductCard key={product.id} product={product} onNavigate={onNavigate} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
