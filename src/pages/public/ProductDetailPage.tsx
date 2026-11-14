@@ -381,6 +381,16 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                       )}
                     </p>
                   )}
+
+                  {/* Price freshness — stored snapshots, not live prices, so
+                      the check date is shown and the buyer is told to verify
+                      on Amazon. */}
+                  {bestOffer?.lastUpdated && (
+                    <p className="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1">
+                      <Clock className="w-3 h-3 shrink-0" />
+                      <span>Price checked {formatRelativeTime(bestOffer.lastUpdated)} — verify on Amazon before buying</span>
+                    </p>
+                  )}
                 </div>
                 
                 {bestOffer && (
