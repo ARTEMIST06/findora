@@ -12,6 +12,10 @@ interface PopularCategoriesProps {
 export const PopularCategories: React.FC<PopularCategoriesProps> = ({ onNavigate }) => {
   const store = useFindoraStore();
   const products = store.getAllProductsWithPrices(true);
+  // Counts are quoted only after the first live Firestore snapshot — before
+  // that the list can be a stale cache and the header would show wrong
+  // numbers for a beat.
+  const liveSynced = store.hasLiveProducts();
   // Real taxonomy: derived from the products that actually exist, so every
   // pill opens a category with products in it — no empty dead ends.
   const derived = deriveCategories(products);
@@ -28,7 +32,9 @@ export const PopularCategories: React.FC<PopularCategoriesProps> = ({ onNavigate
               Shop by category
             </span>
             <h2 className="text-lg sm:text-xl font-extrabold text-white tracking-tight">
-              {derived.length} categories · {products.length} products
+              {liveSynced
+                ? `${derived.length} categories · ${products.length} products`
+                : 'Loading the live catalogue…'}
             </h2>
           </div>
           <button

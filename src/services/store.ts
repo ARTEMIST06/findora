@@ -290,6 +290,10 @@ class FindoraStore {
   private users: User[] = [];
   private currentUser: User | null = null;
   private authLoading: boolean = true;
+  // True once the first live Firestore products snapshot has arrived.
+  // Before that, `products` may be a stale localStorage cache — UI that
+  // quotes a live count must wait for this (see hasLiveProducts()).
+  private productsSynced = false;
   private wishlist: string[] = []; // product IDs
   private compareIds: string[] = []; // max 4 product IDs
   private clicks: AffiliateClick[] = [];
@@ -310,6 +314,11 @@ class FindoraStore {
           // Products listener
           onSnapshot(collection(db, 'products'), (snapshot) => {
             this.products = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Product));
+            // First live snapshot received — the store may have started from
+            // a stale localStorage cache (e.g. 28 products from before the
+            // drafts were published); UI must not show cached counts as live
+            // until this fires.
+            this.productsSynced = true;
             notifyChange();
           });
 
@@ -514,6 +523,13 @@ class FindoraStore {
       maxDiscountPercent: maxDiscountPercent > 0 ? maxDiscountPercent : undefined,
       bestStore,
     };
+  }
+
+  /** True once the first live Firestore products snapshot arrived. Use it
+   * before quoting a live catalogue count — the pre-sync list can be a stale
+   * localStorage cache (e.g. 28 products from before the drafts publish). */
+  hasLiveProducts(): boolean {
+    return this.productsSynced;
   }
 
   getAllProductsWithPrices(onlyPublished = true): ProductWithPrices[] {

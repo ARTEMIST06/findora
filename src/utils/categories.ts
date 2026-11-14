@@ -34,12 +34,16 @@ export function normalizeCategoryKey(value: string | undefined | null): string {
   return aliases[key] || key;
 }
 
-/** "Home & Kitchen" -> "home-kitchen" (URL-safe slug). */
+/** "Home & Kitchen" -> "home-kitchen" (URL-safe slug).
+ * NOTE: "&" is DROPPED, not turned into "and" — the matcher
+ * (normalizeCategoryKey) strips "&" entirely, so a slug with "and" in it
+ * would never match its products (this silently broke every "&" category
+ * link: Home & Kitchen, Bath & Body, Health & Personal Care...). */
 export function slugifyCategoryLabel(label: string): string {
   return label
     .toLowerCase()
     .trim()
-    .replace(/&/g, 'and')
+    .replace(/&/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 }

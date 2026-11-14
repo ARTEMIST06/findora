@@ -18,6 +18,10 @@ interface HeroSectionProps {
 export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
   const [query, setQuery] = useState('');
   const store = useFindoraStore();
+  // The count is quoted only after the first live Firestore snapshot —
+  // before that the list can be a stale cache (28 products from before the
+  // drafts publish) and the pill would briefly show the wrong number.
+  const liveSynced = store.hasLiveProducts();
   const liveCount = store.getAllProductsWithPrices(true).length;
 
   const handleSearch = (e: React.FormEvent) => {
@@ -97,7 +101,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
             <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-xs font-semibold tracking-wide mb-4 sm:mb-5 w-fit shadow-[0_0_15px_rgba(59,130,246,0.15)]">
               <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
               <span>
-                {liveCount > 0
+                {liveSynced && liveCount > 0
                   ? `${liveCount}+ VERIFIED PRODUCTS · AMAZON INDIA`
                   : 'SMART SHOPPING. REAL SAVINGS.'}
               </span>
