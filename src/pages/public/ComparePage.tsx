@@ -73,10 +73,10 @@ export const ComparePage: React.FC<ComparePageProps> = ({ onNavigate }) => {
             <span>Product Comparison</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Compare Devices Side-by-Side
+            Compare Products Side-by-Side
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 mt-1">
-            Compare store pricing, hardware specifications, and editorial verdicts for up to 4 devices.
+            Compare verified Amazon India prices and key details for up to 4 products.
           </p>
         </div>
 
@@ -227,17 +227,6 @@ export const ComparePage: React.FC<ComparePageProps> = ({ onNavigate }) => {
                   <span className="text-[10px] text-slate-600 mt-0.5">Compare up to 4</span>
                 </div>
               )}
-            </div>
-
-            {/* Ratings row */}
-            <div className="grid grid-cols-5 divide-x divide-slate-200/60 border-b border-slate-200/60 py-3 text-xs">
-              <div className="p-4 font-semibold text-slate-600 bg-white">Rating</div>
-              {compareProducts.map((p) => (
-                <div key={p.id} className="p-4 font-bold text-amber-600">
-                  ★ {p.rating || 'N/A'}{' '}
-                  <span className="text-slate-600 font-normal">({p.reviewCount || 0})</span>
-                </div>
-              ))}
             </div>
 
             {/* Store availability row */}

@@ -178,7 +178,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           <div className="space-y-3">
             <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Price Drop Alerts</h4>
             <p className="text-xs text-slate-600">
-              Get notified when flagship smartphones, laptops, and audio gadgets hit their all-time lowest prices.
+              Get notified when products across tech, home, fashion and more hit their lowest recorded prices.
             </p>
             {subscribed ? (
               <div className="flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 p-3 rounded-2xl">

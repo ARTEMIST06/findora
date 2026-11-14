@@ -90,7 +90,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ onNavigate }) =>
                   <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
                     {cat.name}
                   </h3>
-                  <p className="text-xs text-slate-600 mt-2 leading-relaxed font-normal">
+                  <p className={`text-xs text-slate-600 mt-2 leading-relaxed font-normal ${asset?.image ? 'max-w-[58%]' : ''}`}>
                     Verified Amazon India prices, checked by the Findora team.
                   </p>
 
