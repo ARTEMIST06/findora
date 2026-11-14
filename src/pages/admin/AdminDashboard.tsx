@@ -886,7 +886,7 @@ if (authLoading) {
                   <Tag className="w-5 h-5 text-emerald-600 mb-2" />
                   <span className="text-slate-900">Update Prices</span>
                   <span className="text-[10px] text-slate-400 font-normal">
-                    Adjust Amazon & Flipkart rates
+                    Adjust verified Amazon India prices
                   </span>
                 </button>
 
@@ -993,7 +993,7 @@ if (authLoading) {
             <div>
               <h3 className="font-bold text-slate-900 text-sm">Store Pricing Matrix</h3>
               <p className="text-xs text-slate-500">
-                Manage offers from Amazon, Flipkart, Croma, and Reliance Digital for each product.
+                Manage the verified Amazon India offer for each product.
               </p>
             </div>
           </div>

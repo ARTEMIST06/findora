@@ -105,7 +105,7 @@ export const EDITORIAL_ASSETS = {
   topDeals: {
     title: 'Top Deals. Bigger Savings.',
     tagline: 'VERIFIED PRICE DROPS',
-    description: 'Track aggressive markdowns and lightning coupons across major partner stores before stock runs out.',
+    description: 'Verified Amazon India price drops, checked by our team — see the price and the date it was last verified before stock runs out.',
     image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1200&auto=format&fit=crop&q=80',
     cta: 'Explore Daily Deals',
     targetRoute: '/deals',

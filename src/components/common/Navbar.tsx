@@ -89,11 +89,11 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 text-blue-400 font-medium tracking-wide">
               <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-              Real-time multi-store price engine
+              Verified Amazon India deals
             </span>
             <span className="hidden sm:inline text-slate-600">•</span>
             <span className="hidden sm:inline text-slate-400">
-              Tracking Amazon, Flipkart, Croma, Reliance Digital & more
+              One verified offer per product, checked by our team
             </span>
           </div>
 

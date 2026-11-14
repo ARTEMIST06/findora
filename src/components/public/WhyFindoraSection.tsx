@@ -7,7 +7,7 @@ export const WhyFindoraSection: React.FC = () => {
       icon: <Scale className="w-6 h-6 text-blue-400" />,
       title: 'Compare Prices Side-by-Side',
       description:
-        'Instantly view prices for the exact same model across Amazon, Flipkart, Croma, Reliance Digital, and brand stores without juggling 10 open tabs.',
+        'See one verified Amazon India price per product, with the date it was last checked — no juggling 10 open tabs.',
       border: 'border-blue-500/20',
       glow: 'group-hover:border-blue-500/40',
     },
@@ -15,7 +15,7 @@ export const WhyFindoraSection: React.FC = () => {
       icon: <LineChart className="w-6 h-6 text-cyan-400" />,
       title: 'Historical Price Tracking',
       description:
-        'Know whether today is truly a discount or an inflated sale trick. We log historic price fluctuations so you buy at the true market low.',
+        'Check a product\u2019s recorded price history before you buy, so you can tell a real discount from an inflated sale price.',
       border: 'border-cyan-500/20',
       glow: 'group-hover:border-cyan-500/40',
     },
@@ -31,7 +31,7 @@ export const WhyFindoraSection: React.FC = () => {
       icon: <Banknote className="w-6 h-6 text-emerald-400" />,
       title: 'Save Hard-Earned Money',
       description:
-        'Shoppers save an average of ₹3,500 to ₹15,000 on consumer electronics, laptops, and premium audio by picking the optimal merchant.',
+        'Compare the verified price against MRP before you buy, so you only pay for a deal that is actually a deal.',
       border: 'border-emerald-500/20',
       glow: 'group-hover:border-emerald-500/40',
     },
@@ -45,10 +45,10 @@ export const WhyFindoraSection: React.FC = () => {
           <span>The Findora Advantage</span>
         </div>
         <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-          Why Thousands of Smart Shoppers Choose Findora
+          Why Smart Shoppers Choose Findora
         </h2>
         <p className="text-slate-400 text-sm sm:text-base mt-4 max-w-2xl mx-auto leading-relaxed">
-          We engineered the shopping platform we always wanted for ourselves: fast, clean, multi-store, and free of sponsored clutter.
+          We engineered the shopping platform we always wanted for ourselves: fast, clean, and free of sponsored clutter.
         </p>
       </div>
 

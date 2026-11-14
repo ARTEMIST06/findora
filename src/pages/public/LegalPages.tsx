@@ -112,17 +112,17 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
               Findora: Intelligent Price Discovery
             </h1>
             <p className="text-sm text-slate-400 mt-2">
-              Empowering shoppers with transparent, unbiased price tracking across top retailers.
+              Empowering shoppers with transparent, verified Amazon India prices.
             </p>
           </div>
           
           <div className="text-sm text-slate-300 leading-relaxed space-y-4">
             <p>
-              Findora was built to solve a simple problem: the frustration of overpaying for products when a better deal exists on another trusted store. We aggregate product pricing, historical price drops, and live offers from major retailers like Amazon, Flipkart, Croma, and Reliance Digital.
+              Findora was built to solve a simple problem: the frustration of overpaying for a product. We list one verified Amazon India offer per product, with the price and the date it was last checked, so you know exactly what you are paying for.
             </p>
             <h3 className="text-lg font-bold text-white pt-4">Our Mission</h3>
             <p>
-              Our mission is to bring transparency to online retail. We believe every shopper deserves access to the lowest price without having to manually check a dozen different websites. Our platform continuously syncs merchant data so that you can make informed purchasing decisions.
+              Our mission is to bring transparency to online shopping. We believe every shopper deserves to know the verified price before buying. Our team checks and verifies prices before listing them, so you can make informed purchasing decisions.
             </p>
             <h3 className="text-lg font-bold text-white pt-4">How We Operate</h3>
             <ul className="list-disc pl-5 space-y-2 text-slate-300">
@@ -348,7 +348,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
               Findora participates in various affiliate marketing programs. This means that when you click on a store offer button (such as "Check Price", "Go to Store", or merchant logos) on our website and make a qualifying purchase, we may receive a small commission from the retailer.
             </p>
             <p>
-              The merchants we may track or link to include, but are not limited to, Amazon India, Flipkart, Croma, and Reliance Digital.
+              Currently, Findora links only to Amazon India. Other merchants will be listed here only if and when we start tracking them.
             </p>
 
             <h3 className="text-lg font-bold text-white pt-4">What This Means For You</h3>
