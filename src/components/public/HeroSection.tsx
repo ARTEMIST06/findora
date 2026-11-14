@@ -39,7 +39,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
     {
       icon: Tag,
       title: 'Compare Prices',
-      subtitle: 'Across top stores',
+      subtitle: 'On Amazon India',
       color: 'text-blue-400',
       bg: 'bg-blue-500/10 border-blue-500/20',
     },
@@ -107,7 +107,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
 
             {/* Subtitle / Description */}
             <p className="text-slate-300 text-sm sm:text-base xl:text-lg max-w-xl mb-6 sm:mb-8 leading-relaxed font-normal">
-              Discover the best products, compare prices across top stores and make confident buying decisions — all in one place.
+              Discover the best products, check verified Amazon India prices and make confident buying decisions — all in one place.
             </p>
 
             {/* Big Capsule Search Bar */}

@@ -22,7 +22,7 @@ export const DealsPage: React.FC<DealsPageProps> = ({ onNavigate }) => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-10">
       <SEOHead 
         title="Best Deals & Verified Price Drops | Findora"
-        description="Discover the highest discounts and verified price drops on premium electronics, smartphones, laptops, and audio gear across top stores."
+        description="Discover verified Amazon India price drops on premium electronics, smartphones, laptops, and audio gear — checked by our team."
         canonicalPath="/deals"
         breadcrumbs={[
           { name: 'Home', url: '/' },
