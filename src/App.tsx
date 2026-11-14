@@ -3,27 +3,30 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
 import { HelmetProvider } from 'react-helmet-async';
 import { ToastProvider } from './components/common/Toast';
 import { Analytics } from './components/common/Analytics';
 
-import { HomePage } from './pages/public/HomePage';
-import { ProductsPage } from './pages/public/ProductsPage';
-import { ProductDetailPage } from './pages/public/ProductDetailPage';
-import { ComparePage } from './pages/public/ComparePage';
-import { WishlistPage } from './pages/public/WishlistPage';
-import { CategoriesPage } from './pages/public/CategoriesPage';
-import { DealsPage } from './pages/public/DealsPage';
-import { BlogPage } from './pages/public/BlogPage';
-import { ProfilePage } from './pages/public/ProfilePage';
-import { AuthPage } from './pages/public/AuthPages';
-import { LegalPage } from './pages/public/LegalPages';
-import { AdminDashboard } from './pages/admin/AdminDashboard';
-import { AnalyticsDashboard } from './pages/admin/AnalyticsDashboard';
-import { DataCenter } from './pages/admin/DataCenter';
+// Route-level code splitting: the production bundle was ~2.6MB with every
+// page (including the heavy admin dashboards) loaded up front. Each route
+// now loads its own chunk on demand; the shell (Navbar/Footer) stays eager.
+const HomePage = lazy(() => import('./pages/public/HomePage').then((m) => ({ default: m.HomePage })));
+const ProductsPage = lazy(() => import('./pages/public/ProductsPage').then((m) => ({ default: m.ProductsPage })));
+const ProductDetailPage = lazy(() => import('./pages/public/ProductDetailPage').then((m) => ({ default: m.ProductDetailPage })));
+const ComparePage = lazy(() => import('./pages/public/ComparePage').then((m) => ({ default: m.ComparePage })));
+const WishlistPage = lazy(() => import('./pages/public/WishlistPage').then((m) => ({ default: m.WishlistPage })));
+const CategoriesPage = lazy(() => import('./pages/public/CategoriesPage').then((m) => ({ default: m.CategoriesPage })));
+const DealsPage = lazy(() => import('./pages/public/DealsPage').then((m) => ({ default: m.DealsPage })));
+const BlogPage = lazy(() => import('./pages/public/BlogPage').then((m) => ({ default: m.BlogPage })));
+const ProfilePage = lazy(() => import('./pages/public/ProfilePage').then((m) => ({ default: m.ProfilePage })));
+const AuthPage = lazy(() => import('./pages/public/AuthPages').then((m) => ({ default: m.AuthPage })));
+const LegalPage = lazy(() => import('./pages/public/LegalPages').then((m) => ({ default: m.LegalPage })));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })));
+const AnalyticsDashboard = lazy(() => import('./pages/admin/AnalyticsDashboard').then((m) => ({ default: m.AnalyticsDashboard })));
+const DataCenter = lazy(() => import('./pages/admin/DataCenter').then((m) => ({ default: m.DataCenter })));
 import { analytics } from './services/analytics';
 
 export default function App() {
@@ -211,7 +214,18 @@ export default function App() {
           <Navbar currentRoute={currentPath} onNavigate={handleNavigate} />
 
           {/* Main Content Area */}
-          <main className="flex-1 pb-16">{renderContent()}</main>
+          <main className="flex-1 pb-16">
+            <Suspense
+              fallback={
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 text-center">
+                  <div className="w-10 h-10 mx-auto rounded-full border-2 border-slate-300 border-t-blue-600 animate-spin" />
+                  <p className="text-sm text-slate-600 mt-4">Loading page…</p>
+                </div>
+              }
+            >
+              {renderContent()}
+            </Suspense>
+          </main>
 
           {/* Global Footer */}
           <Footer onNavigate={handleNavigate} />
