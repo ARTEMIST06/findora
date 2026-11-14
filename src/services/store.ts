@@ -64,6 +64,33 @@ function saveToStorage<T>(key: string, value: T): void {
 }
 
 // Store singleton class
+// Firestore rejects any write containing `undefined` values. The admin
+// edit modal spreads ProductWithPrices objects, which carry derived fields
+// (lowestPrice / highestPrice / maxDiscountPercent / bestStore / offers) —
+// maxDiscountPercent is explicitly `undefined` when a product has no
+// discount, lowestPrice/bestStore when it has no in-stock offer. Passing
+// those to updateDoc rejected the whole write while the old fire-and-
+// forget catch hid the failure, so Admin showed "Published" and the public
+// site never changed. Strip them (and any undefined value) before every
+// product write. Same bug class as PR #11 (offers).
+const DERIVED_PRODUCT_KEYS = new Set([
+  'offers',
+  'lowestPrice',
+  'highestPrice',
+  'maxDiscountPercent',
+  'bestStore',
+]);
+
+function cleanProductWrite<T extends Record<string, any>>(obj: T): T {
+  const out: Record<string, any> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v === undefined) continue;
+    if (DERIVED_PRODUCT_KEYS.has(k)) continue;
+    out[k] = v;
+  }
+  return out as T;
+}
+
 class FindoraStore {
   // --- DRAFTS ---
   async getDrafts(): Promise<any[]> {
@@ -547,12 +574,12 @@ class FindoraStore {
 
   async addProduct(product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Promise<Product> {
     const now = new Date().toISOString();
-    const newProduct: Product = {
+    const newProduct: Product = cleanProductWrite({
       ...product,
       id: `prod-${Date.now()}`,
       createdAt: now,
       updatedAt: now,
-    };
+    });
     this.products.unshift(newProduct);
     
     if (typeof window !== 'undefined') {
@@ -568,19 +595,21 @@ class FindoraStore {
   async updateProduct(id: string, updates: Partial<Product>): Promise<Product | undefined> {
     const idx = this.products.findIndex((p) => p.id === id);
     if (idx === -1) return undefined;
+    // Clean before writing: undefined values and derived fields would make
+    // Firestore reject the whole updateDoc (see cleanProductWrite). The
+    // write is awaited now — the old fire-and-forget catch swallowed
+    // failures, so Admin showed success while Firestore never changed.
+    const cleanUpdates = cleanProductWrite({ ...updates, updatedAt: new Date().toISOString() });
     const updated: Product = {
       ...this.products[idx],
-      ...updates,
-      updatedAt: new Date().toISOString(),
+      ...cleanUpdates,
     };
     this.products[idx] = updated;
-    
+
     if (typeof window !== 'undefined') {
-      import('../lib/firebase').then(({ db }) => {
-        import('firebase/firestore').then(({ doc, updateDoc }) => {
-          updateDoc(doc(db, 'products', id), updates).catch(console.error);
-        });
-      });
+      const { db } = await import('../lib/firebase');
+      const { doc, updateDoc } = await import('firebase/firestore');
+      await updateDoc(doc(db, 'products', id), cleanUpdates);
     }
     saveToStorage(STORAGE_KEYS.PRODUCTS, this.products);
     notifyChange();
@@ -654,7 +683,7 @@ class FindoraStore {
   togglePublish(id: string): boolean {
     const product = this.getProductById(id);
     if (!product) return false;
-    this.updateProduct(id, { published: !product.published });
+    this.updateProduct(id, { published: !product.published }).catch(console.error);
     return true;
   }
 
