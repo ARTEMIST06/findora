@@ -2,35 +2,35 @@
 
 @layer base {
   :root {
-    --bg-primary: #070B14;
-    --bg-surface: #0D1322;
-    --bg-elevated: #131B2E;
-    --border-subtle: rgba(255, 255, 255, 0.08);
+    --bg-primary: #F8FAFC;
+    --bg-surface: #FFFFFF;
+    --bg-elevated: #F1F5F9;
+    --border-subtle: rgba(15, 23, 42, 0.08);
     --border-accent: rgba(59, 130, 246, 0.3);
   }
 
   body {
-    background-color: #070B14;
-    color: #F1F5F9;
+    background-color: #F8FAFC;
+    color: #0F172A;
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     overflow-x: hidden;
   }
 }
 
-/* Custom dark scrollbar */
+/* Custom light scrollbar */
 ::-webkit-scrollbar {
   width: 7px;
   height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #070B14;
+  background: #F1F5F9;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1E293B;
+  background: #CBD5E1;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #94A3B8;
 }
 
 /* Atmospheric and glow utilities */
@@ -43,30 +43,30 @@
 }
 
 .glow-ambient {
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8), 0 0 20px -5px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.12), 0 0 20px -5px rgba(59, 130, 246, 0.15);
 }
 
 /* Glass card styling */
 .glass-card {
-  background-color: rgba(13, 19, 34, 0.75);
+  background-color: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .glass-card-hover:hover {
-  background-color: rgba(19, 27, 46, 0.85);
+  background-color: rgba(248, 250, 252, 0.95);
   border-color: rgba(59, 130, 246, 0.3);
-  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.6), 0 0 24px -6px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.12), 0 0 24px -6px rgba(59, 130, 246, 0.2);
 }
 
 /* Ambient backdrop gradient mesh */
 .bg-mesh-dark {
-  background-color: #070B14;
-  background-image: 
-    radial-gradient(at 15% 15%, rgba(30, 58, 138, 0.18) 0px, transparent 50%),
-    radial-gradient(at 85% 20%, rgba(88, 28, 135, 0.15) 0px, transparent 50%),
-    radial-gradient(at 50% 60%, rgba(15, 23, 42, 0.6) 0px, transparent 70%);
+  background-color: #F8FAFC;
+  background-image:
+    radial-gradient(at 15% 15%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+    radial-gradient(at 85% 20%, rgba(168, 85, 247, 0.06) 0px, transparent 50%),
+    radial-gradient(at 50% 60%, rgba(226, 232, 240, 0.6) 0px, transparent 70%);
 }
 
 /* Subtle image backlight reflection */
@@ -74,76 +74,10 @@
   background: radial-gradient(circle at center, rgba(59, 130, 246, 0.12) 0%, rgba(139, 92, 246, 0.06) 40%, transparent 70%);
 }
 
-/* Premium Dark Fintech Admin Styles */
-.admin-container {
-  color: #F8FAFC;
-}
-
-.admin-container .bg-white {
-  background-color: #0D1322 !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-  color: #F8FAFC;
-}
-
-.admin-container .bg-slate-50,
-.admin-container .bg-slate-50\/80,
-.admin-container .bg-slate-100,
-.admin-container .bg-slate-100\/90 {
-  background-color: #070B14 !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-.admin-container .text-slate-900 {
-  color: #F8FAFC !important;
-}
-
-.admin-container .text-slate-800 {
-  color: #F1F5F9 !important;
-}
-
-.admin-container .text-slate-700 {
-  color: #E2E8F0 !important;
-}
-
-.admin-container .text-slate-600 {
-  color: #94A3B8 !important;
-}
-
-.admin-container .text-slate-500 {
-  color: #64748B !important;
-}
-
-.admin-container .border-slate-200,
-.admin-container .border-slate-200\/80,
-.admin-container .border-slate-100 {
-  border-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-.admin-container .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
-.admin-container .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
-  border-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-.admin-container tr:hover,
-.admin-container .hover\:bg-slate-50:hover,
-.admin-container .hover\:bg-slate-50\/50:hover,
-.admin-container .hover\:bg-slate-50\/80:hover {
-  background-color: rgba(255, 255, 255, 0.04) !important;
-}
-
-.admin-container input:not([type="checkbox"]):not([type="radio"]),
-.admin-container select,
-.admin-container textarea {
-  background-color: #070B14 !important;
-  border-color: #1E293B !important;
-  color: #F8FAFC !important;
-}
-
-.admin-container input:focus,
-.admin-container select:focus,
-.admin-container textarea:focus {
-  border-color: #3B82F6 !important;
-}
+/* Premium Light Fintech Admin Styles — the admin components already use
+   light classes (bg-white / text-slate-900); no dark overrides needed.
+   (The old .admin-container block forced every light surface dark; it was
+   removed in the light-theme conversion.) */
 
 /* ---------- Findora design tokens (overnight rebuild) ---------- */
 :root {
@@ -187,7 +121,7 @@
   animation: floaty 5s ease-in-out infinite;
 }
 .shimmer-line {
-  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.04) 75%);
+  background: linear-gradient(90deg, rgba(15,23,42,0.04) 25%, rgba(15,23,42,0.1) 50%, rgba(15,23,42,0.04) 75%);
   background-size: 200% 100%;
   animation: shimmer 2.4s linear infinite;
 }
@@ -217,16 +151,16 @@
   align-items: center;
   justify-content: center;
   gap: 0.375rem;
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  color: #E2E8F0;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: #334155;
   font-weight: 600;
   border-radius: 0.75rem;
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
 }
 .btn-ghost:hover {
-  background: rgba(51, 65, 85, 0.6);
-  border-color: rgba(148, 163, 184, 0.45);
+  background: rgba(241, 245, 249, 0.9);
+  border-color: rgba(148, 163, 184, 0.6);
 }
 .btn-ghost:active {
   transform: scale(0.97);

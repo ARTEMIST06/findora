@@ -92,20 +92,20 @@ export const DraftsDashboard: React.FC = () => {
           <div key={stat.name} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
             <div>
               <h3 className="font-bold text-slate-900">{stat.name}</h3>
-              <p className="text-xs text-slate-500">Productivity Stats</p>
+              <p className="text-xs text-slate-600">Productivity Stats</p>
             </div>
             <div className="flex gap-3 text-center">
               <div>
                 <div className="text-sm font-bold text-blue-600">{stat.active}</div>
-                <div className="text-[10px] text-slate-500 uppercase tracking-wider">Active</div>
+                <div className="text-[10px] text-slate-600 uppercase tracking-wider">Active</div>
               </div>
               <div>
                 <div className="text-sm font-bold text-green-600">{stat.ready}</div>
-                <div className="text-[10px] text-slate-500 uppercase tracking-wider">Ready</div>
+                <div className="text-[10px] text-slate-600 uppercase tracking-wider">Ready</div>
               </div>
               <div>
                 <div className="text-sm font-bold text-slate-800">{stat.published}</div>
-                <div className="text-[10px] text-slate-500 uppercase tracking-wider">Pub</div>
+                <div className="text-[10px] text-slate-600 uppercase tracking-wider">Pub</div>
               </div>
             </div>
           </div>
@@ -150,7 +150,7 @@ export const DraftsDashboard: React.FC = () => {
 
         <div className="flex gap-3">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
             <input 
               type="text" 
               placeholder="Search drafts..." 
@@ -171,7 +171,7 @@ export const DraftsDashboard: React.FC = () => {
       <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500">
+            <thead className="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-600">
               <tr>
                 <th className="px-6 py-4 font-bold">Product</th>
                 <th className="px-4 py-4 font-bold">Brand</th>
@@ -195,13 +195,13 @@ export const DraftsDashboard: React.FC = () => {
                           }}
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 text-slate-300">
+                        <div className="w-10 h-10 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 text-slate-700">
                           <ImageIcon className="w-5 h-5" />
                         </div>
                       )}
                       <div className="min-w-0">
                         <div className="font-semibold text-slate-900 line-clamp-1">{d.title || 'Untitled Draft'}</div>
-                        <div className="text-xs text-slate-400">
+                        <div className="text-xs text-slate-600">
                           {d.category || 'No category'} • Added by: {d.addedBy || 'Unknown'} • Updated: {new Date(d.updatedAt || d.createdAt).toLocaleDateString()}
                         </div>
                       </div>
@@ -260,7 +260,7 @@ export const DraftsDashboard: React.FC = () => {
                       {d.draftStatus === 'published' && (
                         <button
                           onClick={() => setEditingDraftId(d.id)}
-                          className="p-1.5 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-100"
+                          className="p-1.5 text-slate-600 hover:text-slate-700 rounded-md hover:bg-slate-100"
                           title="View draft"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
@@ -274,7 +274,7 @@ export const DraftsDashboard: React.FC = () => {
                             loadDrafts();
                           }
                         }}
-                        className="p-1.5 text-slate-400 hover:text-red-600 transition-colors rounded-md hover:bg-red-50"
+                        className="p-1.5 text-slate-600 hover:text-red-600 transition-colors rounded-md hover:bg-red-50"
                         title="Delete draft"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -285,9 +285,9 @@ export const DraftsDashboard: React.FC = () => {
               ))}
               {filteredList.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={5} className="px-6 py-12 text-center text-slate-600">
                     <div className="flex flex-col items-center justify-center">
-                      <Package className="w-8 h-8 text-slate-300 mb-2" />
+                      <Package className="w-8 h-8 text-slate-700 mb-2" />
                       <p>No drafts found in this view.</p>
                     </div>
                   </td>

@@ -64,17 +64,17 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
   if (authLoading) {
     return (
       <div className="max-w-md mx-auto py-24 px-4 text-center flex flex-col items-center">
-        <div className="w-10 h-10 border-4 border-slate-800 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-        <h2 className="text-xl font-bold text-white mb-2">Authenticating...</h2>
+        <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+        <h2 className="text-xl font-bold text-slate-900 mb-2">Authenticating...</h2>
       </div>
     );
   }
 
   if (!currentUser) {
     return (
-      <div className="max-w-md mx-auto py-24 px-4 text-center bg-[#0D1322] border border-slate-800 rounded-3xl p-8 my-10">
-        <h2 className="text-2xl font-bold text-white mb-2">Sign In Required</h2>
-        <p className="text-sm text-slate-400 mb-6">
+      <div className="max-w-md mx-auto py-24 px-4 text-center bg-white border border-slate-200 rounded-3xl p-8 my-10">
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Sign In Required</h2>
+        <p className="text-sm text-slate-600 mb-6">
           Please sign in to view your profile, alerts, and saved products.
         </p>
         <button
@@ -96,13 +96,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
         noIndex={true}
       />
       {/* User Header Card */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-[#0D1322]/90 border border-slate-800/80 shadow-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 backdrop-blur-md">
+      <div className="p-6 sm:p-8 rounded-3xl bg-white/90 border border-slate-200/80 shadow-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 backdrop-blur-md">
         <div className="flex items-center gap-5">
           {currentUser.avatar ? (
             <img
               src={currentUser.avatar}
               alt={currentUser.name}
-              className="w-16 h-16 rounded-2xl object-cover ring-4 ring-blue-500/20 border border-slate-700"
+              className="w-16 h-16 rounded-2xl object-cover ring-4 ring-blue-500/20 border border-slate-300"
             />
           ) : (
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
@@ -111,14 +111,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
           )}
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-xl sm:text-2xl font-bold text-white">{currentUser.name}</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900">{currentUser.name}</h1>
               <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30">
                 {currentUser.role}
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-slate-400 mt-0.5">{currentUser.email}</p>
+            <p className="text-xs sm:text-sm text-slate-600 mt-0.5">{currentUser.email}</p>
             {currentUser.createdAt && (
-              <p className="text-[10px] text-slate-500 mt-1">Joined {new Date(currentUser.createdAt).toLocaleDateString()}</p>
+              <p className="text-[10px] text-slate-600 mt-1">Joined {new Date(currentUser.createdAt).toLocaleDateString()}</p>
             )}
           </div>
         </div>
@@ -130,7 +130,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
             showToast('Successfully signed out', 'success');
             onNavigate('/');
           }}
-          className="text-xs font-semibold text-rose-400 hover:text-rose-300 flex items-center gap-1.5 px-4 py-2 rounded-full border border-rose-500/30 hover:bg-rose-500/10 transition-colors"
+          className="text-xs font-semibold text-rose-600 hover:text-rose-300 flex items-center gap-1.5 px-4 py-2 rounded-full border border-rose-500/30 hover:bg-rose-500/10 transition-colors"
         >
           <LogOut className="w-4 h-4" />
           <span>Sign Out</span>
@@ -141,11 +141,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
       {currentUser.role === 'admin' && (
         <div className="p-6 rounded-3xl bg-gradient-to-r from-blue-900/60 via-indigo-900/60 to-purple-900/60 border border-blue-500/30 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl backdrop-blur-md">
           <div>
-            <h3 className="font-bold text-base flex items-center gap-2 text-white">
-              <LayoutDashboard className="w-5 h-5 text-cyan-400" />
+            <h3 className="font-bold text-base flex items-center gap-2 text-slate-900">
+              <LayoutDashboard className="w-5 h-5 text-cyan-600" />
               <span>Admin Dashboard Access Granted</span>
             </h3>
-            <p className="text-xs text-slate-300 mt-1">
+            <p className="text-xs text-slate-700 mt-1">
               You can manage products, store offers, price updates, affiliate links, and analytics.
             </p>
           </div>
@@ -159,16 +159,16 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
       )}
 
       {/* Price Alerts Section */}
-      <div className="bg-[#0D1322]/90 border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-2xl">
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-          <div className="flex items-center gap-2 font-bold text-white text-base">
-            <BellRing className="w-5 h-5 text-blue-400" />
+      <div className="bg-white/90 border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-2xl">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+          <div className="flex items-center gap-2 font-bold text-slate-900 text-base">
+            <BellRing className="w-5 h-5 text-blue-600" />
             <span>Your Price Alerts</span>
           </div>
         </div>
         <div className="pt-5">
           {loadingAlerts ? (
-            <p className="text-sm text-slate-400 py-4">Loading alerts...</p>
+            <p className="text-sm text-slate-600 py-4">Loading alerts...</p>
           ) : priceAlerts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {priceAlerts.map((alert) => (
@@ -183,22 +183,22 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                   
                   <div className="flex items-start gap-3 mt-1 cursor-pointer" onClick={() => alert.product && onNavigate(`/product/${alert.product.slug}`)}>
                     {alert.product?.images?.[0] ? (
-                      <img src={alert.product.images[0]} alt={alert.product.name} className="w-12 h-12 object-contain bg-[#080D1A] rounded-xl border border-slate-800 p-1" />
+                      <img src={alert.product.images[0]} alt={alert.product.name} className="w-12 h-12 object-contain bg-[#080D1A] rounded-xl border border-slate-200 p-1" />
                     ) : (
-                      <div className="w-12 h-12 bg-slate-800 rounded-xl border border-slate-700"></div>
+                      <div className="w-12 h-12 bg-slate-100 rounded-xl border border-slate-300"></div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-semibold text-white line-clamp-1">{alert.product?.name || 'Unknown Product'}</h4>
-                      <p className="text-xs text-slate-400 mt-1">Target: <strong className="text-white">₹{alert.targetPrice}</strong></p>
+                      <h4 className="text-sm font-semibold text-slate-900 line-clamp-1">{alert.product?.name || 'Unknown Product'}</h4>
+                      <p className="text-xs text-slate-600 mt-1">Target: <strong className="text-slate-900">₹{alert.targetPrice}</strong></p>
                     </div>
                   </div>
                   
-                  <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-800/80">
-                    <span className="text-[10px] text-slate-500">Created {new Date(alert.createdAt).toLocaleDateString()}</span>
+                  <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-200/80">
+                    <span className="text-[10px] text-slate-600">Created {new Date(alert.createdAt).toLocaleDateString()}</span>
                     <button
                       onClick={(e) => { e.stopPropagation(); handleDeleteAlert(alert.id); }}
                       disabled={isDeleting === alert.id}
-                      className="text-xs font-semibold text-rose-400 hover:text-rose-300 disabled:opacity-50"
+                      className="text-xs font-semibold text-rose-600 hover:text-rose-300 disabled:opacity-50"
                     >
                       {isDeleting === alert.id ? 'Removing...' : 'Remove Alert'}
                     </button>
@@ -207,7 +207,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-slate-400 py-6 text-center">You haven't set up any price alerts yet.</p>
+            <p className="text-sm text-slate-600 py-6 text-center">You haven't set up any price alerts yet.</p>
           )}
         </div>
       </div>
@@ -215,81 +215,81 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
       {/* Grid: Wishlist Overview & Outbound Click History */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Wishlist Box */}
-        <div className="p-6 sm:p-7 rounded-3xl bg-[#0D1322]/90 border border-slate-800/80 space-y-4 shadow-2xl">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-            <div className="flex items-center gap-2 font-bold text-white text-sm">
-              <Heart className="w-4 h-4 text-rose-400" />
+        <div className="p-6 sm:p-7 rounded-3xl bg-white/90 border border-slate-200/80 space-y-4 shadow-2xl">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+            <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+              <Heart className="w-4 h-4 text-rose-600" />
               <span>Saved in Wishlist ({wishlist.length})</span>
             </div>
             <button
               onClick={() => onNavigate('/wishlist')}
-              className="text-xs text-blue-400 hover:underline font-semibold"
+              className="text-xs text-blue-600 hover:underline font-semibold"
             >
               View all
             </button>
           </div>
 
-          <div className="divide-y divide-slate-800 max-h-64 overflow-y-auto scrollbar-thin">
+          <div className="divide-y divide-slate-200 max-h-64 overflow-y-auto scrollbar-thin">
             {wishlist.length > 0 ? (
               wishlist.map((prod) => (
                 <div
                   key={prod.id}
                   onClick={() => onNavigate(`/product/${prod.slug}`)}
-                  className="py-3 flex items-center justify-between gap-3 hover:bg-slate-800/40 px-2 rounded-xl cursor-pointer transition-colors"
+                  className="py-3 flex items-center justify-between gap-3 hover:bg-slate-100/40 px-2 rounded-xl cursor-pointer transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <img
                       src={prod.images[0]}
                       alt={prod.name}
-                      className="w-10 h-10 object-contain rounded-lg p-1 bg-[#080D1A] border border-slate-800"
+                      className="w-10 h-10 object-contain rounded-lg p-1 bg-[#080D1A] border border-slate-200"
                     />
                     <div>
-                      <h4 className="text-xs font-semibold text-white line-clamp-1">
+                      <h4 className="text-xs font-semibold text-slate-900 line-clamp-1">
                         {prod.name}
                       </h4>
-                      <span className="text-xs font-bold text-emerald-400">
+                      <span className="text-xs font-bold text-emerald-600">
                         {formatINR(prod.lowestPrice)}
                       </span>
                     </div>
                   </div>
-                  <span className="text-xs text-slate-500">View</span>
+                  <span className="text-xs text-slate-600">View</span>
                 </div>
               ))
             ) : (
-              <p className="text-xs text-slate-400 py-4 text-center">No saved items yet.</p>
+              <p className="text-xs text-slate-600 py-4 text-center">No saved items yet.</p>
             )}
           </div>
         </div>
 
         {/* Affiliate Outbound Click Tracking History */}
-        <div className="p-6 sm:p-7 rounded-3xl bg-[#0D1322]/90 border border-slate-800/80 space-y-4 shadow-2xl">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-            <div className="flex items-center gap-2 font-bold text-white text-sm">
-              <History className="w-4 h-4 text-blue-400" />
+        <div className="p-6 sm:p-7 rounded-3xl bg-white/90 border border-slate-200/80 space-y-4 shadow-2xl">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+            <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+              <History className="w-4 h-4 text-blue-600" />
               <span>Store Link Visits ({clicks.length})</span>
             </div>
-            <span className="text-[11px] text-slate-500">Transparency log</span>
+            <span className="text-[11px] text-slate-600">Transparency log</span>
           </div>
 
-          <div className="divide-y divide-slate-800 max-h-64 overflow-y-auto scrollbar-thin">
+          <div className="divide-y divide-slate-200 max-h-64 overflow-y-auto scrollbar-thin">
             {clicks.length > 0 ? (
               clicks.slice(0, 5).map((click) => (
                 <div key={click.id} className="py-3 flex items-center justify-between gap-3 text-xs px-2">
                   <div>
-                    <h4 className="font-semibold text-white line-clamp-1">
+                    <h4 className="font-semibold text-slate-900 line-clamp-1">
                       {click.productName}
                     </h4>
-                    <span className="text-slate-400">
-                      Visited <strong className="text-slate-200">{click.storeName}</strong> • {formatINR(click.price)}
+                    <span className="text-slate-600">
+                      Visited <strong className="text-slate-800">{click.storeName}</strong> • {formatINR(click.price)}
                     </span>
                   </div>
-                  <span className="text-[10px] text-slate-500 shrink-0">
+                  <span className="text-[10px] text-slate-600 shrink-0">
                     {formatRelativeTime(click.timestamp)}
                   </span>
                 </div>
               ))
             ) : (
-              <p className="text-xs text-slate-400 py-4 text-center">No outbound store visits logged yet.</p>
+              <p className="text-xs text-slate-600 py-4 text-center">No outbound store visits logged yet.</p>
             )}
           </div>
         </div>

@@ -347,13 +347,13 @@ export function BulkImport() {
     <div className="space-y-6">
       <div className="flex space-x-4 border-b border-slate-200">
         <button 
-          className={`pb-2 px-1 font-semibold text-sm ${activeTab === 'import' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-slate-500'}`}
+          className={`pb-2 px-1 font-semibold text-sm ${activeTab === 'import' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-slate-600'}`}
           onClick={() => setActiveTab('import')}
         >
           New Import
         </button>
         <button 
-          className={`pb-2 px-1 font-semibold text-sm ${activeTab === 'history' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-slate-500'}`}
+          className={`pb-2 px-1 font-semibold text-sm ${activeTab === 'history' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-slate-600'}`}
           onClick={() => setActiveTab('history')}
         >
           Import History
@@ -364,7 +364,7 @@ export function BulkImport() {
         <div className="space-y-6">
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
             <h2 className="font-bold text-lg text-slate-900">Upload CSV / Excel</h2>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-600">
               Columns required: <strong>merchant</strong>, <strong>productUrl</strong>, <strong>affiliateUrl</strong>
             </p>
             <div className="flex items-center space-x-4">
@@ -373,7 +373,7 @@ export function BulkImport() {
                 accept=".csv, .xlsx, .xls"
                 onChange={handleFileUpload}
                 ref={fileInputRef}
-                className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
               />
               <button
                 onClick={parseFile}
@@ -390,7 +390,7 @@ export function BulkImport() {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
                 <div>
                   <h3 className="font-bold text-slate-900">Preview & Validation</h3>
-                  <div className="text-xs text-slate-500 flex space-x-4 mt-1">
+                  <div className="text-xs text-slate-600 flex space-x-4 mt-1">
                     <span>Total: {processedRows.length}</span>
                     <span className="text-emerald-600">Ready: {processedRows.filter(r => r.overallStatus === 'ready').length}</span>
                     <span className="text-amber-600">Needs Review: {processedRows.filter(r => r.overallStatus === 'needs_review').length}</span>
@@ -442,7 +442,7 @@ export function BulkImport() {
 
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm whitespace-nowrap">
-                  <thead className="bg-slate-50 text-slate-500 text-xs font-semibold">
+                  <thead className="bg-slate-50 text-slate-600 text-xs font-semibold">
                     <tr>
                       <th className="px-4 py-3 rounded-l-xl">#</th>
                       <th className="px-4 py-3">Merchant</th>
@@ -456,10 +456,10 @@ export function BulkImport() {
                   <tbody className="divide-y divide-slate-50">
                     {processedRows.map((row, idx) => (
                       <tr key={row.id} className="hover:bg-slate-50/50">
-                        <td className="px-4 py-3 text-slate-400">{idx + 1}</td>
+                        <td className="px-4 py-3 text-slate-600">{idx + 1}</td>
                         <td className="px-4 py-3 font-medium text-slate-700">{row.merchantId || <span className="text-red-500">Unknown</span>}</td>
-                        <td className="px-4 py-3 text-slate-500 max-w-[150px] truncate" title={row.productUrl}>{row.productUrl}</td>
-                        <td className="px-4 py-3 text-slate-500 max-w-[150px] truncate" title={row.affiliateUrl}>{row.affiliateUrl}</td>
+                        <td className="px-4 py-3 text-slate-600 max-w-[150px] truncate" title={row.productUrl}>{row.productUrl}</td>
+                        <td className="px-4 py-3 text-slate-600 max-w-[150px] truncate" title={row.affiliateUrl}>{row.affiliateUrl}</td>
                         <td className="px-4 py-3">
                            {row.autoFetchStatus === 'unavailable' && <span className="text-amber-500 text-xs">API Unavailable</span>}
                            {row.autoFetchStatus === 'success' && <span className="text-emerald-500 text-xs">Fetched</span>}
@@ -486,11 +486,11 @@ export function BulkImport() {
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-6">
           <h2 className="font-bold text-lg text-slate-900">Import History</h2>
           {history.length === 0 ? (
-            <p className="text-sm text-slate-500">No import history found.</p>
+            <p className="text-sm text-slate-600">No import history found.</p>
           ) : (
               <div className="overflow-x-auto">
               <table className="w-full text-left text-sm whitespace-nowrap">
-                <thead className="bg-slate-50 text-slate-500 text-xs font-semibold">
+                <thead className="bg-slate-50 text-slate-600 text-xs font-semibold">
                   <tr>
                     <th className="px-4 py-3 rounded-l-xl">Date</th>
                     <th className="px-4 py-3">File</th>
@@ -505,8 +505,8 @@ export function BulkImport() {
                   {history.map(h => (
                     <tr key={h.id}>
                       <td className="px-4 py-3 text-slate-700">{new Date(h.importedAt).toLocaleString()}</td>
-                      <td className="px-4 py-3 text-slate-500">{h.fileName}</td>
-                      <td className="px-4 py-3 text-slate-500">{h.importedBy}</td>
+                      <td className="px-4 py-3 text-slate-600">{h.fileName}</td>
+                      <td className="px-4 py-3 text-slate-600">{h.importedBy}</td>
                       <td className="px-4 py-3 text-center font-medium">{h.totalRows}</td>
                       <td className="px-4 py-3 text-center text-emerald-600">{h.imported}</td>
                       <td className="px-4 py-3 text-center text-amber-600">{h.needsReview + h.skipped}</td>

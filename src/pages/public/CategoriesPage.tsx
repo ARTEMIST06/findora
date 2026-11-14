@@ -35,15 +35,15 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ onNavigate }) =>
         ]}
       />
       <Reveal>
-        <div className="pb-6 border-b border-slate-800/80">
-          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-400 uppercase tracking-widest mb-1.5">
-            <Layers className="w-4 h-4 text-cyan-400" />
+        <div className="pb-6 border-b border-slate-200/80">
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 uppercase tracking-widest mb-1.5">
+            <Layers className="w-4 h-4 text-cyan-600" />
             <span>Product Categories</span>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
             Browse All Product Categories
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-600 mt-1">
             {liveSynced
               ? `${categories.length} categories · ${products.length} verified products on Amazon India. Every count below is live.`
               : 'Loading the live catalogue…'}
@@ -59,7 +59,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ onNavigate }) =>
             <Reveal key={cat.key} delay={Math.min(i, 5) * 40}>
               <div
                 onClick={() => onNavigate(`/category/${cat.slug}`)}
-                className="relative p-6 bg-[#0D1322]/90 hover:bg-[#0F172A] rounded-3xl border border-slate-800/80 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer flex flex-col justify-between group overflow-hidden card-lift h-full"
+                className="relative p-6 bg-white/90 hover:bg-[#0F172A] rounded-3xl border border-slate-200/80 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer flex flex-col justify-between group overflow-hidden card-lift h-full"
               >
                 {asset?.image && (
                   <div className="absolute top-0 right-0 w-1/2 h-44 pointer-events-none opacity-10 group-hover:opacity-20 transition-opacity duration-300 overflow-hidden rounded-tr-3xl">
@@ -87,16 +87,16 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ onNavigate }) =>
                     </span>
                   </div>
 
-                  <h3 className="text-lg font-bold text-white group-hover:text-blue-400 transition-colors">
+                  <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
                     {cat.name}
                   </h3>
-                  <p className="text-xs text-slate-400 mt-2 leading-relaxed font-normal">
+                  <p className="text-xs text-slate-600 mt-2 leading-relaxed font-normal">
                     Verified Amazon India prices, checked by the Findora team.
                   </p>
 
                   {cat.brands.length > 0 && (
-                    <div className="mt-5 pt-4 border-t border-slate-800/80">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2">
+                    <div className="mt-5 pt-4 border-t border-slate-200/80">
+                      <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block mb-2">
                         Featured Brands
                       </span>
                       <div className="flex flex-wrap gap-1.5">
@@ -113,7 +113,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ onNavigate }) =>
                   )}
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs font-bold text-blue-400 group-hover:text-blue-300 relative z-10">
+                <div className="mt-6 pt-4 border-t border-slate-200/80 flex items-center justify-between text-xs font-bold text-blue-600 group-hover:text-blue-300 relative z-10">
                   <span>Explore {cat.name}</span>
                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </div>

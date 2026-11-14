@@ -58,7 +58,7 @@ export const AmazonQuickActions: React.FC<AmazonQuickActionsProps> = ({
       ) : (
         <span
           title="Amazon product URL is missing for this item"
-          className={`inline-flex items-center gap-1.5 font-medium text-slate-400 bg-slate-100/90 border border-slate-200 rounded-xl cursor-not-allowed select-none shrink-0 whitespace-nowrap ${buttonPadding}`}
+          className={`inline-flex items-center gap-1.5 font-medium text-slate-600 bg-slate-100/90 border border-slate-200 rounded-xl cursor-not-allowed select-none shrink-0 whitespace-nowrap ${buttonPadding}`}
         >
           <ExternalLink className="w-3.5 h-3.5 opacity-40 shrink-0" />
           <span>Amazon URL missing</span>

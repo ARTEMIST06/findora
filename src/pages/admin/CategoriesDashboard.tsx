@@ -63,7 +63,7 @@ export const CategoriesDashboard: React.FC = () => {
 
       <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
         <table className="w-full text-left text-sm text-slate-600">
-          <thead className="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500">
+          <thead className="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-600">
             <tr>
               <th className="px-6 py-4 font-bold">Name</th>
               <th className="px-6 py-4 font-bold">Slug</th>
@@ -81,7 +81,7 @@ export const CategoriesDashboard: React.FC = () => {
                       setCurrentCategory(c);
                       setIsEditing(true);
                     }}
-                    className="p-2 text-slate-400 hover:text-blue-600 transition-colors"
+                    className="p-2 text-slate-600 hover:text-blue-600 transition-colors"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
@@ -90,7 +90,7 @@ export const CategoriesDashboard: React.FC = () => {
             ))}
             {categories.length === 0 && (
               <tr>
-                <td colSpan={3} className="px-6 py-8 text-center text-slate-500">
+                <td colSpan={3} className="px-6 py-8 text-center text-slate-600">
                   No categories found.
                 </td>
               </tr>
@@ -100,7 +100,7 @@ export const CategoriesDashboard: React.FC = () => {
       </div>
 
       {isEditing && currentCategory && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-50/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <h3 className="font-bold text-slate-900">{currentCategory.id ? 'Edit Category' : 'Add Category'}</h3>
             <form onSubmit={handleSave} className="space-y-4">

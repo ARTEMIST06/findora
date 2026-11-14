@@ -49,28 +49,28 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
       icon: Tag,
       title: 'Compare Prices',
       subtitle: 'On Amazon India',
-      color: 'text-blue-400',
+      color: 'text-blue-600',
       bg: 'bg-blue-500/10 border-blue-500/20',
     },
     {
       icon: Zap,
       title: 'Save Time',
       subtitle: 'No endless searching',
-      color: 'text-amber-400',
+      color: 'text-amber-600',
       bg: 'bg-amber-500/10 border-amber-500/20',
     },
     {
       icon: ShieldCheck,
       title: 'Verified Prices',
       subtitle: 'Checked on Amazon India',
-      color: 'text-emerald-400',
+      color: 'text-emerald-600',
       bg: 'bg-emerald-500/10 border-emerald-500/20',
     },
     {
       icon: HeartHandshake,
       title: 'No Sponsored Picks',
       subtitle: 'Editorial choices only',
-      color: 'text-purple-400',
+      color: 'text-purple-600',
       bg: 'bg-purple-500/10 border-purple-500/20',
     },
   ];
@@ -99,7 +99,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
           <div className="lg:col-span-7 flex flex-col justify-center text-left">
             {/* Tagline Pill */}
             <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-xs font-semibold tracking-wide mb-4 sm:mb-5 w-fit shadow-[0_0_15px_rgba(59,130,246,0.15)]">
-              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+              <Sparkles className="w-3.5 h-3.5 text-cyan-600" />
               <span>
                 {liveSynced && liveCount > 0
                   ? `${liveCount}+ VERIFIED PRODUCTS · AMAZON INDIA`
@@ -108,7 +108,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
             </div>
 
             {/* Main Headline - Responsive typography across 360px, 768px, 1024px, 1440px */}
-            <h1 className="text-3xl sm:text-5xl lg:text-4xl xl:text-6xl font-extrabold text-white tracking-tight leading-[1.1] sm:leading-[1.08] mb-4 sm:mb-6">
+            <h1 className="text-3xl sm:text-5xl lg:text-4xl xl:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.1] sm:leading-[1.08] mb-4 sm:mb-6">
               Find it.
               <br />
               Compare it.
@@ -119,7 +119,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
             </h1>
 
             {/* Subtitle / Description */}
-            <p className="text-slate-300 text-sm sm:text-base xl:text-lg max-w-xl mb-6 sm:mb-8 leading-relaxed font-normal">
+            <p className="text-slate-700 text-sm sm:text-base xl:text-lg max-w-xl mb-6 sm:mb-8 leading-relaxed font-normal">
               Discover the best products, check verified Amazon India prices and make confident buying decisions — all in one place.
             </p>
 
@@ -127,9 +127,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
             <div className="w-full max-w-xl mb-4 sm:mb-5">
               <form
                 onSubmit={handleSearch}
-                className="relative flex items-center bg-white rounded-full p-1.5 sm:p-2 shadow-2xl shadow-blue-900/30 border border-white/20 transition-all focus-within:ring-4 focus-within:ring-blue-500/20"
+                className="relative flex items-center bg-white rounded-full p-1.5 sm:p-2 shadow-2xl shadow-blue-900/30 border border-slate-300 transition-all focus-within:ring-4 focus-within:ring-blue-500/20"
               >
-                <div className="pl-3 pr-2 text-slate-400">
+                <div className="pl-3 pr-2 text-slate-600">
                   <Search className="w-4 sm:w-5 h-4 sm:h-5" />
                 </div>
                 <input
@@ -151,14 +151,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
 
             {/* Popular Searches Chips */}
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs mb-6 lg:mb-8">
-              <span className="text-slate-400 font-medium mr-1 text-[11px] sm:text-xs">
+              <span className="text-slate-600 font-medium mr-1 text-[11px] sm:text-xs">
                 Popular searches:
               </span>
               {popularSearches.map((item) => (
                 <button
                   key={item.label}
                   onClick={() => onNavigate(`/search?q=${encodeURIComponent(item.query)}`)}
-                  className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-[#0D1322] hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 hover:border-blue-500/40 transition-all shadow-sm text-[11px] sm:text-xs"
+                  className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-300/80 hover:border-blue-500/40 transition-all shadow-sm text-[11px] sm:text-xs"
                 >
                   {item.label}
                 </button>
@@ -171,7 +171,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
             </div>
 
             {/* 4 Value Proposition Items (Benefits) */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-5 sm:pt-6 border-t border-slate-800/80">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-5 sm:pt-6 border-t border-slate-200/80">
               {valueProps.map((prop) => {
                 const IconComponent = prop.icon;
                 return (
@@ -181,10 +181,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
                     >
                       <IconComponent className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </div>
-                    <span className="text-xs sm:text-sm font-bold text-white tracking-tight">
+                    <span className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">
                       {prop.title}
                     </span>
-                    <span className="text-[10px] sm:text-[11px] text-slate-400 leading-snug">
+                    <span className="text-[10px] sm:text-[11px] text-slate-600 leading-snug">
                       {prop.subtitle}
                     </span>
                   </div>
