@@ -17,6 +17,7 @@ import { ComparePage } from './pages/public/ComparePage';
 import { WishlistPage } from './pages/public/WishlistPage';
 import { CategoriesPage } from './pages/public/CategoriesPage';
 import { DealsPage } from './pages/public/DealsPage';
+import { BlogPage } from './pages/public/BlogPage';
 import { ProfilePage } from './pages/public/ProfilePage';
 import { AuthPage } from './pages/public/AuthPages';
 import { LegalPage } from './pages/public/LegalPages';
@@ -167,6 +168,12 @@ export default function App() {
     }
     if (pathPart === '/cookie-disclosure') {
       return <LegalPage page="cookie-disclosure" onNavigate={handleNavigate} />;
+    }
+
+    // 14. Blog / Buying Guides (fix: Navbar + Footer linked here but no
+    // route existed, so /blog fell through to the 404 page)
+    if (pathPart === '/blog') {
+      return <BlogPage onNavigate={handleNavigate} />;
     }
 
     // Fallback: 404

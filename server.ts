@@ -2,7 +2,7 @@ import express from "express";
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import path from "path";
-import { initializeApp } from 'firebase-admin/app';
+import { initializeApp, getApps } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import fs from 'fs';
 
@@ -13,9 +13,10 @@ try {
   if (fs.existsSync(configPath)) {
     const configStr = fs.readFileSync(configPath, 'utf8');
     firebaseConfig = JSON.parse(configStr);
-    adminApp = initializeApp({
-      projectId: firebaseConfig.projectId,
-    });
+    // getApps() guard: warm serverless invocations must not re-initialize.
+    adminApp = getApps().length
+      ? getApps()[0]
+      : initializeApp({ projectId: firebaseConfig.projectId });
   }
 } catch (e) {
   console.error("Firebase Admin initialization failed:", e);
