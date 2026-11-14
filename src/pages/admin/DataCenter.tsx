@@ -475,7 +475,13 @@ export const DataCenter: React.FC<DataCenterProps> = ({ onNavigate }) => {
             { label: 'Categories (real)', value: derivedCats.length, sub: `${categories.length} in Admin taxonomy` },
             { label: 'Brands', value: brandNames.length, sub: 'unique brands in the catalogue' },
             { label: 'Draft docs', value: draftDocs.length, sub: 'Drafts-page system (separate from product drafts)' },
-            { label: 'Registered users', value: users.length, sub: userMetrics ? `${userMetrics.googleAuthUsers} Google · ${userMetrics.emailAuthUsers} email` : '—' },
+            // The store's users list is local-only (localStorage cache of
+            // locally registered users — there is no Firestore users
+            // listener in the store), so it reads 0 even though the
+            // Firestore `users` collection holds the real accounts.
+            // userMetrics comes from a direct Firestore read — that is
+            // the truth for the registered-users count.
+            { label: 'Registered users', value: userMetrics?.totalUsers ?? users.length, sub: userMetrics ? `${userMetrics.googleAuthUsers} Google · ${userMetrics.emailAuthUsers} email` : '—' },
             { label: 'Affiliate clicks', value: clicks.length, sub: 'recorded outbound clicks' },
             { label: 'Search events', value: topSearches.reduce((a, s) => a + s.count, 0), sub: `${topSearches.length} distinct queries` },
           ].map((c) => (

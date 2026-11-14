@@ -31,6 +31,11 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
 }) => {
   const store = useFindoraStore();
   const allProducts = store.getAllProductsWithPrices(true);
+  // Until the first live Firestore snapshot arrives, allProducts can be a
+  // stale cache — and a category filter applied to that cache can yield 0
+  // products, flashing a "No products match" empty state for ~10s on first
+  // open. Gate the results on the sync flag instead.
+  const liveSynced = store.hasLiveProducts();
   // Public taxonomy is derived from the live products (see utils/categories):
   // the Admin taxonomy slugs never matched the stored category strings,
   // which is why category pages used to come up empty.
@@ -206,7 +211,11 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
             {pageTitle}
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Showing <strong className="text-white font-bold">{filteredProducts.length}</strong> verified products on Amazon India
+            {liveSynced ? (
+              <>Showing <strong className="text-white font-bold">{filteredProducts.length}</strong> verified products on Amazon India</>
+            ) : (
+              'Loading the live catalogue…'
+            )}
           </p>
         </div>
 
@@ -414,7 +423,18 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
           )}
 
           {/* Grid */}
-          {filteredProducts.length > 0 ? (
+          {!liveSynced ? (
+            <div>
+              <div className="text-center py-10 px-4">
+                <p className="text-sm text-slate-400">Loading the live catalogue…</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5" aria-hidden="true">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="rounded-3xl border border-slate-800 bg-[#0D1322] h-80 animate-pulse" />
+                ))}
+              </div>
+            </div>
+          ) : filteredProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
               {filteredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} onNavigate={onNavigate} />
