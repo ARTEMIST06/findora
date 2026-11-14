@@ -46,7 +46,7 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
           {/* Card Content */}
           <div className="relative z-10 p-6 flex flex-col justify-between h-full">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-200 border border-amber-500/30 backdrop-blur-md">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-black/55 text-amber-200 border border-amber-400/50 backdrop-blur-md">
                 <Flame className="w-3 h-3 text-amber-600" />
                 {EDITORIAL_ASSETS.topDeals.tagline}
               </span>
@@ -85,7 +85,7 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
 
           <div className="relative z-10 p-6 flex flex-col justify-between h-full">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-blue-500/20 text-blue-200 border border-blue-500/30 backdrop-blur-md">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-black/55 text-blue-200 border border-blue-400/50 backdrop-blur-md">
                 <Laptop className="w-3 h-3 text-cyan-600" />
                 {EDITORIAL_ASSETS.setup.tagline}
               </span>
@@ -124,7 +124,7 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
 
           <div className="relative z-10 p-6 flex flex-col justify-between h-full">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 backdrop-blur-md">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-black/55 text-emerald-200 border border-emerald-400/50 backdrop-blur-md">
                 <Home className="w-3 h-3 text-emerald-600" />
                 {EDITORIAL_ASSETS.everyday.tagline}
               </span>
@@ -163,7 +163,7 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
 
           <div className="relative z-10 p-6 flex flex-col justify-between h-full">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-purple-500/20 text-purple-200 border border-purple-500/30 backdrop-blur-md">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-black/55 text-purple-200 border border-purple-400/50 backdrop-blur-md">
                 <Star className="w-3 h-3 text-purple-600" />
                 {EDITORIAL_ASSETS.trending.tagline}
               </span>
