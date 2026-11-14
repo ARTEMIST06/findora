@@ -258,7 +258,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
                   <button
                     type="button"
                     onClick={() => setIsResetMode(true)}
-                    className="text-xs text-blue-600 hover:text-blue-300 font-medium"
+                    className="text-xs text-blue-600 hover:text-blue-700 font-medium"
                   >
                     Forgot password?
                   </button>
@@ -320,7 +320,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
                   setIsResetMode(false);
                   onNavigate(mode === 'login' ? '/signup' : '/login');
                 }}
-                className="text-sm font-semibold text-blue-600 hover:text-blue-300"
+                className="text-sm font-semibold text-blue-600 hover:text-blue-700"
               >
                 {mode === 'login' ? 'Sign up' : 'Log in'}
               </button>

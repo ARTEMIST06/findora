@@ -277,13 +277,13 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
         {/* Left: Product Images Gallery */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="aspect-square w-full rounded-3xl bg-[#080D1A] border border-slate-200/80 p-8 flex items-center justify-center relative overflow-hidden shadow-2xl">
+          <div className="aspect-square w-full rounded-3xl bg-slate-100 border border-slate-200/80 p-8 flex items-center justify-center relative overflow-hidden shadow-2xl">
             {/* Ambient Glow */}
             <div className="absolute inset-0 product-backdrop-glow pointer-events-none"></div>
 
             {product.badge && (
               <span className="absolute top-4 left-4 inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-blue-600/90 text-white shadow-md border border-blue-400/30 z-10 backdrop-blur-md">
-                <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
+                <Sparkles className="w-3.5 h-3.5 text-cyan-700" />
                 {product.badge}
               </span>
             )}
@@ -302,7 +302,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                 <button
                   key={idx}
                   onClick={() => setSelectedImageIndex(idx)}
-                  className={`w-16 h-16 rounded-2xl border p-1 bg-[#080D1A] shrink-0 overflow-hidden transition-all ${
+                  className={`w-16 h-16 rounded-2xl border p-1 bg-slate-100 shrink-0 overflow-hidden transition-all ${
                     selectedImageIndex === idx
                       ? 'border-blue-500 ring-2 ring-blue-500/30 shadow-md'
                       : 'border-slate-800 hover:border-slate-700 opacity-70 hover:opacity-100'
@@ -337,7 +337,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
             </p>
 
             {/* Lowest Price Banner / Best Store highlight */}
-            <div className="mt-6 p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-[#0E1628] via-[#090F1E] to-[#070B14] border border-blue-500/30 relative overflow-hidden shadow-2xl">
+            <div className="mt-6 p-5 sm:p-6 rounded-3xl bg-white border border-blue-500/30 relative overflow-hidden shadow-2xl">
               {/* Backlight */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/15 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -365,7 +365,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                     )}
 
                     {bestOffer?.priceDrop && (
-                      <span className="inline-flex items-center gap-1 bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1 bg-rose-500/20 text-rose-700 border border-rose-500/30 px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap">
                         <TrendingDown className="w-3.5 h-3.5" />
                         {bestOffer.priceDrop.percentage}% OFF (↓{formatINR(bestOffer.priceDrop.amount)})
                       </span>
@@ -426,7 +426,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                 className={`flex-1 min-w-[120px] py-2.5 px-4 rounded-full border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
                   isWishlisted
                     ? 'bg-rose-500/20 text-rose-300 border-rose-500/50'
-                    : 'bg-[#0D1322] text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white'
+                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100 hover:text-slate-900'
                 }`}
               >
                 <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-rose-500 text-rose-400' : 'text-slate-400'}`} />
@@ -438,7 +438,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                 className={`flex-1 min-w-[120px] py-2.5 px-4 rounded-full border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
                   isCompared
                     ? 'bg-blue-500/20 text-blue-300 border-blue-500/50'
-                    : 'bg-[#0D1322] text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white'
+                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100 hover:text-slate-900'
                 }`}
               >
                 <Scale className={`w-4 h-4 ${isCompared ? 'text-blue-400' : 'text-slate-400'}`} />
@@ -447,7 +447,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
               
               <button
                 onClick={handleShare}
-                className="flex-1 min-w-[120px] py-2.5 px-4 rounded-full border bg-[#0D1322] text-slate-300 border-slate-800 hover:bg-slate-800 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all"
+                className="flex-1 min-w-[120px] py-2.5 px-4 rounded-full border bg-white text-slate-700 border-slate-300 hover:bg-slate-100 hover:text-slate-900 text-xs font-semibold flex items-center justify-center gap-2 transition-all"
               >
                 <Share2 className="w-4 h-4 text-slate-600" />
                 <span>Share</span>
@@ -457,8 +457,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
 
           {/* "Why Findora Picked It" Callout Box */}
           {product.whyFindora && (
-            <div className="p-5 rounded-3xl bg-[#0D1426] border border-blue-500/30 text-slate-700 shadow-xl mt-6">
-              <div className="flex items-center gap-2 font-bold text-blue-300 text-sm mb-2">
+            <div className="p-5 rounded-3xl bg-white border border-blue-500/30 text-slate-700 shadow-xl mt-6">
+              <div className="flex items-center gap-2 font-bold text-blue-700 text-sm mb-2">
                 <Sparkles className="w-4 h-4 text-cyan-600" />
                 <span>Why Findora Recommends This</span>
               </div>
@@ -481,7 +481,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
               One checked offer from Amazon India, with the price and the date it was last verified.
             </p>
           </div>
-          <span className="text-xs font-semibold text-slate-300 bg-[#0D1322] px-4 py-1.5 rounded-full border border-slate-700 self-start sm:self-auto shadow-sm">
+          <span className="text-xs font-semibold text-slate-700 bg-slate-100 px-4 py-1.5 rounded-full border border-slate-300 self-start sm:self-auto shadow-sm">
             {sortedOffers.length > 0 ? `${sortedOffers.length} Verified Offer${sortedOffers.length > 1 ? 's' : ''}` : 'No Offers Available'}
           </span>
         </div>
@@ -661,7 +661,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
             className={`px-5 py-2.5 text-xs sm:text-sm font-bold rounded-full transition-all whitespace-nowrap ${
               activeTab === 'specs'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             Specifications
@@ -671,7 +671,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
             className={`px-5 py-2.5 text-xs sm:text-sm font-bold rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'history'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <TrendingDown className={`w-4 h-4 ${activeTab === 'history' ? 'text-slate-900' : 'text-emerald-600'}`} />
@@ -683,7 +683,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
               className={`px-5 py-2.5 text-xs sm:text-sm font-bold rounded-full transition-all whitespace-nowrap ${
                 activeTab === 'description'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
               Overview
@@ -747,7 +747,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                         value={targetPrice}
                         onChange={(e) => setTargetPrice(e.target.value)}
                         placeholder="Target price..."
-                        className="pl-8 pr-4 py-2 text-xs font-bold text-slate-900 rounded-full border border-slate-300 outline-none focus:border-blue-500 w-full sm:w-40 bg-[#0A0F1D]"
+                        className="pl-8 pr-4 py-2 text-xs font-bold text-slate-900 rounded-full border border-slate-300 outline-none focus:border-blue-500 w-full sm:w-40 bg-white"
                         disabled={isSettingAlert}
                       />
                     </div>
@@ -772,11 +772,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
               
               return (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-[#080D1A] border border-emerald-500/30 p-4 rounded-2xl">
+                  <div className="bg-white border border-emerald-500/30 p-4 rounded-2xl">
                     <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-1">Lowest Recorded</p>
                     <p className="text-xl font-extrabold text-slate-900">{lowestHistory ? formatINR(lowestHistory) : 'N/A'}</p>
                   </div>
-                  <div className="bg-[#080D1A] border border-slate-200 p-4 rounded-2xl">
+                  <div className="bg-white border border-slate-200 p-4 rounded-2xl">
                     <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">Highest Recorded</p>
                     <p className="text-xl font-extrabold text-slate-900">{highestHistory ? formatINR(highestHistory) : 'N/A'}</p>
                   </div>
@@ -825,7 +825,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
 
         {/* Tab 3: Full Description */}
         {activeTab === 'description' && product.description && (
-          <div className="bg-[#0D1322]/90 rounded-3xl border border-slate-800/80 p-6 sm:p-8 text-sm text-slate-300 leading-loose space-y-6 shadow-2xl font-normal">
+          <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 text-sm text-slate-700 leading-loose space-y-6 shadow-2xl font-normal">
             <p>{product.description}</p>
             {product.tags && product.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-200">
@@ -861,7 +861,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
             <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900">Similar Alternatives</h2>
             <button
               onClick={() => onNavigate(`/category/${slugifyCategoryLabel(product.category)}`)}
-              className="text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-300 transition-colors"
+              className="text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors"
             >
               View category →
             </button>

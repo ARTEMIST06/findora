@@ -172,7 +172,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
                     value={contactName}
                     onChange={(e) => setContactName(e.target.value)}
                     placeholder="John Doe"
-                    className="w-full px-4 py-3 rounded-xl bg-[#070B14] border border-slate-700 outline-none focus:border-blue-500 text-xs text-white placeholder-slate-500"
+                    className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 outline-none focus:border-blue-500 text-xs text-slate-900 placeholder-slate-400"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -183,7 +183,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
                     value={contactEmail}
                     onChange={(e) => setContactEmail(e.target.value)}
                     placeholder="name@example.com"
-                    className="w-full px-4 py-3 rounded-xl bg-[#070B14] border border-slate-700 outline-none focus:border-blue-500 text-xs text-white placeholder-slate-500"
+                    className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 outline-none focus:border-blue-500 text-xs text-slate-900 placeholder-slate-400"
                   />
                 </div>
               </div>
@@ -195,7 +195,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
                   value={contactSubject}
                   onChange={(e) => setContactSubject(e.target.value)}
                   placeholder="Price discrepancy, partner request, or product feedback..."
-                  className="w-full px-4 py-3 rounded-xl bg-[#070B14] border border-slate-700 outline-none focus:border-blue-500 text-xs text-white placeholder-slate-500"
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 outline-none focus:border-blue-500 text-xs text-slate-900 placeholder-slate-400"
                 />
               </div>
               <div className="space-y-1.5">
@@ -206,7 +206,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
                   value={contactMessage}
                   onChange={(e) => setContactMessage(e.target.value)}
                   placeholder="Write your note here..."
-                  className="w-full px-4 py-3 rounded-xl bg-[#070B14] border border-slate-700 outline-none focus:border-blue-500 text-xs text-white placeholder-slate-500"
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 outline-none focus:border-blue-500 text-xs text-slate-900 placeholder-slate-400"
                 ></textarea>
               </div>
               <button

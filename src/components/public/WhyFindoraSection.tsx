@@ -60,10 +60,10 @@ export const WhyFindoraSection: React.FC = () => {
               className={`group relative p-6 bg-white/80 hover:bg-[#121B30] rounded-3xl border border-slate-200/80 ${item.glow} transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-xl backdrop-blur-sm card-lift`}
             >
               <div className="relative z-10">
-                <div className="w-12 h-12 rounded-2xl bg-[#080D1A] shadow-md border border-slate-300/60 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-12 h-12 rounded-2xl bg-white shadow-md border border-slate-300/60 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                   {item.icon}
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-3 group-hover:text-blue-300 transition-colors">
+                <h3 className="text-lg font-bold text-slate-900 mb-3 group-hover:text-blue-700 transition-colors">
                   {item.title}
                 </h3>
                 <p className="text-sm text-slate-600 leading-relaxed">

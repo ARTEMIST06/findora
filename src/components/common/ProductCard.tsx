@@ -45,15 +45,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
   // Determine badge styling based on badge content
   const getBadgeStyle = (badgeText?: string, discount?: number) => {
     if (badgeText?.toLowerCase().includes('value') || badgeText?.toLowerCase().includes('editor')) {
-      return 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+      return 'bg-emerald-500/20 text-emerald-700 border border-emerald-500/40';
     }
     if (badgeText?.toLowerCase().includes('trend') || badgeText?.toLowerCase().includes('choice')) {
-      return 'bg-purple-500/20 text-purple-300 border border-purple-500/40';
+      return 'bg-purple-500/20 text-purple-700 border border-purple-500/40';
     }
     if (discount && discount > 20) {
-      return 'bg-rose-500/20 text-rose-300 border border-rose-500/40';
+      return 'bg-rose-500/20 text-rose-700 border border-rose-500/40';
     }
-    return 'bg-blue-500/20 text-blue-300 border border-blue-500/40';
+    return 'bg-blue-500/20 text-blue-700 border border-blue-500/40';
   };
 
   return (
@@ -63,7 +63,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
       id={`product-card-${product.id}`}
     >
       {/* Top Image Stage */}
-      <div className="relative aspect-square w-full bg-[#080D1A] p-5 flex items-center justify-center overflow-hidden border-b border-slate-200/60">
+      <div className="relative aspect-square w-full bg-slate-100 p-5 flex items-center justify-center overflow-hidden border-b border-slate-200/60">
         {/* Ambient Backlight Glow */}
         <div className="absolute inset-0 product-backdrop-glow pointer-events-none"></div>
 
@@ -94,7 +94,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
             className={`p-2 rounded-full transition-all shadow-md backdrop-blur-md ${
               isWishlisted
                 ? 'bg-rose-500/30 text-rose-600 border border-rose-500/60'
-                : 'bg-black/40 text-slate-300 hover:text-rose-400 hover:bg-black/70 border border-white/10 opacity-80 group-hover:opacity-100'
+                : 'bg-white/85 text-slate-600 hover:text-rose-600 hover:bg-white border border-slate-200 shadow-sm opacity-90 group-hover:opacity-100'
             }`}
             title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
             aria-label="Wishlist"
@@ -107,7 +107,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
             className={`p-2 rounded-full transition-all shadow-md backdrop-blur-md ${
               isCompared
                 ? 'bg-blue-500/30 text-blue-600 border border-blue-500/60'
-                : 'bg-black/40 text-slate-300 hover:text-blue-400 hover:bg-black/70 border border-white/10 opacity-80 group-hover:opacity-100'
+                : 'bg-white/85 text-slate-600 hover:text-blue-600 hover:bg-white border border-slate-200 shadow-sm opacity-90 group-hover:opacity-100'
             }`}
             title={isCompared ? 'Remove from compare' : 'Add to compare'}
             aria-label="Compare"
@@ -144,7 +144,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
 
         {/* Price Block & Store availability */}
         <div className="pt-3.5 mt-3 border-t border-slate-200/80 flex flex-col gap-3">
-          <div className="flex items-baseline justify-between gap-2">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
             <div>
               <span className="text-[10px] text-slate-600 block font-medium uppercase tracking-wider mb-0.5">
                 Price on Amazon
@@ -175,7 +175,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
           {/* Store Availability — Findora lists Amazon India only. */}
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-[10px] text-slate-600 uppercase tracking-wider">Available on:</span>
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-500/10 text-amber-700 border border-amber-500/30">
               <ShieldCheck className="w-3 h-3 text-emerald-600" />
               Amazon India
             </span>
@@ -188,7 +188,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
                 e.stopPropagation();
                 onNavigate(`/product/${product.slug}`);
               }}
-              className="w-full py-2 px-3 rounded-xl border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white bg-slate-800/40 hover:bg-slate-800 text-xs font-semibold transition-all text-center"
+              className="w-full py-2 px-3 rounded-xl border border-slate-300 hover:border-slate-400 text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 text-xs font-semibold transition-all text-center"
             >
               Details
             </button>

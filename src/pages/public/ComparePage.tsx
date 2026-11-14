@@ -138,7 +138,7 @@ export const ComparePage: React.FC<ComparePageProps> = ({ onNavigate }) => {
                   </button>
 
                   <div className="flex flex-col items-center text-center">
-                    <div className="w-24 h-24 p-2 rounded-2xl bg-[#080D1A] border border-slate-200 flex items-center justify-center mb-3">
+                    <div className="w-24 h-24 p-2 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mb-3">
                       <img
                         src={getProductImage(product)}
                         alt={product.name}
@@ -301,7 +301,7 @@ export const ComparePage: React.FC<ComparePageProps> = ({ onNavigate }) => {
                 value={modalSearch}
                 onChange={(e) => setModalSearch(e.target.value)}
                 placeholder="Search products by title or brand..."
-                className="w-full pl-9 pr-4 py-2.5 text-xs bg-[#070B14] border border-slate-700 rounded-full text-white placeholder-slate-500 outline-none focus:border-blue-500"
+                className="w-full pl-9 pr-4 py-2.5 text-xs bg-white border border-slate-300 rounded-full text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500"
               />
               <Search className="w-4 h-4 text-slate-600 absolute left-3 top-3" />
             </div>
@@ -321,7 +321,7 @@ export const ComparePage: React.FC<ComparePageProps> = ({ onNavigate }) => {
                     className="p-3.5 rounded-2xl border border-slate-200 hover:border-blue-500/50 hover:bg-slate-100/40 flex items-center justify-between gap-3 cursor-pointer transition-all"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl p-1 bg-[#080D1A] border border-slate-200 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-xl p-1 bg-white border border-slate-200 flex items-center justify-center">
                         <img
                           src={prod.images[0]}
                           alt={prod.name}

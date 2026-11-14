@@ -59,10 +59,10 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ onNavigate }) =>
             <Reveal key={cat.key} delay={Math.min(i, 5) * 40}>
               <div
                 onClick={() => onNavigate(`/category/${cat.slug}`)}
-                className="relative p-6 bg-white/90 hover:bg-[#0F172A] rounded-3xl border border-slate-200/80 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer flex flex-col justify-between group overflow-hidden card-lift h-full"
+                className="relative p-6 bg-white/90 hover:bg-white rounded-3xl border border-slate-200/80 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer flex flex-col justify-between group overflow-hidden card-lift h-full"
               >
                 {asset?.image && (
-                  <div className="absolute top-0 right-0 w-1/2 h-44 pointer-events-none opacity-10 group-hover:opacity-20 transition-opacity duration-300 overflow-hidden rounded-tr-3xl">
+                  <div className="absolute top-0 right-0 w-1/2 h-44 pointer-events-none opacity-60 group-hover:opacity-90 transition-opacity duration-300 overflow-hidden rounded-tr-3xl">
                     <img
                       src={asset.image}
                       alt={cat.name}
@@ -113,7 +113,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ onNavigate }) =>
                   )}
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-slate-200/80 flex items-center justify-between text-xs font-bold text-blue-600 group-hover:text-blue-300 relative z-10">
+                <div className="mt-6 pt-4 border-t border-slate-200/80 flex items-center justify-between text-xs font-bold text-blue-600 group-hover:text-blue-700 relative z-10">
                   <span>Explore {cat.name}</span>
                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </div>

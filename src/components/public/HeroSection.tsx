@@ -98,7 +98,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
           {/* Main Left Column (Desktop) / Primary Stack (Mobile) */}
           <div className="lg:col-span-7 flex flex-col justify-center text-left">
             {/* Tagline Pill */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-xs font-semibold tracking-wide mb-4 sm:mb-5 w-fit shadow-[0_0_15px_rgba(59,130,246,0.15)]">
+            <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-700 text-xs font-semibold tracking-wide mb-4 sm:mb-5 w-fit shadow-[0_0_15px_rgba(59,130,246,0.15)]">
               <Sparkles className="w-3.5 h-3.5 text-cyan-600" />
               <span>
                 {liveSynced && liveCount > 0
@@ -113,7 +113,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
               <br />
               Compare it.
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600">
                 Buy smarter.
               </span>
             </h1>

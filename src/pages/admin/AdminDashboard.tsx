@@ -703,7 +703,7 @@ if (authLoading) {
           className={`px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shrink-0 ${
             activeTab === 'overview'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <LayoutDashboard className="w-4 h-4" />
@@ -715,7 +715,7 @@ if (authLoading) {
           className={`px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shrink-0 ${
             activeTab === 'products'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <Package className="w-4 h-4" />
@@ -727,7 +727,7 @@ if (authLoading) {
           className={`px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shrink-0 ${
             activeTab === 'drafts'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <Edit2 className="w-4 h-4" />
@@ -739,7 +739,7 @@ if (authLoading) {
           className={`px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shrink-0 ${
             activeTab === 'categories'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <LayoutDashboard className="w-4 h-4" />
@@ -751,7 +751,7 @@ if (authLoading) {
           className={`px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shrink-0 ${
             activeTab === 'brands'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <Tag className="w-4 h-4" />
@@ -763,7 +763,7 @@ if (authLoading) {
           className={`px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shrink-0 ${
             activeTab === 'offers'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <Tag className="w-4 h-4" />
@@ -775,7 +775,7 @@ if (authLoading) {
           className={`px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shrink-0 ${
             activeTab === 'stores'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <Store className="w-4 h-4" />
@@ -787,7 +787,7 @@ if (authLoading) {
           className={`px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shrink-0 ${
             activeTab === 'clicks'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <MousePointerClick className="w-4 h-4" />
@@ -798,7 +798,7 @@ if (authLoading) {
           className={`px-4 py-2.5 rounded-full transition-all flex items-center gap-2 shrink-0 ${
             activeTab === 'bulk-import'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <FileUp className="w-4 h-4" />
