@@ -20,7 +20,7 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
             Discover What's Trending & Handpicked
           </h2>
           <p className="text-sm text-slate-400 mt-1 max-w-xl">
-            Intelligently organized collections comparing verified prices, verified specs, and active seasonal discounts.
+            Handpicked collections from the live catalogue — biggest discounts vs MRP, desk setups, everyday essentials and what's most clicked right now.
           </p>
         </div>
       </div>
