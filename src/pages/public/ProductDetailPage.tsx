@@ -18,12 +18,12 @@ import {
   ArrowRight,
   Share2,
   AlertTriangle,
-  Star,
 } from 'lucide-react';
 import { SEOHead } from '../../components/common/SEOHead';
 import { useFindoraStore } from '../../services/store';
 import { analytics } from '../../services/analytics';
 import { formatINR, formatRelativeTime } from '../../utils/formatters';
+import { slugifyCategoryLabel, productMatchesCategory } from '../../utils/categories';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useToast } from '../../components/common/Toast';
 import { ProductCard } from '../../components/common/ProductCard';
@@ -104,7 +104,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
       <div className="max-w-4xl mx-auto px-4 py-24 text-center min-h-[60vh] flex flex-col justify-center items-center">
         <SEOHead
           title="Product Not Found - Findora"
-          description="The requested product was not found in our catalog. Browse our live catalog or search across top retailers."
+          description="The requested product was not found in our catalog. Browse our live catalog or search on Amazon India via Findora."
           noIndex={true}
         />
         <div className="w-16 h-16 rounded-2xl bg-[#0D1322] border border-slate-800 flex items-center justify-center mb-4 text-slate-500">
@@ -129,15 +129,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
   
   const similarProducts = store
     .getAllProductsWithPrices(true)
-    .filter((p) => p.category === product.category && p.id !== product.id)
+    .filter((p) => productMatchesCategory(p.category, product.category) && p.id !== product.id)
     .slice(0, 3);
 
+  // Wishlist works for guests too (localStorage) — no login wall.
   const handleWishlistToggle = () => {
-    if (!store.getCurrentUser()) {
-      showToast('Please log in to save to wishlist', 'info');
-      onNavigate('/login');
-      return;
-    }
     store.toggleWishlist(product.id);
     showToast(store.isInWishlist(product.id) ? `Saved ${product.name} to wishlist` : 'Removed from wishlist', 'info');
   };
@@ -219,7 +215,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
   const sortedOffers = [...product.offers].sort((a, b) => a.price - b.price);
 
     const productSlug = product.slug || product.id;
-    const cleanDescription = product.shortDescription || product.whyFindora || product.description || `Compare prices and deals for ${product.name} across verified stores on Findora.`;
+    const cleanDescription = product.shortDescription || product.whyFindora || product.description || `Compare prices and deals for ${product.name} on Amazon India via Findora.`;
     const productImage = (product.images && product.images.length > 0) ? product.images[0] : getProductImage(product);
 
   return (
@@ -233,7 +229,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
         breadcrumbs={[
           { name: 'Home', url: '/' },
           { name: 'Products', url: '/products' },
-          { name: product.category, url: `/category/${product.category}` },
+          { name: product.category, url: `/category/${slugifyCategoryLabel(product.category)}` },
           { name: product.name, url: `/product/${productSlug}` }
         ]}
         productData={{
@@ -244,8 +240,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
           category: product.category,
           id: product.id,
           sku: product.id,
-          rating: product.rating,
-          reviewCount: product.reviewCount,
+          // No rating/reviewCount: stored ratings are unverified, so Findora
+          // never publishes a star score it cannot stand behind.
           offers: sortedOffers.map(o => ({
             price: o.price,
             originalPrice: o.originalPrice,
@@ -268,7 +264,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
         </button>
         <ChevronRight className="w-3.5 h-3.5 shrink-0 text-slate-600" />
         <button
-          onClick={() => onNavigate(`/category/${product.category}`)}
+          onClick={() => onNavigate(`/category/${slugifyCategoryLabel(product.category)}`)}
           className="hover:text-blue-400 capitalize transition-colors"
         >
           {product.category}
@@ -322,22 +318,12 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
         {/* Right: Key Info & Price Buybox */}
         <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
           <div>
-            {/* Brand & Category & Ratings */}
+            {/* Brand — ratings are NOT shown: stored ratings are unverified. */}
             <div className="flex items-center justify-between gap-2 mb-3">
               <span className="text-xs font-extrabold uppercase tracking-wider text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full">
                 {product.brand}
               </span>
-              {product.rating && (
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                  <span>{product.rating}</span>
-                  {product.reviewCount && (
-                    <span className="text-slate-400 font-normal">
-                      ({product.reviewCount.toLocaleString('en-IN')} ratings)
-                    </span>
-                  )}
-                </div>
-              )}
+              <span className="text-xs text-slate-500 font-medium capitalize">{product.category}</span>
             </div>
 
             {/* Product Title */}
@@ -359,10 +345,10 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">
-                      Current Lowest Price
+                      Price on Amazon
                     </span>
                     {product.maxDiscountPercent ? (
-                      <span className="text-[11px] font-extrabold bg-blue-600 text-white px-2.5 py-0.5 rounded-full shadow-sm">
+                      <span className="text-[11px] font-extrabold bg-amber-400 text-slate-900 px-2.5 py-0.5 rounded-full shadow-sm">
                         Save {product.maxDiscountPercent}%
                       </span>
                     ) : null}
@@ -484,19 +470,19 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
         </div>
       </div>
 
-      {/* Real Multi-Store Price Comparison Table */}
+      {/* Verified Amazon India offer — Findora lists one store only. */}
       <section className="space-y-5 pt-8 border-t border-slate-800/80">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-              Live Multi-Store Price Comparison
+              Verified Amazon India Offer
             </h2>
             <p className="text-sm text-slate-400 mt-1">
-              Verified prices across authorized retailers. Sorted by lowest price first.
+              One checked offer from Amazon India, with the price and the date it was last verified.
             </p>
           </div>
           <span className="text-xs font-semibold text-slate-300 bg-[#0D1322] px-4 py-1.5 rounded-full border border-slate-700 self-start sm:self-auto shadow-sm">
-            {sortedOffers.length > 0 ? `${sortedOffers.length} Verified Offers` : 'No Offers Available'}
+            {sortedOffers.length > 0 ? `${sortedOffers.length} Verified Offer${sortedOffers.length > 1 ? 's' : ''}` : 'No Offers Available'}
           </span>
         </div>
 
@@ -533,13 +519,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                         {/* Merchant */}
                         <td className="py-4 px-4 sm:px-6">
                           <div className="flex items-center gap-3">
-                            {isLowest && (
-                              <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/30">
-                                Lowest Price
-                              </span>
-                            )}
                             <span className="font-bold text-white text-sm">
-                              {storeObj?.name || 'Merchant Partner'}
+                              {storeObj?.name || 'Amazon India'}
                             </span>
                           </div>
                         </td>
@@ -735,7 +716,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
               <div className="max-w-xl">
                 <h3 className="font-extrabold text-white text-xl tracking-tight">Recorded Price Trend</h3>
                 <p className="text-sm text-slate-400 mt-1 leading-relaxed">
-                  Track historical price changes across merchants to decide if this is the right time to buy. Findora monitors daily fluctuations to ensure you get the best deal.
+                  Recorded prices for this product, when available — so you can tell a real discount from an inflated sale price.
                 </p>
               </div>
 
@@ -879,7 +860,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
           <div className="flex items-center justify-between">
             <h2 className="text-xl sm:text-2xl font-extrabold text-white">Similar Alternatives</h2>
             <button
-              onClick={() => onNavigate(`/category/${product.category}`)}
+              onClick={() => onNavigate(`/category/${slugifyCategoryLabel(product.category)}`)}
               className="text-xs sm:text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors"
             >
               View category →
@@ -896,7 +877,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
       {/* Mobile Sticky Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-[#070B14]/95 backdrop-blur-xl border-t border-slate-800 shadow-2xl z-40 lg:hidden flex items-center justify-between gap-4">
         <div className="flex flex-col min-w-0">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Best Price</span>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Price on Amazon</span>
           <span className="text-xl font-extrabold text-white truncate">
             {product.lowestPrice ? formatINR(product.lowestPrice) : 'N/A'}
           </span>

@@ -20,9 +20,9 @@ export const DealsPage: React.FC<DealsPageProps> = ({ onNavigate }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-10">
-      <SEOHead 
-        title="Best Deals & Verified Price Drops | Findora"
-        description="Discover verified Amazon India price drops on premium electronics, smartphones, laptops, and audio gear — checked by our team."
+      <SEOHead
+        title="Best Deals & Biggest Discounts | Findora"
+        description="Biggest discounts vs MRP on Amazon India — earbuds, fashion, home & kitchen, appliances and more, checked by the Findora team."
         canonicalPath="/deals"
         breadcrumbs={[
           { name: 'Home', url: '/' },
@@ -34,13 +34,13 @@ export const DealsPage: React.FC<DealsPageProps> = ({ onNavigate }) => {
         <div>
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 uppercase tracking-widest mb-1.5 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
             <Flame className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-            <span>Today's Verified Price Drops</span>
+            <span>Biggest Discounts vs MRP</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mt-1">
             Top Deals & Maximum Savings
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Real discount calculations based on authentic MRP and recent merchant price tracking.
+            Discounts are the gap between the stored Amazon India price and its MRP — nothing inflated, nothing invented.
           </p>
         </div>
 

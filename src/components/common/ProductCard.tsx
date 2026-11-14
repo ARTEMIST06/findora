@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, Scale, ExternalLink, ShieldCheck, Tag, Sparkles, Star } from 'lucide-react';
+import { Heart, Scale, ExternalLink, ShieldCheck, Tag, Sparkles } from 'lucide-react';
 import { ProductWithPrices } from '../../types';
 import { formatINR } from '../../utils/formatters';
 import { useFindoraStore } from '../../services/store';
@@ -18,15 +18,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
   const isWishlisted = store.isInWishlist(product.id);
   const isCompared = store.isInCompare(product.id);
 
+  // Wishlist works for guests too (localStorage) — no login wall.
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!store.getCurrentUser()) {
-      showToast('Please log in to save to wishlist', 'info');
-      if (onNavigate) onNavigate('/login');
-      return;
-    }
     const added = store.toggleWishlist(product.id);
-    showToast(store.isInWishlist(product.id) ? `Added ${product.name} to wishlist` : 'Removed from wishlist', 'info');
+    showToast(added ? `Saved ${product.name} to wishlist` : 'Removed from wishlist', 'info');
   };
 
   const handleCompareToggle = (e: React.MouseEvent) => {
@@ -63,7 +59,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
   return (
     <div
       onClick={() => onNavigate(`/product/${product.slug}`)}
-      className="group relative bg-[#0D1322]/90 hover:bg-[#121B30] rounded-2xl border border-slate-800/80 hover:border-blue-500/50 shadow-xl hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 flex flex-col overflow-hidden cursor-pointer backdrop-blur-sm"
+      className="group relative bg-[#0D1322]/90 hover:bg-[#121B30] rounded-2xl border border-slate-800/80 hover:border-blue-500/50 shadow-xl hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 flex flex-col overflow-hidden cursor-pointer backdrop-blur-sm card-lift"
       id={`product-card-${product.id}`}
     >
       {/* Top Image Stage */}
@@ -84,7 +80,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
             </span>
           )}
           {product.maxDiscountPercent && product.maxDiscountPercent > 0 && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-blue-600/90 text-white shadow-md border border-blue-400/30 backdrop-blur-md">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-400 text-slate-900 shadow-md border border-amber-300/50 backdrop-blur-md">
               <Tag className="w-3 h-3" />
               {product.maxDiscountPercent}% OFF
             </span>
@@ -128,28 +124,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
           className="h-full w-full object-contain p-2 transition-transform duration-500 group-hover:scale-105 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]"
           loading="lazy"
         />
-
-        {/* Store Offers count badge */}
-        {product.offers.length > 1 && (
-          <div className="absolute bottom-3 left-3 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-[10px] font-medium text-slate-300">
-            Compare <strong className="text-blue-400">{product.offers.length} stores</strong>
-          </div>
-        )}
       </div>
 
       {/* Content Body */}
       <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between bg-[#0D1322]/80">
         <div>
-          {/* Brand & Rating Row */}
+          {/* Brand row — ratings are NOT shown: stored ratings are unverified,
+              so Findora never presents a star score it cannot stand behind. */}
           <div className="flex items-center justify-between gap-2 mb-2 text-[11px]">
             <span className="font-bold text-slate-400 uppercase tracking-wider">{product.brand}</span>
-            {product.rating && (
-              <span className="flex items-center gap-1 font-semibold text-amber-400">
-                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                <span>{product.rating}</span>
-                <span className="text-slate-500 font-normal">({product.reviewCount || '1.2k'})</span>
-              </span>
-            )}
+            <span className="text-slate-500 font-medium capitalize truncate">{product.category}</span>
           </div>
 
           {/* Product Title */}
@@ -163,7 +147,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
           <div className="flex items-baseline justify-between gap-2">
             <div>
               <span className="text-[10px] text-slate-400 block font-medium uppercase tracking-wider mb-0.5">
-                Lowest Price
+                Price on Amazon
               </span>
               <div className="flex items-baseline gap-2">
                 <span className="text-lg font-extrabold text-white tracking-tight">
@@ -188,17 +172,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
             )}
           </div>
 
-          {/* Store Availability Badges */}
+          {/* Store Availability — Findora lists Amazon India only. */}
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-[10px] text-slate-500 uppercase tracking-wider">Available on:</span>
-            {product.offers.slice(0, 3).map((offer) => (
-              <span
-                key={offer.id}
-                className="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-800/60 text-slate-300 border border-slate-700/50"
-              >
-                {offer.storeId.replace('store-', '').toUpperCase()}
-              </span>
-            ))}
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">
+              <ShieldCheck className="w-3 h-3 text-emerald-400" />
+              Amazon India
+            </span>
           </div>
 
           {/* Action Row */}

@@ -31,7 +31,7 @@ export const BestDealsSection: React.FC<BestDealsSectionProps> = ({ onNavigate }
             Prices Worth Checking Today
           </h2>
           <p className="text-sm text-slate-400 mt-1">
-            Highest price reductions compared against 90-day market averages.
+            Biggest savings vs MRP on Amazon India — the discount is the gap between the stored price and its MRP.
           </p>
         </div>
         <button

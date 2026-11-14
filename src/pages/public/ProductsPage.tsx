@@ -12,6 +12,11 @@ import { SEOHead } from '../../components/common/SEOHead';
 import { ProductCard } from '../../components/common/ProductCard';
 import { useFindoraStore } from '../../services/store';
 import { analytics } from '../../services/analytics';
+import {
+  deriveCategories,
+  productMatchesCategory,
+  categoryNameForSlug,
+} from '../../utils/categories';
 
 interface ProductsPageProps {
   onNavigate: (route: string) => void;
@@ -26,16 +31,16 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
 }) => {
   const store = useFindoraStore();
   const allProducts = store.getAllProductsWithPrices(true);
-  const categories = store.getCategories();
-  const stores = store.getStores();
+  // Public taxonomy is derived from the live products (see utils/categories):
+  // the Admin taxonomy slugs never matched the stored category strings,
+  // which is why category pages used to come up empty.
+  const categories = useMemo(() => deriveCategories(allProducts), [allProducts]);
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  const [selectedStore, setSelectedStore] = useState<string>('all');
   const [maxPrice, setMaxPrice] = useState<number>(300000);
-  const [minRating, setMinRating] = useState<number>(0);
   const [sortBy, setSortBy] = useState<string>('relevance');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
@@ -58,9 +63,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
     setSearchQuery('');
     setSelectedCategory('all');
     setSelectedBrands([]);
-    setSelectedStore('all');
     setMaxPrice(300000);
-    setMinRating(0);
     setSortBy('relevance');
   };
 
@@ -79,8 +82,9 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
           if (!matches) return false;
         }
 
-        // Category filter
-        if (selectedCategory !== 'all' && product.category !== selectedCategory) {
+        // Category filter (normalised: stored strings like "Home & Kitchen"
+        // match the slug "home-kitchen").
+        if (selectedCategory !== 'all' && !productMatchesCategory(product.category, selectedCategory)) {
           return false;
         }
 
@@ -89,19 +93,8 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
           return false;
         }
 
-        // Store filter
-        if (selectedStore !== 'all') {
-          const hasStore = product.offers.some((o) => o.storeId === selectedStore);
-          if (!hasStore) return false;
-        }
-
         // Price filter
         if (product.lowestPrice && product.lowestPrice > maxPrice) {
-          return false;
-        }
-
-        // Rating filter
-        if (minRating > 0 && (!product.rating || product.rating < minRating)) {
           return false;
         }
 
@@ -117,9 +110,6 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
         if (sortBy === 'discount') {
           return (b.maxDiscountPercent || 0) - (a.maxDiscountPercent || 0);
         }
-        if (sortBy === 'rating') {
-          return (b.rating || 0) - (a.rating || 0);
-        }
         if (sortBy === 'newest') {
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         }
@@ -130,9 +120,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
     searchQuery,
     selectedCategory,
     selectedBrands,
-    selectedStore,
     maxPrice,
-    minRating,
     sortBy,
   ]);
 
@@ -156,18 +144,15 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
   const activeFilterCount =
     (selectedCategory !== 'all' ? 1 : 0) +
     selectedBrands.length +
-    (selectedStore !== 'all' ? 1 : 0) +
     (maxPrice < 300000 ? 1 : 0) +
-    (minRating > 0 ? 1 : 0) +
     (searchQuery ? 1 : 0);
 
   const isSearchState = Boolean(initialQuery || (searchQuery && searchQuery.trim() !== ''));
   const isCategoryPage = Boolean(initialCategory && initialCategory !== 'all');
-  const catObj = isCategoryPage ? categories.find(c => c.slug === initialCategory) : null;
-  const categoryName = catObj?.name || (initialCategory ? initialCategory.charAt(0).toUpperCase() + initialCategory.slice(1) : '');
+  const categoryName = isCategoryPage ? categoryNameForSlug(allProducts, initialCategory) : '';
 
   let seoTitle = 'Explore & Compare Products | Findora';
-  let seoDescription = 'Browse and compare verified prices, deals, and specifications for electronics, smartphones, laptops, and audio gear across top retailers.';
+  let seoDescription = 'Browse verified Amazon India prices for earbuds, fashion, home & kitchen, appliances, watches and more — one checked offer per product.';
   let canonicalPath = '/products';
   let isNoIndex = false;
   let breadcrumbs: Array<{ name: string; url: string }> = [
@@ -178,7 +163,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
   if (isSearchState) {
     const q = (initialQuery || searchQuery).trim();
     seoTitle = `Search Results for "${q}" | Findora`;
-    seoDescription = `Compare prices and find the best deals for "${q}" across verified stores on Findora.`;
+    seoDescription = `Compare prices and find the best deals for "${q}" on Amazon India with Findora.`;
     canonicalPath = '/products';
     isNoIndex = true;
     breadcrumbs.push({ name: `Search: ${q}`, url: `/search?q=${encodeURIComponent(q)}` });
@@ -253,7 +238,6 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
                 <option value="price_asc">Lowest Price First</option>
                 <option value="price_desc">Highest Price First</option>
                 <option value="discount">Biggest Discount (%)</option>
-                <option value="rating">Highest Customer Rating</option>
                 <option value="newest">Newly Listed</option>
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
@@ -321,10 +305,10 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
                 <span className="text-[10px] text-slate-500">{allProducts.length}</span>
               </button>
               {categories.map((c) => {
-                const count = allProducts.filter((p) => p.category === c.slug).length;
+                const count = c.count;
                 return (
                   <button
-                    key={c.id}
+                    key={c.key}
                     onClick={() => setSelectedCategory(c.slug)}
                     className={`w-full text-left px-3 py-1.5 rounded-xl transition-all flex items-center justify-between ${
                       selectedCategory === c.slug
@@ -363,25 +347,6 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
             </div>
           </div>
 
-          {/* Store Filter */}
-          <div className="space-y-2 pt-3 border-t border-slate-800">
-            <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
-              Store Availability
-            </label>
-            <select
-              value={selectedStore}
-              onChange={(e) => setSelectedStore(e.target.value)}
-              className="w-full text-xs bg-[#070B14] border border-slate-700/80 rounded-xl p-2 outline-none font-medium text-slate-200"
-            >
-              <option value="all">Any Store (Amazon India)</option>
-              {stores.map((s) => (
-                <option key={s.id} value={s.id}>
-                  Available on {s.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Max Price Range Slider */}
           <div className="space-y-2 pt-3 border-t border-slate-800">
             <div className="flex justify-between text-xs">
@@ -404,28 +369,6 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
               <span>₹3,00,000+</span>
             </div>
           </div>
-
-          {/* Minimum Rating */}
-          <div className="space-y-2 pt-3 border-t border-slate-800">
-            <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
-              Minimum Rating
-            </label>
-            <div className="grid grid-cols-4 gap-1.5">
-              {[0, 4.0, 4.5, 4.8].map((r) => (
-                <button
-                  key={r}
-                  onClick={() => setMinRating(r)}
-                  className={`py-1 text-xs rounded-lg border font-medium transition-all ${
-                    minRating === r
-                      ? 'bg-blue-600 text-white border-blue-500 font-bold shadow-sm'
-                      : 'border-slate-800 bg-[#070B14] text-slate-400 hover:text-white hover:border-slate-700'
-                  }`}
-                >
-                  {r === 0 ? 'All' : `${r}★+`}
-                </button>
-              ))}
-            </div>
-          </div>
         </aside>
 
         {/* Product Cards Grid & Empty State */}
@@ -436,7 +379,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
               <span className="text-xs text-slate-400 font-medium">Active:</span>
               {selectedCategory !== 'all' && (
                 <span className="inline-flex items-center gap-1.5 text-xs bg-blue-500/10 border border-blue-500/30 text-blue-300 px-2.5 py-1 rounded-full">
-                  Category: {selectedCategory}
+                  Category: {categoryNameForSlug(allProducts, selectedCategory)}
                   <button onClick={() => setSelectedCategory('all')}>
                     <X className="w-3 h-3 text-blue-400 hover:text-white" />
                   </button>
@@ -453,14 +396,6 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
                   </button>
                 </span>
               ))}
-              {selectedStore !== 'all' && (
-                <span className="inline-flex items-center gap-1.5 text-xs bg-blue-500/10 border border-blue-500/30 text-blue-300 px-2.5 py-1 rounded-full">
-                  Store: {stores.find((s) => s.id === selectedStore)?.name}
-                  <button onClick={() => setSelectedStore('all')}>
-                    <X className="w-3 h-3 text-blue-400 hover:text-white" />
-                  </button>
-                </span>
-              )}
               {maxPrice < 300000 && (
                 <span className="inline-flex items-center gap-1.5 text-xs bg-blue-500/10 border border-blue-500/30 text-blue-300 px-2.5 py-1 rounded-full">
                   Under ₹{maxPrice.toLocaleString('en-IN')}
@@ -492,7 +427,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
               </div>
               <h3 className="text-xl font-bold text-white mb-2">No products match your filters</h3>
               <p className="text-sm text-slate-400 max-w-sm mx-auto mb-6">
-                Try widening your price range, clearing brand selections, or removing specific store constraints.
+                Try widening your price range or clearing brand selections.
               </p>
               <button
                 onClick={handleClearFilters}

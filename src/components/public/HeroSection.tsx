@@ -9,6 +9,7 @@ import {
   HeartHandshake,
 } from 'lucide-react';
 import { LiveEngine } from './LiveEngine';
+import { useFindoraStore } from '../../services/store';
 
 interface HeroSectionProps {
   onNavigate: (route: string) => void;
@@ -16,6 +17,8 @@ interface HeroSectionProps {
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
   const [query, setQuery] = useState('');
+  const store = useFindoraStore();
+  const liveCount = store.getAllProductsWithPrices(true).length;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,13 +29,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
     }
   };
 
+  // Only terms that return real products on Findora — no iPhone / laptop /
+  // monitor (the catalogue has none of those).
   const popularSearches = [
-    { label: 'laptop', query: 'laptop' },
+    { label: 'earbuds', query: 'earbuds' },
     { label: 'air fryer', query: 'air fryer' },
-    { label: 'headphones', query: 'headphones' },
     { label: 'smartwatch', query: 'smartwatch' },
-    { label: 'iPhone', query: 'iPhone' },
-    { label: 'monitor', query: 'monitor' },
+    { label: 'power bank', query: 'power bank' },
+    { label: 'kurta', query: 'kurta' },
+    { label: 'bedsheet', query: 'bedsheet' },
   ];
 
   const valueProps = [
@@ -52,15 +57,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
     },
     {
       icon: ShieldCheck,
-      title: 'Trusted Picks',
-      subtitle: 'Only the best, always.',
+      title: 'Verified Prices',
+      subtitle: 'Checked on Amazon India',
       color: 'text-emerald-400',
       bg: 'bg-emerald-500/10 border-emerald-500/20',
     },
     {
       icon: HeartHandshake,
-      title: 'Built for You',
-      subtitle: 'Smarter tools. Better choices.',
+      title: 'No Sponsored Picks',
+      subtitle: 'Editorial choices only',
       color: 'text-purple-400',
       bg: 'bg-purple-500/10 border-purple-500/20',
     },
@@ -91,7 +96,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
             {/* Tagline Pill */}
             <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-xs font-semibold tracking-wide mb-4 sm:mb-5 w-fit shadow-[0_0_15px_rgba(59,130,246,0.15)]">
               <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-              <span>SMART SHOPPING. REAL SAVINGS.</span>
+              <span>
+                {liveCount > 0
+                  ? `${liveCount}+ VERIFIED PRODUCTS · AMAZON INDIA`
+                  : 'SMART SHOPPING. REAL SAVINGS.'}
+              </span>
             </div>
 
             {/* Main Headline - Responsive typography across 360px, 768px, 1024px, 1440px */}
