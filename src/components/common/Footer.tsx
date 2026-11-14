@@ -33,8 +33,8 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           <div className="lg:col-span-2 space-y-4">
             <Logo variant="dark" size="lg" showTagline={true} onClick={() => onNavigate('/')} />
             <p className="text-sm text-slate-400 leading-relaxed max-w-sm pt-2">
-              Findora is India's premier intelligent product discovery and multi-store price comparison
-              engine. We track pricing across Amazon, Flipkart, Croma, Reliance Digital, and top retailers to guarantee you never overpay.
+              Findora is an independent product discovery platform. We list one verified Amazon India
+              offer per product and show when it was last checked, so you know what you are paying for.
             </p>
             <div className="pt-2 flex items-center gap-2 text-xs text-slate-300">
               <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -203,7 +203,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <span className="w-2 h-2 rounded-full bg-blue-500 inline-block shadow-sm shadow-blue-500"></span>
             <span>Findora Transparent Affiliate Disclosure</span>
           </p>
-          Findora is a free, independent product discovery and price comparison platform. When you click on links to merchants (including Amazon India, Flipkart, Croma, Reliance Digital, and others) and make a qualifying purchase, Findora may earn an affiliate commission at zero additional cost to you. Store prices, availability, and promotional coupons are updated continuously by our editorial team and merchant data connectors. All product ratings, benchmarks, and "Why Findora Picked It" analyses represent independent editorial verdicts.
+          Findora is a free, independent product discovery platform. When you click on links to Amazon India and make a qualifying purchase, Findora may earn an affiliate commission at zero additional cost to you. Prices and availability are checked by our editorial team and shown with their last-verified date. All product ratings, benchmarks, and "Why Findora Picked It" analyses represent independent editorial verdicts.
         </div>
 
         {/* Bottom copyright & attribution */}

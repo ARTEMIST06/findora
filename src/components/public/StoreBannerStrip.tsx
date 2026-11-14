@@ -6,15 +6,10 @@ interface StoreBannerStripProps {
 }
 
 export const StoreBannerStrip: React.FC<StoreBannerStripProps> = ({ onNavigate }) => {
+  // NOTE: Findora currently lists Amazon India only. Other stores are NOT tracked
+  // yet — do not re-add them here until a real offer feed exists for each one.
   const brands = [
-    { name: 'Amazon', badge: 'Prime Verified', color: 'from-amber-500/20 to-orange-500/10', text: 'text-amber-400' },
-    { name: 'Flipkart', badge: 'SuperCoins', color: 'from-blue-500/20 to-sky-500/10', text: 'text-blue-400' },
-    { name: 'Croma', badge: 'Tata Assurance', color: 'from-teal-500/20 to-emerald-500/10', text: 'text-teal-400' },
-    { name: 'Reliance Digital', badge: 'InstaDelivery', color: 'from-red-500/20 to-rose-500/10', text: 'text-rose-400' },
-    { name: 'Vijay Sales', badge: 'Best Store Deals', color: 'from-indigo-500/20 to-purple-500/10', text: 'text-indigo-400' },
-    { name: 'Tata CLiQ', badge: 'Luxury & Tech', color: 'from-purple-500/20 to-pink-500/10', text: 'text-purple-400' },
-    { name: 'AJIO', badge: 'Fashion Tech', color: 'from-emerald-500/20 to-cyan-500/10', text: 'text-emerald-400' },
-    { name: 'Nykaa', badge: 'Authentic 100%', color: 'from-pink-500/20 to-rose-500/10', text: 'text-pink-400' },
+    { name: 'Amazon', badge: 'Verified Offers', color: 'from-amber-500/20 to-orange-500/10', text: 'text-amber-400' },
   ];
 
   return (
@@ -27,13 +22,13 @@ export const StoreBannerStrip: React.FC<StoreBannerStripProps> = ({ onNavigate }
           <div>
             <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-400 uppercase tracking-wider mb-2">
               <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Multi-Merchant Intelligence</span>
+              <span>One Store, Verified Deals</span>
             </div>
             <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Top Brands. Best Prices. All in One Place.
+              Top Picks. Verified Prices. All in One Place.
             </h3>
             <p className="text-sm text-slate-400 mt-1 max-w-xl">
-              We continuously track live catalogs, flash promotions, and lightning deals across India's largest verified retail networks.
+              Every product links to one verified Amazon India offer — checked by our team, with the price and last-verified date shown.
             </p>
           </div>
 
@@ -41,7 +36,7 @@ export const StoreBannerStrip: React.FC<StoreBannerStripProps> = ({ onNavigate }
             onClick={() => onNavigate('/products')}
             className="shrink-0 px-5 py-2.5 rounded-full bg-slate-800/80 hover:bg-slate-700 text-white font-semibold text-xs sm:text-sm border border-slate-700 transition-all flex items-center gap-2 self-start md:self-auto hover:border-blue-500/40"
           >
-            <span>Explore All Brands</span>
+            <span>Explore All Products</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

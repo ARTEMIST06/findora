@@ -155,8 +155,7 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
             Live Price Engine Active
           </h4>
           <p className="text-xs sm:text-sm text-slate-400 max-w-sm">
-            Waiting for fresh multi-store product feeds. Syncing verified pricing across major
-            retailers...
+            Waiting for fresh product data. Syncing verified Amazon India pricing...
           </p>
         </div>
 

@@ -627,7 +627,7 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by title, brand, category, tags, or store (Amazon, Croma)..."
+              placeholder="Search by title, brand, category, tags, or store (Amazon India)..."
               className="w-full pl-9 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all font-medium"
             />
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" />

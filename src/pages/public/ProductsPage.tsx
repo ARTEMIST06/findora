@@ -184,7 +184,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
     breadcrumbs.push({ name: `Search: ${q}`, url: `/search?q=${encodeURIComponent(q)}` });
   } else if (isCategoryPage) {
     seoTitle = `Best ${categoryName} Price Comparison & Deals | Findora`;
-    seoDescription = `Browse, compare prices, and find the lowest store deals for ${categoryName.toLowerCase()} across Amazon, Croma, Flipkart, and more on Findora.`;
+    seoDescription = `Browse verified Amazon India deals for ${categoryName.toLowerCase()} on Findora — one checked offer per product, with the price and last-verified date shown.`;
     canonicalPath = `/category/${initialCategory}`;
     isNoIndex = false;
     breadcrumbs = [
@@ -221,7 +221,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
             {pageTitle}
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Showing <strong className="text-white font-bold">{filteredProducts.length}</strong> verified products across Amazon, Flipkart, Croma & more
+            Showing <strong className="text-white font-bold">{filteredProducts.length}</strong> verified products on Amazon India
           </p>
         </div>
 
@@ -373,7 +373,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
               onChange={(e) => setSelectedStore(e.target.value)}
               className="w-full text-xs bg-[#070B14] border border-slate-700/80 rounded-xl p-2 outline-none font-medium text-slate-200"
             >
-              <option value="all">Any Store (Amazon, Flipkart, etc.)</option>
+              <option value="all">Any Store (Amazon India)</option>
               {stores.map((s) => (
                 <option key={s.id} value={s.id}>
                   Available on {s.name}

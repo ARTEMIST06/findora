@@ -34,7 +34,7 @@ export const ComparisonHighlight: React.FC<ComparisonHighlightProps> = ({ onNavi
               Compare Top Picks Side-by-Side
             </h2>
             <p className="text-slate-400 text-sm sm:text-base mt-2 max-w-xl">
-              Eliminate guesswork. Compare verified prices, specifications, and savings to make the smartest purchasing decision.
+              Eliminate guesswork. Compare verified prices and specifications to make the smartest purchasing decision.
             </p>
           </div>
 
@@ -93,7 +93,7 @@ export const ComparisonHighlight: React.FC<ComparisonHighlightProps> = ({ onNavi
                 {/* Key Highlights */}
                 <div className="text-xs text-slate-400 border-t border-slate-800/80 pt-4">
                   <p className="line-clamp-2 leading-relaxed">
-                    {p.shortDescription || 'Verified flagship product with comprehensive multi-store pricing history.'}
+                    {p.shortDescription || 'Verified product with a checked Amazon India price.'}
                   </p>
                 </div>
               </div>
