@@ -29,7 +29,7 @@ export const RecentlyAdded: React.FC<RecentlyAddedProps> = ({ onNavigate }) => {
             Newly Discovered Products
           </h2>
           <p className="text-sm text-slate-400 mt-1">
-            Freshly indexed prices, specs, and coupons across verified partner stores.
+            Freshly indexed prices and specs, with verified Amazon India offers.
           </p>
         </div>
         <button

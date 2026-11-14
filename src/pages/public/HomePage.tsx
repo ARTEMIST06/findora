@@ -19,7 +19,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
     <div className="space-y-4 pb-12">
       <SEOHead 
         title="Findora — Find It. Compare It. Buy Smarter."
-        description="Find products, compare prices across stores, discover better deals, and buy smarter with Findora."
+        description="Find products, check verified Amazon India prices, discover better deals, and buy smarter with Findora."
         canonicalPath="/"
         isHomePage={true}
       />

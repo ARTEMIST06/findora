@@ -210,7 +210,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <p>© {new Date().getFullYear()} Findora. Find it. Compare it. Buy smarter.</p>
           <div className="flex items-center gap-4">
-            <span className="text-slate-400">Multi-Store Price Engine</span>
+            <span className="text-slate-400">Verified Amazon Deals</span>
             <span>•</span>
             <button onClick={() => onNavigate('/affiliate-disclosure')} className="hover:text-slate-300">
               Affiliate Disclosure
