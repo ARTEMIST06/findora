@@ -51,6 +51,7 @@ export const DataCenter: React.FC<DataCenterProps> = ({ onNavigate }) => {
   const [zeroResultSearches, setZeroResultSearches] = useState<AggregatedSearchQuery[]>([]);
   const [loginHistory, setLoginHistory] = useState<AdminLoginHistoryRecord[]>([]);
   const [userMetrics, setUserMetrics] = useState<UserMetricsRecord | null>(null);
+  const [newsletterCount, setNewsletterCount] = useState<number>(0);
   const [draftDocs, setDraftDocs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
@@ -83,17 +84,19 @@ export const DataCenter: React.FC<DataCenterProps> = ({ onNavigate }) => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [searchesRes, loginsRes, usersRes, draftsRes] = await Promise.all([
+      const [searchesRes, loginsRes, usersRes, draftsRes, newsletterRes] = await Promise.all([
         analytics.fetchSearchAnalytics(),
         fetchAdminLoginHistory(),
         analytics.fetchAuthenticatedUserMetrics(),
         store.getDrafts(),
+        analytics.fetchNewsletterSubscriberCount(),
       ]);
       setTopSearches(searchesRes.topSearches);
       setZeroResultSearches(searchesRes.zeroResultSearches);
       setLoginHistory(loginsRes);
       setUserMetrics(usersRes);
       setDraftDocs(draftsRes);
+      setNewsletterCount(newsletterRes);
       setLastRefreshedAt(new Date());
     } catch (err) {
       console.error('Data Center load error:', err);
@@ -482,6 +485,7 @@ export const DataCenter: React.FC<DataCenterProps> = ({ onNavigate }) => {
             // userMetrics comes from a direct Firestore read — that is
             // the truth for the registered-users count.
             { label: 'Registered users', value: userMetrics?.totalUsers ?? users.length, sub: userMetrics ? `${userMetrics.googleAuthUsers} Google · ${userMetrics.emailAuthUsers} email` : '—' },
+            { label: 'Newsletter subscribers', value: newsletterCount, sub: 'footer signups (unique emails)' },
             { label: 'Affiliate clicks', value: clicks.length, sub: 'recorded outbound clicks' },
             { label: 'Search events', value: topSearches.reduce((a, s) => a + s.count, 0), sub: `${topSearches.length} distinct queries` },
           ].map((c) => (

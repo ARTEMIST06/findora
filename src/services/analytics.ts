@@ -860,6 +860,27 @@ class AnalyticsService {
       };
     }
   }
+
+  // Newsletter subscribers — direct Firestore read (admin-only rule), unique
+  // emails. 0 until the first real signup lands; the footer form writes
+  // here via store.subscribeNewsletter.
+  async fetchNewsletterSubscriberCount(): Promise<number> {
+    if (typeof window === 'undefined') return 0;
+    try {
+      const { db } = await import('../lib/firebase');
+      const { collection, getDocs } = await import('firebase/firestore');
+      const snap = await getDocs(collection(db, 'newsletterSubscribers'));
+      const emails = new Set<string>();
+      snap.docs.forEach((d) => {
+        const email = (d.data() as any)?.email;
+        if (typeof email === 'string') emails.add(email.toLowerCase());
+      });
+      return emails.size;
+    } catch (e) {
+      console.warn('Could not read newsletter subscribers from Firestore:', e);
+      return 0;
+    }
+  }
 }
 
 export const analytics = new AnalyticsService();

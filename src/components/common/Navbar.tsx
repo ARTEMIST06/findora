@@ -20,6 +20,11 @@ import { Logo } from '../brand/Logo';
 import { useFindoraStore } from '../../services/store';
 import { analytics } from '../../services/analytics';
 import { formatINR } from '../../utils/formatters';
+import {
+  matchesSearchQuery,
+  searchRelevance,
+  productSearchHaystack,
+} from '../../utils/search';
 
 interface NavbarProps {
   currentRoute: string;
@@ -38,19 +43,17 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  // Search filter
+  // Search suggestions — word-level matching (see utils/search), best
+  // matches first (exact phrase, then name-leading).
   const allProducts = store.getAllProductsWithPrices(true);
   const searchSuggestions = searchQuery.trim()
     ? allProducts
-        .filter((p) => {
-          const q = searchQuery.toLowerCase();
-          return (
-            p.name.toLowerCase().includes(q) ||
-            p.brand.toLowerCase().includes(q) ||
-            p.category.toLowerCase().includes(q) ||
-            p.tags.some((t) => t.toLowerCase().includes(q))
-          );
-        })
+        .filter((p) => matchesSearchQuery(productSearchHaystack(p), searchQuery))
+        .sort(
+          (a, b) =>
+            searchRelevance(productSearchHaystack(b), searchQuery) -
+            searchRelevance(productSearchHaystack(a), searchQuery)
+        )
         .slice(0, 5)
     : [];
 

@@ -1372,6 +1372,31 @@ class FindoraStore {
     return [...this.clicks];
   }
 
+  // --- NEWSLETTER ---
+  // The footer subscribe form used to only flip local state ("You are
+  // subscribed") and save nothing anywhere. This writes the address to
+  // Firestore `newsletterSubscribers` (public create is allowed by the
+  // rules in firestore.rules; reads are admin-only). Returns false when
+  // the write fails so the UI can say so honestly instead of faking it.
+  async subscribeNewsletter(email: string): Promise<boolean> {
+    if (typeof window === 'undefined') return false;
+    const clean = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) return false;
+    try {
+      const { db } = await import('../lib/firebase');
+      const { collection, addDoc } = await import('firebase/firestore');
+      await addDoc(collection(db, 'newsletterSubscribers'), {
+        email: clean,
+        subscribedAt: new Date().toISOString(),
+        source: 'footer',
+      });
+      return true;
+    } catch (e) {
+      console.error('Error saving newsletter subscription:', e);
+      return false;
+    }
+  }
+
   // --- PRICE HISTORY ---
   async getPriceHistory(productId: string): Promise<any[]> {
     if (typeof window === 'undefined') return [];

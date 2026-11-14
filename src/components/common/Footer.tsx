@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Mail, CheckCircle2, ShieldCheck, ArrowRight, Sparkles, BookOpen } from 'lucide-react';
 import { Logo } from '../brand/Logo';
 import { useToast } from './Toast';
+import { useFindoraStore } from '../../services/store';
 
 interface FooterProps {
   onNavigate: (route: string) => void;
@@ -10,14 +11,25 @@ interface FooterProps {
 export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+  const [subscribing, setSubscribing] = useState(false);
   const { showToast } = useToast();
+  const store = useFindoraStore();
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && email.includes('@')) {
+    if (!email || !email.includes('@') || subscribing) return;
+    setSubscribing(true);
+    // Saved for real in Firestore (store.subscribeNewsletter). If the write
+    // fails, say so — the old version showed "subscribed" while saving
+    // nothing anywhere.
+    const ok = await store.subscribeNewsletter(email);
+    setSubscribing(false);
+    if (ok) {
       setSubscribed(true);
       showToast('Thank you for subscribing to Findora deal alerts!', 'success');
       setEmail('');
+    } else {
+      showToast("Couldn't save your email right now — please try again.", 'error');
     }
   };
 
@@ -169,7 +181,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               Get notified when flagship smartphones, laptops, and audio gadgets hit their all-time lowest prices.
             </p>
             {subscribed ? (
-              <div className="flex items-center gap-2 text-xs text-emerald-600 bg-emerald-950/60 border border-emerald-800/80 p-3 rounded-2xl">
+              <div className="flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 p-3 rounded-2xl">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span>You are subscribed to Findora alerts!</span>
               </div>
@@ -187,9 +199,10 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 </div>
                 <button
                   type="submit"
-                  className="w-full py-2.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-md shadow-indigo-500/20 active:scale-95"
+                  disabled={subscribing}
+                  className="w-full py-2.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-md shadow-indigo-500/20 active:scale-95 disabled:opacity-60"
                 >
-                  <span>Subscribe to Alerts</span>
+                  <span>{subscribing ? 'Subscribing…' : 'Subscribe to Alerts'}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </form>
