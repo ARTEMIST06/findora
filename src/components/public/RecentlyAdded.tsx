@@ -34,7 +34,7 @@ export const RecentlyAdded: React.FC<RecentlyAddedProps> = ({ onNavigate }) => {
         </div>
         <button
           onClick={() => onNavigate('/products')}
-          className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-300 flex items-center gap-1 group self-start sm:self-auto"
+          className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 group self-start sm:self-auto"
         >
           <span>View all {products.length} products</span>
           <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />

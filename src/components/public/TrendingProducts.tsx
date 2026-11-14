@@ -57,7 +57,7 @@ export const TrendingProducts: React.FC<TrendingProductsProps> = ({ onNavigate }
           <div className="flex items-center gap-3 self-start sm:self-auto">
             <button
               onClick={() => onNavigate('/deals')}
-              className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-300 flex items-center gap-1.5 transition-colors group"
+              className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1.5 transition-colors group"
             >
               <span>View All</span>
               <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />

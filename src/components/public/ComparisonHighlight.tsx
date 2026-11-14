@@ -36,7 +36,7 @@ export const ComparisonHighlight: React.FC<ComparisonHighlightProps> = ({ onNavi
   return (
     <section className="py-12 sm:py-16 max-w-7xl mx-auto px-4 sm:px-6 relative">
       <Reveal>
-        <div className="rounded-3xl border border-slate-200/80 bg-gradient-to-b from-[#0D1426] via-[#090E1C] to-[#070B14] p-6 sm:p-10 relative overflow-hidden shadow-2xl">
+        <div className="rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-10 relative overflow-hidden shadow-2xl">
           <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
 
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-10 relative z-10">
@@ -74,14 +74,14 @@ export const ComparisonHighlight: React.FC<ComparisonHighlightProps> = ({ onNavi
                       {p.brand}
                     </span>
                     {p.badge && (
-                      <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-800/80 text-slate-300 font-semibold border border-slate-700">
+                      <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold border border-slate-300">
                         {p.badge}
                       </span>
                     )}
                   </div>
 
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-5">
-                    <div className="w-20 h-20 shrink-0 rounded-xl bg-[#0D1426] p-2 border border-slate-200 flex items-center justify-center">
+                    <div className="w-20 h-20 shrink-0 rounded-xl bg-white p-2 border border-slate-200 flex items-center justify-center">
                       <img
                         src={getProductImage(p)}
                         alt={p.name}
@@ -118,7 +118,7 @@ export const ComparisonHighlight: React.FC<ComparisonHighlightProps> = ({ onNavi
                   </span>
                   <button
                     onClick={() => onNavigate(`/product/${p.slug}`)}
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-300 transition-colors flex items-center gap-1"
+                    className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1"
                   >
                     <span>View Details</span>
                     <ArrowRight className="w-3.5 h-3.5" />

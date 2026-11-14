@@ -22,7 +22,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   };
 
   return (
-    <footer className="bg-[#05080F] text-slate-600 border-t border-slate-200/80 pt-16 pb-12 mt-20 relative overflow-hidden">
+    <footer className="bg-white text-slate-600 border-t border-slate-200/80 pt-16 pb-12 mt-20 relative overflow-hidden">
       {/* Background ambient lighting */}
       <div className="absolute bottom-0 left-1/3 w-[600px] h-[300px] bg-blue-600/5 rounded-full blur-[140px] pointer-events-none -z-10"></div>
 
@@ -182,7 +182,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email address"
-                    className="w-full bg-[#0D1424] border border-slate-300/80 focus:border-blue-500 rounded-full px-4 py-2.5 text-xs text-slate-900 placeholder-slate-500 outline-none transition-all"
+                    className="w-full bg-white border border-slate-300/80 focus:border-blue-500 rounded-full px-4 py-2.5 text-xs text-slate-900 placeholder-slate-500 outline-none transition-all"
                   />
                 </div>
                 <button
@@ -198,7 +198,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         </div>
 
         {/* Affiliate Disclosure Compliance Box */}
-        <div className="my-8 p-4 sm:p-5 rounded-2xl bg-[#090F1E] border border-slate-200/80 text-xs text-slate-600 leading-relaxed">
+        <div className="my-8 p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 text-xs text-slate-600 leading-relaxed">
           <p className="font-semibold text-slate-800 mb-1 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-blue-500 inline-block shadow-sm shadow-blue-500"></span>
             <span>Findora Transparent Affiliate Disclosure</span>

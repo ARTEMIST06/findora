@@ -112,7 +112,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
           <div>
             <div className="flex items-center gap-2.5">
               <h1 className="text-xl sm:text-2xl font-bold text-slate-900">{currentUser.name}</h1>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-blue-500/20 text-blue-700 border border-blue-500/30">
                 {currentUser.role}
               </span>
             </div>
@@ -130,7 +130,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
             showToast('Successfully signed out', 'success');
             onNavigate('/');
           }}
-          className="text-xs font-semibold text-rose-600 hover:text-rose-300 flex items-center gap-1.5 px-4 py-2 rounded-full border border-rose-500/30 hover:bg-rose-500/10 transition-colors"
+          className="text-xs font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1.5 px-4 py-2 rounded-full border border-rose-500/30 hover:bg-rose-500/10 transition-colors"
         >
           <LogOut className="w-4 h-4" />
           <span>Sign Out</span>
@@ -174,16 +174,16 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
               {priceAlerts.map((alert) => (
                 <div key={alert.id} className={`p-5 border rounded-2xl relative ${alert.isActive ? 'border-blue-500/30 bg-blue-500/5' : 'border-emerald-500/30 bg-emerald-500/5'}`}>
                   {alert.isActive ? (
-                    <span className="absolute top-4 right-4 text-[10px] uppercase font-bold text-blue-300 bg-blue-500/20 border border-blue-500/30 px-2.5 py-0.5 rounded-full">Active</span>
+                    <span className="absolute top-4 right-4 text-[10px] uppercase font-bold text-blue-700 bg-blue-500/20 border border-blue-500/30 px-2.5 py-0.5 rounded-full">Active</span>
                   ) : (
-                    <span className="absolute top-4 right-4 text-[10px] uppercase font-bold text-emerald-300 bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                    <span className="absolute top-4 right-4 text-[10px] uppercase font-bold text-emerald-700 bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 rounded-full flex items-center gap-1">
                       <CheckCircle className="w-3 h-3" /> Triggered
                     </span>
                   )}
                   
                   <div className="flex items-start gap-3 mt-1 cursor-pointer" onClick={() => alert.product && onNavigate(`/product/${alert.product.slug}`)}>
                     {alert.product?.images?.[0] ? (
-                      <img src={alert.product.images[0]} alt={alert.product.name} className="w-12 h-12 object-contain bg-[#080D1A] rounded-xl border border-slate-200 p-1" />
+                      <img src={alert.product.images[0]} alt={alert.product.name} className="w-12 h-12 object-contain bg-white rounded-xl border border-slate-200 p-1" />
                     ) : (
                       <div className="w-12 h-12 bg-slate-100 rounded-xl border border-slate-300"></div>
                     )}
@@ -198,7 +198,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                     <button
                       onClick={(e) => { e.stopPropagation(); handleDeleteAlert(alert.id); }}
                       disabled={isDeleting === alert.id}
-                      className="text-xs font-semibold text-rose-600 hover:text-rose-300 disabled:opacity-50"
+                      className="text-xs font-semibold text-rose-600 hover:text-rose-700 disabled:opacity-50"
                     >
                       {isDeleting === alert.id ? 'Removing...' : 'Remove Alert'}
                     </button>
@@ -241,7 +241,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                     <img
                       src={prod.images[0]}
                       alt={prod.name}
-                      className="w-10 h-10 object-contain rounded-lg p-1 bg-[#080D1A] border border-slate-200"
+                      className="w-10 h-10 object-contain rounded-lg p-1 bg-white border border-slate-200"
                     />
                     <div>
                       <h4 className="text-xs font-semibold text-slate-900 line-clamp-1">

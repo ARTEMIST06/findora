@@ -84,7 +84,7 @@ export const WishlistPage: React.FC<WishlistPageProps> = ({ onNavigate }) => {
               <div>
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-16 h-16 rounded-2xl bg-[#080D1A] p-2 border border-slate-200 flex items-center justify-center shrink-0">
+                    <div className="w-16 h-16 rounded-2xl bg-white p-2 border border-slate-200 flex items-center justify-center shrink-0">
                       <img
                         src={getProductImage(product)}
                         alt={product.name}

@@ -14,7 +14,7 @@ export const StoreBannerStrip: React.FC<StoreBannerStripProps> = ({ onNavigate }
 
   return (
     <section className="py-10 max-w-7xl mx-auto px-4 sm:px-6">
-      <div className="rounded-3xl border border-slate-200/80 bg-gradient-to-r from-[#0C1222] via-[#090F1E] to-[#070B14] p-6 sm:p-8 relative overflow-hidden shadow-2xl">
+      <div className="rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-8 relative overflow-hidden shadow-2xl">
         {/* Subtle atmospheric ambient glow */}
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -54,7 +54,7 @@ export const StoreBannerStrip: React.FC<StoreBannerStripProps> = ({ onNavigate }
                   {brand.name.slice(0, 1)}
                 </span>
               </div>
-              <span className="text-xs font-extrabold text-slate-900 group-hover:text-blue-300 transition-colors">
+              <span className="text-xs font-extrabold text-slate-900 group-hover:text-blue-700 transition-colors">
                 {brand.name}
               </span>
               <span className={`text-[10px] font-medium mt-0.5 ${brand.text}`}>

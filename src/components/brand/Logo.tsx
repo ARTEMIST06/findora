@@ -155,7 +155,7 @@ export const Logo: React.FC<LogoProps> = ({
           {/* Stylized 'o' with dual-tone ring */}
           <span className="relative inline-flex items-center justify-center">
             <span
-              className={`font-extrabold ${textSizes[size]} text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400`}
+              className={`font-extrabold ${textSizes[size]} text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600`}
             >
               o
             </span>

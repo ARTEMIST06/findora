@@ -39,7 +39,7 @@ export const PopularCategories: React.FC<PopularCategoriesProps> = ({ onNavigate
           </div>
           <button
             onClick={() => onNavigate('/categories')}
-            className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-300 flex items-center gap-1.5 transition-colors group shrink-0"
+            className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1.5 transition-colors group shrink-0"
           >
             <span>View all</span>
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
