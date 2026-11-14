@@ -39,7 +39,12 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
   );
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  // Two pause sources, kept separate: a manual pause must survive the
+  // cursor leaving the card — the old single flag let onMouseLeave
+  // un-pause a rotation the user had explicitly paused.
+  const [manualPaused, setManualPaused] = useState(false);
+  const [hoverPaused, setHoverPaused] = useState(false);
+  const isPaused = manualPaused || hoverPaused;
   const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('right');
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
@@ -230,8 +235,8 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
   return (
     <div
       className={`w-full rounded-2xl sm:rounded-3xl border border-slate-200/80 bg-white shadow-2xl relative overflow-hidden backdrop-blur-xl group transition-all duration-300 hover:border-blue-500/40 ${className}`}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
+      onMouseEnter={() => setHoverPaused(true)}
+      onMouseLeave={() => setHoverPaused(false)}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       id="findora-spotlight"
@@ -257,13 +262,13 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
         <div className="flex items-center gap-2">
           {/* Pause/Play indicator badge */}
           <button
-            onClick={() => setIsPaused(!isPaused)}
+            onClick={() => setManualPaused(!manualPaused)}
             className="text-[10px] text-slate-600 hover:text-slate-900 px-2 py-0.5 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300/50 flex items-center gap-1 transition-colors"
-            title={isPaused ? 'Resume auto-rotation' : 'Pause rotation'}
-            aria-label={isPaused ? 'Resume rotation' : 'Pause rotation'}
+            title={manualPaused ? 'Resume auto-rotation' : 'Pause rotation'}
+            aria-label={manualPaused ? 'Resume rotation' : 'Pause rotation'}
           >
-            {isPaused ? <Play className="w-2.5 h-2.5 text-blue-600" /> : <Pause className="w-2.5 h-2.5" />}
-            <span className="hidden xs:inline">{isPaused ? 'Paused' : 'Auto'}</span>
+            {manualPaused ? <Play className="w-2.5 h-2.5 text-blue-600" /> : <Pause className="w-2.5 h-2.5" />}
+            <span className="hidden xs:inline">{manualPaused ? 'Paused' : 'Auto'}</span>
           </button>
 
           {/* Product counter badge */}
