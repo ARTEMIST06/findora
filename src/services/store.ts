@@ -697,7 +697,13 @@ class FindoraStore {
     if (typeof window !== 'undefined') {
       const { db } = await import('../lib/firebase');
       const { doc, setDoc } = await import('firebase/firestore');
-      await setDoc(doc(db, 'offers', newOffer.id), newOffer);
+      // Firestore rejects `undefined` field values: offers without an MRP
+      // carry originalPrice: undefined, which made setDoc throw and the
+      // whole bulk-import row count as failed. Strip undefined keys.
+      const firestoreOffer = Object.fromEntries(
+        Object.entries(newOffer).filter(([, v]) => v !== undefined)
+      );
+      await setDoc(doc(db, 'offers', newOffer.id), firestoreOffer);
       
       // Add initial price history
       await this.addPriceHistory({
@@ -762,6 +768,11 @@ class FindoraStore {
             ...updates,
             lastUpdated: now,
           };
+          // Firestore rejects `undefined` field values (e.g. originalPrice
+          // when an offer has no MRP) — strip them before updateDoc.
+          for (const key of Object.keys(updatePayload)) {
+            if (updatePayload[key] === undefined) delete updatePayload[key];
+          }
           if (priceChanged) {
              updatePayload.priceDrop = priceDrop || null; // use null for firestore if undefined
           }
