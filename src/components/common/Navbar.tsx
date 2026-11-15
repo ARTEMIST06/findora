@@ -195,8 +195,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
                 setIsSearchOpen(true);
               }}
               onFocus={() => setIsSearchOpen(true)}
-              placeholder="Search products..."
-              className="w-full pl-9 pr-8 py-2 xl:py-2.5 bg-white/90 hover:bg-white focus:bg-white text-slate-900 placeholder-slate-400 text-xs xl:text-sm rounded-full border border-slate-300/60 focus:border-black focus:ring-4 focus:ring-black/10 transition-all outline-none"
+              placeholder="Search products"
+              className="w-full pl-8 pr-6 py-2 xl:py-2.5 bg-white/90 hover:bg-white focus:bg-white text-slate-900 placeholder-slate-400 text-xs xl:text-sm rounded-full border border-slate-300/60 focus:border-black focus:ring-4 focus:ring-black/10 transition-all outline-none"
             />
             <Search className="absolute left-3 top-2.5 xl:top-3 w-3.5 h-3.5 xl:w-4 xl:h-4 text-slate-600 pointer-events-none" />
             {searchQuery && (

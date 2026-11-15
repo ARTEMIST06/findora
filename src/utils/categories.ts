@@ -54,6 +54,7 @@ export function normalizeCategoryKey(value: string | undefined | null): string {
     cellphones: 'smartphones',
     homedecor: 'homedecor',
     homedecoration: 'homedecor',
+    homedcor: 'homedecor', // "Home & Décor" — é is stripped by normalisation
     homeandkitchen: 'homekitchen',
     headphonesearbudsaccessorie: 'headphonesearbudsaccessories',
     decorativeaccessorie: 'decorativeaccessories',
@@ -89,6 +90,7 @@ export function cleanCategoryLabel(value: string): string {
 const CANONICAL_CATEGORY_NAMES: Record<string, string> = {
   homekitchen: 'Home & Kitchen',
   bagsluggage: 'Bags & Luggage',
+  homedecor: 'Home Decor',
 };
 
 export function displayCategoryName(raw: string): string {

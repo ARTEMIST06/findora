@@ -308,7 +308,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
               <CheckCircle2 className="w-12 h-12 text-black mx-auto" />
               <h3 className="text-xl font-bold text-slate-900">Message Delivered</h3>
               <p className="text-xs text-slate-700 max-w-sm mx-auto">
-                Thank you for contacting us. A Findora platform representative will review your note and respond to {contactEmail} shortly.
+                Thank you for contacting us. A Findora platform representative will review your note and respond to you shortly.
               </p>
               <button
                 onClick={() => setIsSubmitted(false)}
