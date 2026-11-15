@@ -702,6 +702,125 @@ ${allUrls
 
   
 
+  // --- Pinterest catalog feed (TSV) ---
+  // Powers Pinterest Catalogs: Pinterest fetches this URL daily and turns
+  // each row into a Product Pin on the Findora business account (findorame).
+  // Data comes from the same Firestore collections the site itself reads
+  // (products + offers), via the Firebase *client* SDK — the Firestore REST
+  // API-key path returns 403 here, while the client SDK works (verified
+  // live 2026-11-15: 778 products, 700 published, 778 offers).
+  // Prices are the site's stored checked prices; nothing is invented: a
+  // product is skipped if it is unpublished, has no slug, no usable image,
+  // or no priced offer. An empty feed is never served — a failed fetch must
+  // read as a retryable 500 to Pinterest, not as "delete the whole catalog".
+  let feedDbPromise: Promise<any> | null = null;
+  async function getFeedDb(): Promise<any> {
+    if (!firebaseConfig) return null;
+    if (!feedDbPromise) {
+      feedDbPromise = (async () => {
+        const { initializeApp, getApps } = await import('firebase/app');
+        const { getFirestore } = await import('firebase/firestore');
+        const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+        return getFirestore(app, firebaseConfig.firestoreDatabaseId);
+      })().catch((e) => {
+        feedDbPromise = null;
+        console.error('[PINTEREST FEED] Firestore init failed:', e);
+        return null;
+      });
+    }
+    return feedDbPromise;
+  }
+
+  const tsvCell = (v: any, max = 0) => {
+    let s = v == null ? '' : String(v);
+    s = s.replace(/[\t\r\n]+/g, ' ').trim();
+    if (max > 0 && s.length > max) s = s.slice(0, max);
+    return s;
+  };
+
+  app.get('/pinterest-feed.tsv', async (req, res) => {
+    try {
+      const db = await getFeedDb();
+      if (!db) {
+        return res.status(500).type('text/plain').send('Catalog feed unavailable');
+      }
+      const { collection, getDocs } = await import('firebase/firestore');
+      const [prodSnap, offerSnap] = await Promise.all([
+        getDocs(collection(db, 'products')),
+        getDocs(collection(db, 'offers')),
+      ]);
+      // Primary offer per product, same rule as the storefront
+      // (store.ts: first offer whose productId matches).
+      const offersByProduct = new Map<string, any>();
+      offerSnap.forEach((d: any) => {
+        const o = d.data();
+        if (o?.productId && !offersByProduct.has(o.productId)) {
+          offersByProduct.set(o.productId, o);
+        }
+      });
+      const proto = req.headers['x-forwarded-proto'] || (req.secure ? 'https' : 'http');
+      const host = req.headers['host'] || 'findora-one.vercel.app';
+      const baseUrl = `${proto}://${host}`;
+      const rows: string[] = [];
+      let skipped = 0;
+      prodSnap.forEach((d: any) => {
+        const p = d.data();
+        const offer = offersByProduct.get(p.id || d.id);
+        const img = Array.isArray(p.images) ? p.images[0] : p.image;
+        if (
+          p.published !== true ||
+          !p.slug ||
+          !img || typeof img !== 'string' || !/^https?:\/\//.test(img) ||
+          !offer || typeof offer.price !== 'number' || offer.price <= 0
+        ) {
+          skipped++;
+          return;
+        }
+        const cur = offer.currency || 'INR';
+        const mrp = typeof offer.originalPrice === 'number' ? offer.originalPrice : null;
+        const onSale = mrp != null && mrp > offer.price;
+        // Pinterest/Google feed format: price = regular price,
+        // sale_price = discounted price (only when lower than price).
+        const price = onSale ? `${mrp!.toFixed(2)} ${cur}` : `${offer.price.toFixed(2)} ${cur}`;
+        const salePrice = onSale ? `${offer.price.toFixed(2)} ${cur}` : '';
+        const avail =
+          offer.availability === 'out_of_stock' ? 'out_of_stock'
+          : offer.availability === 'pre_order' ? 'preorder'
+          : 'in_stock';
+        const desc = p.shortDescription || p.description || '';
+        const extra = Array.isArray(p.images)
+          ? p.images.slice(1, 4).filter((u: any) => typeof u === 'string' && /^https?:\/\//.test(u)).join(',')
+          : '';
+        rows.push([
+          tsvCell(p.id || d.id, 100),
+          tsvCell(p.name, 500),
+          tsvCell(desc, 5000),
+          tsvCell(`${baseUrl}/product/${p.slug}`, 2000),
+          tsvCell(img, 2000),
+          price,
+          salePrice,
+          avail,
+          'new',
+          tsvCell(p.brand, 200),
+          tsvCell(p.category, 200),
+          tsvCell(extra, 2000),
+        ].join('\t'));
+      });
+      if (rows.length === 0) {
+        console.error('[PINTEREST FEED] 0 rows — refusing to serve an empty feed');
+        return res.status(500).type('text/plain').send('Catalog feed unavailable');
+      }
+      const header = ['id', 'title', 'description', 'link', 'image_link', 'price', 'sale_price', 'availability', 'condition', 'brand', 'product_type', 'additional_image_link'].join('\t');
+      console.log(`[PINTEREST FEED] ${rows.length} rows, ${skipped} skipped`);
+      res.type('text/tab-separated-values; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.send([header, ...rows].join('\n') + '\n');
+    } catch (e: any) {
+      console.error('[PINTEREST FEED ERROR]:', e);
+      res.status(500).type('text/plain').send('Error generating catalog feed');
+    }
+  });
+
   // API 404 handler to prevent SPA fallback from masking missing API routes
   app.all('/api/*', (req, res) => {
     res.status(404).json({ success: false, message: `API endpoint ${req.method} ${req.path} not found` });
