@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, Scale, ExternalLink, ShieldCheck, Tag, Sparkles } from 'lucide-react';
+import { Heart, Scale, ShieldCheck, Tag, Sparkles } from 'lucide-react';
 import { ProductWithPrices } from '../../types';
 import { formatINR } from '../../utils/formatters';
 import { useFindoraStore } from '../../services/store';
@@ -214,7 +214,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
                 className="w-full py-2 px-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold transition-all flex items-center justify-center gap-1 shadow-md shadow-indigo-500/20 active:scale-95 whitespace-nowrap"
               >
                 <span>Check Price</span>
-                <ExternalLink className="w-3 h-3 opacity-80" />
               </a>
             ) : product.offers.length > 0 ? (
               <button
