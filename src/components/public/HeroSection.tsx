@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { LiveEngine } from './LiveEngine';
 import { useFindoraStore } from '../../services/store';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 interface HeroSectionProps {
   onNavigate: (route: string) => void;
@@ -18,6 +19,7 @@ interface HeroSectionProps {
 export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
   const [query, setQuery] = useState('');
   const store = useFindoraStore();
+  const isMobile = useIsMobile();
   // The count is quoted only after the first live Firestore snapshot —
   // before that the list can be a stale cache (28 products from before the
   // drafts publish) and the pill would briefly show the wrong number.
@@ -76,7 +78,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
   ];
 
   return (
-    <section className="relative overflow-hidden pt-4 sm:pt-8 pb-10 sm:pb-16 px-4 sm:px-6">
+    <section className="relative overflow-hidden pt-4 sm:pt-8 pb-6 sm:pb-16 px-4 sm:px-6">
       {/* Background Atmospheric Glows & Cinematic Composition */}
       <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
         <div className="absolute top-0 left-1/4 w-[400px] sm:w-[500px] h-[400px] sm:h-[500px] bg-blue-600/15 rounded-full blur-[120px]"></div>
@@ -154,7 +156,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
               <span className="text-slate-600 font-medium mr-1 text-[11px] sm:text-xs">
                 Popular searches:
               </span>
-              {popularSearches.map((item) => (
+              {popularSearches.slice(0, isMobile ? 4 : 6).map((item) => (
                 <button
                   key={item.label}
                   onClick={() => onNavigate(`/search?q=${encodeURIComponent(item.query)}`)}
@@ -166,12 +168,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
             </div>
 
             {/* MOBILE ONLY: Live Engine inserted right after popular searches before benefits */}
-            <div className="lg:hidden mb-8">
+            <div className="lg:hidden mb-6">
               <LiveEngine onNavigate={onNavigate} variant="compact" />
             </div>
 
             {/* 4 Value Proposition Items (Benefits) */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-5 sm:pt-6 border-t border-slate-200/80">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-4 sm:pt-6 border-t border-slate-200/80">
               {valueProps.map((prop) => {
                 const IconComponent = prop.icon;
                 return (

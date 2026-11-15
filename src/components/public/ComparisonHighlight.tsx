@@ -34,12 +34,14 @@ export const ComparisonHighlight: React.FC<ComparisonHighlightProps> = ({ onNavi
   const { p1, p2, categoryName } = pair;
 
   return (
-    <section className="py-12 sm:py-16 max-w-7xl mx-auto px-4 sm:px-6 relative">
+    <section className="py-6 sm:py-16 max-w-7xl mx-auto px-4 sm:px-6 relative">
       <Reveal>
-        <div className="rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-10 relative overflow-hidden shadow-2xl">
+        {/* Compact on phones: tighter panel, one-line header, descriptions
+            hidden — the two product cards still show, desktop unchanged. */}
+        <div className="rounded-3xl border border-slate-200/80 bg-white p-4 sm:p-10 relative overflow-hidden shadow-2xl">
           <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
 
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-10 relative z-10">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-6 sm:mb-10 relative z-10">
             <div>
               <div className="inline-flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">
                 <Scale className="w-4 h-4 text-cyan-600" />
@@ -66,7 +68,7 @@ export const ComparisonHighlight: React.FC<ComparisonHighlightProps> = ({ onNavi
             {[p1, p2].map((p) => (
               <div
                 key={p.id}
-                className="p-6 rounded-2xl bg-white/80 border border-slate-200/90 backdrop-blur-md flex flex-col justify-between hover:border-blue-500/40 transition-all duration-300 group card-lift"
+                className="p-4 sm:p-6 rounded-2xl bg-white/80 border border-slate-200/90 backdrop-blur-md flex flex-col justify-between hover:border-blue-500/40 transition-all duration-300 group card-lift"
               >
                 <div>
                   <div className="flex items-center justify-between gap-4 mb-4">
@@ -104,7 +106,7 @@ export const ComparisonHighlight: React.FC<ComparisonHighlightProps> = ({ onNavi
                     </div>
                   </div>
 
-                  <div className="text-xs text-slate-600 border-t border-slate-200/80 pt-4">
+                  <div className="hidden sm:block text-xs text-slate-600 border-t border-slate-200/80 pt-4">
                     <p className="line-clamp-2 leading-relaxed">
                       {p.shortDescription || 'Verified product with a checked Amazon India price.'}
                     </p>

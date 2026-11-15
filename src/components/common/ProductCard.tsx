@@ -62,8 +62,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
       className="group relative bg-white/90 hover:bg-[#121B30] rounded-2xl border border-slate-200/80 hover:border-blue-500/50 shadow-xl hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 flex flex-col overflow-hidden cursor-pointer backdrop-blur-sm card-lift"
       id={`product-card-${product.id}`}
     >
-      {/* Top Image Stage */}
-      <div className="relative aspect-square w-full bg-slate-100 p-5 flex items-center justify-center overflow-hidden border-b border-slate-200/60">
+      {/* Top Image Stage — shorter 4:3 stage on phones saves ~90px per
+          card on the single-column mobile grid; square on desktop. */}
+      <div className="relative aspect-[4/3] sm:aspect-square w-full bg-slate-100 p-5 flex items-center justify-center overflow-hidden border-b border-slate-200/60">
         {/* Ambient Backlight Glow */}
         <div className="absolute inset-0 product-backdrop-glow pointer-events-none"></div>
 
@@ -91,7 +92,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
         <div className="absolute top-3 right-3 flex flex-col gap-1.5 z-10">
           <button
             onClick={handleWishlistToggle}
-            className={`p-2 rounded-full transition-all shadow-md backdrop-blur-md ${
+            className={`p-2.5 sm:p-2 rounded-full transition-all shadow-md backdrop-blur-md ${
               isWishlisted
                 ? 'bg-rose-500/30 text-rose-600 border border-rose-500/60'
                 : 'bg-white/85 text-slate-600 hover:text-rose-600 hover:bg-white border border-slate-200 shadow-sm opacity-90 group-hover:opacity-100'
@@ -104,7 +105,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
 
           <button
             onClick={handleCompareToggle}
-            className={`p-2 rounded-full transition-all shadow-md backdrop-blur-md ${
+            className={`p-2.5 sm:p-2 rounded-full transition-all shadow-md backdrop-blur-md ${
               isCompared
                 ? 'bg-blue-500/30 text-blue-600 border border-blue-500/60'
                 : 'bg-white/85 text-slate-600 hover:text-blue-600 hover:bg-white border border-slate-200 shadow-sm opacity-90 group-hover:opacity-100'

@@ -17,7 +17,8 @@ interface HomePageProps {
 
 export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-2 sm:space-y-4">
+      {/* Mobile scroll is the homepage's biggest cost: tighter gaps below sm. */}
       <SEOHead 
         title="Findora — Find It. Compare It. Buy Smarter."
         description="Find products, check verified Amazon India prices, discover better deals, and buy smarter with Findora."

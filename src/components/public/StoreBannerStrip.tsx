@@ -13,8 +13,8 @@ export const StoreBannerStrip: React.FC<StoreBannerStripProps> = ({ onNavigate }
   ];
 
   return (
-    <section className="py-10 max-w-7xl mx-auto px-4 sm:px-6">
-      <div className="rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-8 relative overflow-hidden shadow-2xl">
+    <section className="py-5 sm:py-10 max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-8 relative overflow-hidden shadow-2xl">
         {/* Subtle atmospheric ambient glow */}
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -42,7 +42,7 @@ export const StoreBannerStrip: React.FC<StoreBannerStripProps> = ({ onNavigate }
         </div>
 
         {/* Store Brand Logos / Badges Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-3 mt-8 relative z-10">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-3 mt-5 sm:mt-8 relative z-10">
           {brands.map((brand) => (
             <div
               key={brand.name}

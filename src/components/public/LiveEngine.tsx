@@ -268,7 +268,7 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
             aria-label={manualPaused ? 'Resume rotation' : 'Pause rotation'}
           >
             {manualPaused ? <Play className="w-2.5 h-2.5 text-blue-600" /> : <Pause className="w-2.5 h-2.5" />}
-            <span className="hidden xs:inline">{manualPaused ? 'Paused' : 'Auto'}</span>
+            <span className="hidden sm:inline">{manualPaused ? 'Paused' : 'Auto'}</span>
           </button>
 
           {/* Product counter badge */}
@@ -395,7 +395,7 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
             handlePrev();
           }}
           disabled={totalProducts <= 1}
-          className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center transition-all active:scale-90"
+          className="w-10 h-10 sm:w-8 sm:h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center transition-all active:scale-90"
           aria-label="Previous live product"
           title="Previous product"
         >
@@ -432,7 +432,7 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
             handleNext();
           }}
           disabled={totalProducts <= 1}
-          className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center transition-all active:scale-90"
+          className="w-10 h-10 sm:w-8 sm:h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center transition-all active:scale-90"
           aria-label="Next live product"
           title="Next product"
         >
