@@ -166,6 +166,9 @@ export default function App() {
     if (pathPart === '/contact') {
       return <LegalPage page="contact" onNavigate={handleNavigate} />;
     }
+    if (pathPart === '/faq') {
+      return <LegalPage page="faq" onNavigate={handleNavigate} />;
+    }
     if (pathPart === '/privacy') {
       return <LegalPage page="privacy" onNavigate={handleNavigate} />;
     }

@@ -1397,6 +1397,42 @@ class FindoraStore {
     }
   }
 
+  // --- CONTACT FORM ---
+  // The contact form used to only flip local state ("Message Delivered")
+  // and save nothing anywhere. This writes the message to Firestore
+  // `contactMessages` (public create is allowed by the rules in
+  // firestore.rules; reads are admin-only). Returns false when the write
+  // fails so the UI can say so honestly instead of faking it.
+  async submitContactMessage(data: {
+    name: string;
+    email: string;
+    subject: string;
+    message: string;
+  }): Promise<boolean> {
+    if (typeof window === 'undefined') return false;
+    const name = data.name.trim();
+    const email = data.email.trim().toLowerCase();
+    const subject = data.subject.trim();
+    const message = data.message.trim();
+    if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !subject || !message) return false;
+    try {
+      const { db } = await import('../lib/firebase');
+      const { collection, addDoc } = await import('firebase/firestore');
+      await addDoc(collection(db, 'contactMessages'), {
+        name,
+        email,
+        subject,
+        message,
+        createdAt: new Date().toISOString(),
+        source: 'contact',
+      });
+      return true;
+    } catch (e) {
+      console.error('Error saving contact message:', e);
+      return false;
+    }
+  }
+
   // --- PRICE HISTORY ---
   async getPriceHistory(productId: string): Promise<any[]> {
     if (typeof window === 'undefined') return [];

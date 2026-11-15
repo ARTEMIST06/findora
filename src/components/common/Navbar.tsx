@@ -185,7 +185,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
         </div>
 
         {/* Middle: Pill Search Bar */}
-        <div ref={searchRef} className="relative flex-1 max-w-[200px] lg:max-w-xs xl:max-w-md hidden md:block">
+        <div ref={searchRef} className="relative flex-1 max-w-[280px] lg:max-w-xs xl:max-w-md hidden md:block">
           <form onSubmit={handleSearchSubmit} className="relative w-full">
             <input
               type="text"
@@ -195,7 +195,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
                 setIsSearchOpen(true);
               }}
               onFocus={() => setIsSearchOpen(true)}
-              placeholder="Search products, brands..."
+              placeholder="Search products..."
               className="w-full pl-9 pr-8 py-2 xl:py-2.5 bg-white/90 hover:bg-white focus:bg-white text-slate-900 placeholder-slate-400 text-xs xl:text-sm rounded-full border border-slate-300/60 focus:border-black focus:ring-4 focus:ring-black/10 transition-all outline-none"
             />
             <Search className="absolute left-3 top-2.5 xl:top-3 w-3.5 h-3.5 xl:w-4 xl:h-4 text-slate-600 pointer-events-none" />
@@ -325,7 +325,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
                     {currentUser.name.charAt(0).toUpperCase()}
                   </div>
                 )}
-                <div className="hidden md:flex flex-col text-left pr-1">
+                <div className="hidden xl:flex flex-col text-left pr-1">
                   <span className="text-xs font-semibold text-slate-900 leading-none">
                     {currentUser.name.split(' ')[0]}
                   </span>
