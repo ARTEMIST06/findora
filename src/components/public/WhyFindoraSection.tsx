@@ -38,7 +38,7 @@ export const WhyFindoraSection: React.FC = () => {
   ];
 
   return (
-    <section className="py-12 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6">
+    <section className="pt-12 sm:pt-20 pb-8 max-w-7xl mx-auto px-4 sm:px-6">
       <Reveal>
         <div className="text-center max-w-3xl mx-auto mb-12">
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 uppercase tracking-widest mb-3 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
