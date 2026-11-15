@@ -43,8 +43,8 @@ export interface SEOHeadProps {
   isHomePage?: boolean;
 }
 
-const DEFAULT_TITLE = 'Findora — Find It. Compare It. Buy Smarter.';
-const DEFAULT_DESCRIPTION = 'Find products, check verified Amazon India prices, discover better deals, and buy smarter with Findora.';
+const DEFAULT_TITLE = 'Findora — We Search. You Shop.';
+const DEFAULT_DESCRIPTION = 'We search, you shop — Findora finds verified products on Amazon India with checked prices and real deals.';
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?q=80&w=1200&auto=format&fit=crop';
 const SITE_NAME = 'Findora';
 

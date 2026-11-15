@@ -79,7 +79,7 @@ export const Logo: React.FC<LogoProps> = ({
       <div
         onClick={onClick}
         className={`inline-flex items-center justify-center cursor-pointer select-none ${colourClass} ${className}`}
-        title="Findora - Find it. Compare it. Buy smarter."
+        title="Findora - We search. You shop."
       >
         <svg
           viewBox="0 0 100 120"
@@ -121,7 +121,7 @@ export const Logo: React.FC<LogoProps> = ({
           <span
             className={`hidden sm:block font-medium tracking-wide mt-1 ${taglineSizes[size]} ${taglineClass}`}
           >
-            Find it. Compare it. Buy smarter.
+            We search. You shop.
           </span>
         )}
       </div>

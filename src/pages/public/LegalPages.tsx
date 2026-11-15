@@ -139,7 +139,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
               <ShieldCheck className="w-4 h-4 text-black" /> About Us
             </span>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-2">
-              Find it. Compare it. Buy smarter.
+              We search. You shop.
             </h1>
             <p className="text-sm text-slate-600 mt-2">
               Findora is a product-discovery site for India. We find the best products, verify them on Amazon India, and send you straight there to buy — no store, no checkout, no confusion.
