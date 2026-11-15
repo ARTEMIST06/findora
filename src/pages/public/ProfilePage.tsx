@@ -64,7 +64,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
   if (authLoading) {
     return (
       <div className="max-w-md mx-auto py-24 px-4 text-center flex flex-col items-center">
-        <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+        <div className="w-10 h-10 border-4 border-slate-200 border-t-black rounded-full animate-spin mb-4"></div>
         <h2 className="text-xl font-bold text-slate-900 mb-2">Authenticating...</h2>
       </div>
     );
@@ -72,14 +72,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
 
   if (!currentUser) {
     return (
-      <div className="max-w-md mx-auto py-24 px-4 text-center bg-white border border-slate-200 rounded-3xl p-8 my-10">
+      <div className="max-w-md mx-auto py-24 px-4 text-center bg-white border border-slate-200 rounded-none p-8 my-10">
         <h2 className="text-2xl font-bold text-slate-900 mb-2">Sign In Required</h2>
         <p className="text-sm text-slate-600 mb-6">
           Please sign in to view your profile, alerts, and saved products.
         </p>
         <button
           onClick={() => onNavigate('/login')}
-          className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs rounded-full shadow-md shadow-indigo-500/20"
+          className="w-full py-3 bg-black hover:bg-slate-800 text-white font-semibold text-xs rounded-full shadow-md shadow-black/10"
         >
           Sign In
         </button>
@@ -96,23 +96,23 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
         noIndex={true}
       />
       {/* User Header Card */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-white/90 border border-slate-200/80 shadow-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 backdrop-blur-md">
+      <div className="p-6 sm:p-8 rounded-none bg-white/90 border border-slate-200/80 shadow-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 backdrop-blur-md">
         <div className="flex items-center gap-5">
           {currentUser.avatar ? (
             <img
               src={currentUser.avatar}
               alt={currentUser.name}
-              className="w-16 h-16 rounded-2xl object-cover ring-4 ring-blue-500/20 border border-slate-300"
+              className="w-16 h-16 rounded-none object-cover ring-4 ring-black/20 border border-slate-300"
             />
           ) : (
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <div className="w-16 h-16 rounded-none bg-gradient-to-tr from-black to-black text-white font-bold text-2xl flex items-center justify-center shadow-lg shadow-black/10">
               {currentUser.name.charAt(0)}
             </div>
           )}
           <div>
             <div className="flex items-center gap-2.5">
               <h1 className="text-xl sm:text-2xl font-bold text-slate-900">{currentUser.name}</h1>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-blue-500/20 text-blue-700 border border-blue-500/30">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-black/10 text-black border border-black/20">
                 {currentUser.role}
               </span>
             </div>
@@ -130,7 +130,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
             showToast('Successfully signed out', 'success');
             onNavigate('/');
           }}
-          className="text-xs font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1.5 px-4 py-2 rounded-full border border-rose-500/30 hover:bg-rose-500/10 transition-colors"
+          className="text-xs font-semibold text-black hover:text-black flex items-center gap-1.5 px-4 py-2 rounded-full border border-black/20 hover:bg-black/10 transition-colors"
         >
           <LogOut className="w-4 h-4" />
           <span>Sign Out</span>
@@ -139,10 +139,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
 
       {/* Admin Quick Jump Banner */}
       {currentUser.role === 'admin' && (
-        <div className="p-6 rounded-3xl bg-gradient-to-r from-blue-900/60 via-indigo-900/60 to-purple-900/60 border border-blue-500/30 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl backdrop-blur-md">
+        <div className="p-6 rounded-none bg-black border border-black/20 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl backdrop-blur-md">
           <div>
             <h3 className="font-bold text-base flex items-center gap-2 text-slate-900">
-              <LayoutDashboard className="w-5 h-5 text-cyan-600" />
+              <LayoutDashboard className="w-5 h-5 text-black" />
               <span>Admin Dashboard Access Granted</span>
             </h3>
             <p className="text-xs text-slate-700 mt-1">
@@ -151,7 +151,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
           </div>
           <button
             onClick={() => onNavigate('/admin')}
-            className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full text-xs font-bold hover:from-blue-500 hover:to-indigo-500 transition-all shrink-0 shadow-md shadow-indigo-500/20"
+            className="px-6 py-2.5 bg-black text-white rounded-full text-xs font-bold hover:bg-slate-800 transition-all shrink-0 shadow-md shadow-black/10"
           >
             Launch Admin Panel →
           </button>
@@ -159,10 +159,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
       )}
 
       {/* Price Alerts Section */}
-      <div className="bg-white/90 border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-2xl">
+      <div className="bg-white/90 border border-slate-200/80 rounded-none p-6 sm:p-8 shadow-2xl">
         <div className="flex items-center justify-between pb-4 border-b border-slate-200">
           <div className="flex items-center gap-2 font-bold text-slate-900 text-base">
-            <BellRing className="w-5 h-5 text-blue-600" />
+            <BellRing className="w-5 h-5 text-black" />
             <span>Your Price Alerts</span>
           </div>
         </div>
@@ -172,11 +172,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
           ) : priceAlerts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {priceAlerts.map((alert) => (
-                <div key={alert.id} className={`p-5 border rounded-2xl relative ${alert.isActive ? 'border-blue-500/30 bg-blue-500/5' : 'border-emerald-500/30 bg-emerald-500/5'}`}>
+                <div key={alert.id} className={`p-5 border rounded-none relative ${alert.isActive ? 'border-black/20 bg-black/5' : 'border-black/20 bg-white0/5'}`}>
                   {alert.isActive ? (
-                    <span className="absolute top-4 right-4 text-[10px] uppercase font-bold text-blue-700 bg-blue-500/20 border border-blue-500/30 px-2.5 py-0.5 rounded-full">Active</span>
+                    <span className="absolute top-4 right-4 text-[10px] uppercase font-bold text-black bg-black/10 border border-black/20 px-2.5 py-0.5 rounded-full">Active</span>
                   ) : (
-                    <span className="absolute top-4 right-4 text-[10px] uppercase font-bold text-emerald-700 bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                    <span className="absolute top-4 right-4 text-[10px] uppercase font-bold text-black bg-black/10 border border-black/20 px-2.5 py-0.5 rounded-full flex items-center gap-1">
                       <CheckCircle className="w-3 h-3" /> Triggered
                     </span>
                   )}
@@ -198,7 +198,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                     <button
                       onClick={(e) => { e.stopPropagation(); handleDeleteAlert(alert.id); }}
                       disabled={isDeleting === alert.id}
-                      className="text-xs font-semibold text-rose-600 hover:text-rose-700 disabled:opacity-50"
+                      className="text-xs font-semibold text-black hover:text-black disabled:opacity-50"
                     >
                       {isDeleting === alert.id ? 'Removing...' : 'Remove Alert'}
                     </button>
@@ -215,15 +215,15 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
       {/* Grid: Wishlist Overview & Outbound Click History */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Wishlist Box */}
-        <div className="p-6 sm:p-7 rounded-3xl bg-white/90 border border-slate-200/80 space-y-4 shadow-2xl">
+        <div className="p-6 sm:p-7 rounded-none bg-white/90 border border-slate-200/80 space-y-4 shadow-2xl">
           <div className="flex items-center justify-between pb-3 border-b border-slate-200">
             <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
-              <Heart className="w-4 h-4 text-rose-600" />
+              <Heart className="w-4 h-4 text-black" />
               <span>Saved in Wishlist ({wishlist.length})</span>
             </div>
             <button
               onClick={() => onNavigate('/wishlist')}
-              className="text-xs text-blue-600 hover:underline font-semibold"
+              className="text-xs text-black hover:underline font-semibold"
             >
               View all
             </button>
@@ -247,7 +247,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                       <h4 className="text-xs font-semibold text-slate-900 line-clamp-1">
                         {prod.name}
                       </h4>
-                      <span className="text-xs font-bold text-emerald-600">
+                      <span className="text-xs font-bold text-black">
                         {formatINR(prod.lowestPrice)}
                       </span>
                     </div>
@@ -262,10 +262,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
         </div>
 
         {/* Affiliate Outbound Click Tracking History */}
-        <div className="p-6 sm:p-7 rounded-3xl bg-white/90 border border-slate-200/80 space-y-4 shadow-2xl">
+        <div className="p-6 sm:p-7 rounded-none bg-white/90 border border-slate-200/80 space-y-4 shadow-2xl">
           <div className="flex items-center justify-between pb-3 border-b border-slate-200">
             <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
-              <History className="w-4 h-4 text-blue-600" />
+              <History className="w-4 h-4 text-black" />
               <span>Store Link Visits ({clicks.length})</span>
             </div>
             <span className="text-[11px] text-slate-600">Transparency log</span>

@@ -34,7 +34,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
     return (
       <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
         <div className="flex flex-col items-center">
-          <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+          <div className="w-10 h-10 border-4 border-slate-200 border-t-black rounded-full animate-spin mb-4"></div>
           <h2 className="text-xl font-bold text-slate-900 mb-2">Loading...</h2>
         </div>
       </div>
@@ -168,9 +168,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
       />
       
       {/* Background ambient lighting */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[480px] h-[480px] bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[480px] h-[480px] bg-black/5 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div className="max-w-md w-full bg-white/90 rounded-3xl border border-slate-200/80 p-8 sm:p-10 shadow-2xl space-y-6 relative z-10 backdrop-blur-xl">
+      <div className="max-w-md w-full bg-white/90 rounded-none border border-slate-200/80 p-8 sm:p-10 shadow-2xl space-y-6 relative z-10 backdrop-blur-xl">
         <div className="text-center space-y-2">
           <div className="inline-flex justify-center mb-2">
             <Logo size="lg" showTagline={false} />
@@ -197,7 +197,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-black"
                   placeholder="you@example.com"
                   required
                 />
@@ -206,7 +206,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
             <button
               onClick={handlePasswordReset}
               disabled={loading || !email}
-              className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50"
+              className="w-full py-3 bg-black hover:bg-slate-800 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-black/10 disabled:opacity-50"
             >
               {loading ? 'Sending...' : 'Send Reset Link'}
             </button>
@@ -228,7 +228,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-black"
                     placeholder="John Doe"
                     required
                   />
@@ -244,7 +244,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-black"
                   placeholder="you@example.com"
                   required
                 />
@@ -258,7 +258,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
                   <button
                     type="button"
                     onClick={() => setIsResetMode(true)}
-                    className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                    className="text-xs text-black hover:text-black font-medium"
                   >
                     Forgot password?
                   </button>
@@ -270,7 +270,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-black"
                   placeholder="••••••••"
                   required
                 />
@@ -280,7 +280,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
+              className="w-full py-3 bg-black hover:bg-slate-800 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-black/10 disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
             >
               {loading ? 'Processing...' : mode === 'login' ? 'Sign In' : 'Create Account'}
             </button>
@@ -320,7 +320,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
                   setIsResetMode(false);
                   onNavigate(mode === 'login' ? '/signup' : '/login');
                 }}
-                className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+                className="text-sm font-semibold text-black hover:text-black"
               >
                 {mode === 'login' ? 'Sign up' : 'Log in'}
               </button>

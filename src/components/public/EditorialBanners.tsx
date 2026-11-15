@@ -8,18 +8,18 @@ interface EditorialBannersProps {
 
 export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }) => {
   return (
-    <section className="py-5 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6">
+    <section className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6">
       {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-5 sm:mb-8">
         <div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 uppercase tracking-widest mb-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-cyan-600" />
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-black uppercase tracking-widest mb-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-black" />
             <span>Curated Collections</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold uppercase text-black tracking-tight">
             Discover What's Trending & Handpicked
           </h2>
-          <p className="text-sm text-slate-600 mt-1 max-w-xl">
+          <p className="text-sm sm:text-base text-slate-500 mt-2 max-w-xl">
             Handpicked collections from the live catalogue — biggest discounts vs MRP, desk setups, everyday essentials and what's most clicked right now.
           </p>
         </div>
@@ -30,7 +30,7 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
         {/* Banner 1: Top Deals. Bigger Savings. */}
         <div
           onClick={() => onNavigate(EDITORIAL_ASSETS.topDeals.targetRoute)}
-          className="group relative rounded-3xl overflow-hidden border border-slate-200/90 hover:border-amber-500/50 bg-white transition-all duration-300 cursor-pointer flex flex-col justify-between shadow-xl hover:shadow-2xl hover:shadow-amber-500/10 min-h-[260px] sm:min-h-[340px]"
+          className="group relative rounded-none overflow-hidden border border-slate-200 hover:border-black bg-white transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[260px] sm:min-h-[340px]"
         >
           {/* Background Image with Dark Vignette Overlay */}
           <div className="absolute inset-0 z-0">
@@ -46,21 +46,21 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
           {/* Card Content */}
           <div className="relative z-10 p-6 flex flex-col justify-between h-full">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-black/55 text-amber-200 border border-amber-400/50 backdrop-blur-md">
-                <Flame className="w-3 h-3 text-amber-600" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-black/55 text-white border border-white/40 backdrop-blur-md">
+                <Flame className="w-3 h-3 text-white" />
                 {EDITORIAL_ASSETS.topDeals.tagline}
               </span>
             </div>
 
             <div className="mt-12 sm:mt-20">
-              <h3 className="text-xl font-extrabold text-white group-hover:text-amber-200 transition-colors leading-snug">
+              <h3 className="text-xl font-extrabold uppercase text-white leading-snug">
                 {EDITORIAL_ASSETS.topDeals.title}
               </h3>
               <p className="text-xs text-slate-300 mt-2 line-clamp-2 leading-relaxed">
                 {EDITORIAL_ASSETS.topDeals.description}
               </p>
 
-              <div className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 group-hover:text-amber-700 transition-colors">
+              <div className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-white transition-colors">
                 <span>{EDITORIAL_ASSETS.topDeals.cta}</span>
                 <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
               </div>
@@ -71,7 +71,7 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
         {/* Banner 2: Smart Picks For Your Setup */}
         <div
           onClick={() => onNavigate(EDITORIAL_ASSETS.setup.targetRoute)}
-          className="group relative rounded-3xl overflow-hidden border border-slate-200/90 hover:border-blue-500/50 bg-white transition-all duration-300 cursor-pointer flex flex-col justify-between shadow-xl hover:shadow-2xl hover:shadow-blue-500/10 min-h-[260px] sm:min-h-[340px]"
+          className="group relative rounded-none overflow-hidden border border-slate-200 hover:border-black bg-white transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[260px] sm:min-h-[340px]"
         >
           <div className="absolute inset-0 z-0">
             <img
@@ -85,21 +85,21 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
 
           <div className="relative z-10 p-6 flex flex-col justify-between h-full">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-black/55 text-blue-200 border border-blue-400/50 backdrop-blur-md">
-                <Laptop className="w-3 h-3 text-cyan-600" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-black/55 text-white border border-white/40 backdrop-blur-md">
+                <Laptop className="w-3 h-3 text-white" />
                 {EDITORIAL_ASSETS.setup.tagline}
               </span>
             </div>
 
             <div className="mt-12 sm:mt-20">
-              <h3 className="text-xl font-extrabold text-white group-hover:text-cyan-200 transition-colors leading-snug">
+              <h3 className="text-xl font-extrabold uppercase text-white leading-snug">
                 {EDITORIAL_ASSETS.setup.title}
               </h3>
               <p className="text-xs text-slate-300 mt-2 line-clamp-2 leading-relaxed">
                 {EDITORIAL_ASSETS.setup.description}
               </p>
 
-              <div className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 group-hover:text-cyan-700 transition-colors">
+              <div className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-white transition-colors">
                 <span>{EDITORIAL_ASSETS.setup.cta}</span>
                 <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
               </div>
@@ -110,7 +110,7 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
         {/* Banner 3: Upgrade Your Everyday */}
         <div
           onClick={() => onNavigate(EDITORIAL_ASSETS.everyday.targetRoute)}
-          className="group relative rounded-3xl overflow-hidden border border-slate-200/90 hover:border-emerald-500/50 bg-white transition-all duration-300 cursor-pointer flex flex-col justify-between shadow-xl hover:shadow-2xl hover:shadow-emerald-500/10 min-h-[260px] sm:min-h-[340px]"
+          className="group relative rounded-none overflow-hidden border border-slate-200 hover:border-black bg-white transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[260px] sm:min-h-[340px]"
         >
           <div className="absolute inset-0 z-0">
             <img
@@ -124,21 +124,21 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
 
           <div className="relative z-10 p-6 flex flex-col justify-between h-full">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-black/55 text-emerald-200 border border-emerald-400/50 backdrop-blur-md">
-                <Home className="w-3 h-3 text-emerald-600" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-black/55 text-white border border-white/40 backdrop-blur-md">
+                <Home className="w-3 h-3 text-white" />
                 {EDITORIAL_ASSETS.everyday.tagline}
               </span>
             </div>
 
             <div className="mt-12 sm:mt-20">
-              <h3 className="text-xl font-extrabold text-white group-hover:text-emerald-200 transition-colors leading-snug">
+              <h3 className="text-xl font-extrabold uppercase text-white leading-snug">
                 {EDITORIAL_ASSETS.everyday.title}
               </h3>
               <p className="text-xs text-slate-300 mt-2 line-clamp-2 leading-relaxed">
                 {EDITORIAL_ASSETS.everyday.description}
               </p>
 
-              <div className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 group-hover:text-emerald-700 transition-colors">
+              <div className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-white transition-colors">
                 <span>{EDITORIAL_ASSETS.everyday.cta}</span>
                 <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
               </div>
@@ -149,7 +149,7 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
         {/* Banner 4: Discover What's Trending */}
         <div
           onClick={() => onNavigate(EDITORIAL_ASSETS.trending.targetRoute)}
-          className="group relative rounded-3xl overflow-hidden border border-slate-200/90 hover:border-purple-500/50 bg-white transition-all duration-300 cursor-pointer flex flex-col justify-between shadow-xl hover:shadow-2xl hover:shadow-purple-500/10 min-h-[260px] sm:min-h-[340px]"
+          className="group relative rounded-none overflow-hidden border border-slate-200 hover:border-black bg-white transition-all duration-300 cursor-pointer flex flex-col justify-between min-h-[260px] sm:min-h-[340px]"
         >
           <div className="absolute inset-0 z-0">
             <img
@@ -163,21 +163,21 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
 
           <div className="relative z-10 p-6 flex flex-col justify-between h-full">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-black/55 text-purple-200 border border-purple-400/50 backdrop-blur-md">
-                <Star className="w-3 h-3 text-purple-600" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold bg-black/55 text-white border border-white/40 backdrop-blur-md">
+                <Star className="w-3 h-3 text-white" />
                 {EDITORIAL_ASSETS.trending.tagline}
               </span>
             </div>
 
             <div className="mt-12 sm:mt-20">
-              <h3 className="text-xl font-extrabold text-white group-hover:text-purple-200 transition-colors leading-snug">
+              <h3 className="text-xl font-extrabold uppercase text-white leading-snug">
                 {EDITORIAL_ASSETS.trending.title}
               </h3>
               <p className="text-xs text-slate-300 mt-2 line-clamp-2 leading-relaxed">
                 {EDITORIAL_ASSETS.trending.description}
               </p>
 
-              <div className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-purple-600 group-hover:text-purple-700 transition-colors">
+              <div className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-white transition-colors">
                 <span>{EDITORIAL_ASSETS.trending.cta}</span>
                 <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
               </div>

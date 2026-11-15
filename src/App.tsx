@@ -188,7 +188,7 @@ export default function App() {
     // Fallback: 404
     return (
       <div className="max-w-lg mx-auto py-28 px-4 text-center">
-        <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-600">
+        <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-black/5 border border-black/20 flex items-center justify-center text-black">
           <span className="text-2xl font-bold">404</span>
         </div>
         <h2 className="text-3xl font-extrabold text-slate-900 mb-3 tracking-tight">Page Not Found</h2>
@@ -197,7 +197,7 @@ export default function App() {
         </p>
         <button
           onClick={() => handleNavigate('/')}
-          className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm rounded-xl shadow-lg shadow-indigo-500/25 transition-all"
+          className="px-6 py-3 bg-black hover:bg-slate-800 text-white font-semibold text-sm rounded-none transition-all"
         >
           Return to Findora Home
         </button>
@@ -209,7 +209,7 @@ export default function App() {
     <HelmetProvider>
       <ToastProvider>
         <Analytics />
-        <div className="min-h-screen flex flex-col bg-slate-50 bg-mesh-dark font-sans text-slate-900 antialiased selection:bg-blue-600 selection:text-white">
+        <div className="min-h-screen flex flex-col bg-white font-sans text-black antialiased selection:bg-black selection:text-white">
           {/* Global Navigation Bar */}
           <Navbar currentRoute={currentPath} onNavigate={handleNavigate} />
 
@@ -218,7 +218,7 @@ export default function App() {
             <Suspense
               fallback={
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 text-center">
-                  <div className="w-10 h-10 mx-auto rounded-full border-2 border-slate-300 border-t-blue-600 animate-spin" />
+                  <div className="w-10 h-10 mx-auto rounded-full border-2 border-slate-300 border-t-black animate-spin" />
                   <p className="text-sm text-slate-600 mt-4">Loading page…</p>
                 </div>
               }

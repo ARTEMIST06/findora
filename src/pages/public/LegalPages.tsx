@@ -77,7 +77,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
 
   const Breadcrumb = ({ title }: { title: string }) => (
     <div className="flex items-center gap-2 text-xs text-slate-600 mb-6">
-      <button onClick={() => onNavigate('/')} className="hover:text-blue-600 transition-colors">Home</button>
+      <button onClick={() => onNavigate('/')} className="hover:text-black transition-colors">Home</button>
       <ChevronRight className="w-3 h-3 text-slate-600" />
       <span className="text-slate-900 font-medium">{title}</span>
     </div>
@@ -103,10 +103,10 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
 
       {/* About Page */}
       {page === 'about' && (
-        <div className="bg-white/90 rounded-3xl border border-slate-200/80 p-8 sm:p-12 space-y-10 shadow-2xl backdrop-blur-md">
+        <div className="bg-white/90 rounded-none border border-slate-200/80 p-8 sm:p-12 space-y-10 shadow-2xl backdrop-blur-md">
           <div className="border-b border-slate-200 pb-6">
-            <span className="text-xs font-bold text-blue-600 uppercase tracking-widest flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-cyan-600" /> About Us
+            <span className="text-xs font-bold text-black uppercase tracking-widest flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-black" /> About Us
             </span>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-2">
               Find it. Compare it. Buy smarter.
@@ -115,9 +115,9 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
               Findora is a product-discovery site for India. We find the best products, verify them on Amazon India, and send you straight there to buy — no store, no checkout, no confusion.
             </p>
             <div className="flex flex-wrap gap-2 mt-5">
-              <span className="px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold">592 verified products</span>
-              <span className="px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold">78 categories</span>
-              <span className="px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold">1 store: Amazon India</span>
+              <span className="px-3 py-1.5 rounded-full bg-black/5 border border-black/10 text-black text-xs font-bold">592 verified products</span>
+              <span className="px-3 py-1.5 rounded-full bg-black/5 border border-black/10 text-black text-xs font-bold">78 categories</span>
+              <span className="px-3 py-1.5 rounded-full bg-black/5 border border-black/10 text-black text-xs font-bold">1 store: Amazon India</span>
             </div>
           </div>
 
@@ -135,15 +135,15 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
             <h2 className="text-lg font-bold text-slate-900">How it works</h2>
             <ol className="space-y-4">
               <li className="flex gap-3">
-                <span className="shrink-0 w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">1</span>
+                <span className="shrink-0 w-7 h-7 rounded-full bg-black text-white text-xs font-bold flex items-center justify-center">1</span>
                 <p><strong className="text-slate-900">We find it.</strong> We research products people actually buy and list only ones we could verify on Amazon India.</p>
               </li>
               <li className="flex gap-3">
-                <span className="shrink-0 w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">2</span>
+                <span className="shrink-0 w-7 h-7 rounded-full bg-black text-white text-xs font-bold flex items-center justify-center">2</span>
                 <p><strong className="text-slate-900">We check it.</strong> Every listing shows its price and the date it was last checked on Amazon India. Prices change often, so we always tell you to verify on Amazon before buying.</p>
               </li>
               <li className="flex gap-3">
-                <span className="shrink-0 w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">3</span>
+                <span className="shrink-0 w-7 h-7 rounded-full bg-black text-white text-xs font-bold flex items-center justify-center">3</span>
                 <p><strong className="text-slate-900">You buy it — directly from Amazon.</strong> Tap Check Price and you go to Amazon. Amazon takes your payment, delivers the order, and handles returns. Findora never sells anything and never takes your money.</p>
               </li>
             </ol>
@@ -168,17 +168,17 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
               Findora is run entirely by Arya — he handles the research, the catalogue, and the website himself. No investors, no office, no sponsors — just a student building something useful, one verified product at a time.
             </p>
             <p className="flex items-center gap-2">
-              <Mail className="w-4 h-4 text-cyan-600" />
+              <Mail className="w-4 h-4 text-black" />
               <span>Questions, a wrong price, or a product we should list? Write to us at{' '}
-                <a href="mailto:findorame@gmail.com" className="text-blue-600 font-bold hover:underline">findorame@gmail.com</a>
+                <a href="mailto:findorame@gmail.com" className="text-black font-bold hover:underline">findorame@gmail.com</a>
               </span>
             </p>
           </div>
 
-          <div className="text-xs text-slate-600 leading-relaxed bg-slate-50 border border-slate-200 rounded-2xl p-5">
+          <div className="text-xs text-slate-600 leading-relaxed bg-slate-50 border border-slate-200 rounded-none p-5">
             <p>
               Findora uses Amazon Associates links. If you buy through a link on this site, Findora may earn a small commission — it costs you nothing extra. Read the full{' '}
-              <button onClick={() => onNavigate('/affiliate-disclosure')} className="text-blue-600 font-bold hover:underline">Affiliate Disclosure</button>.
+              <button onClick={() => onNavigate('/affiliate-disclosure')} className="text-black font-bold hover:underline">Affiliate Disclosure</button>.
             </p>
           </div>
         </div>
@@ -186,10 +186,10 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
 
       {/* Contact Page */}
       {page === 'contact' && (
-        <div className="bg-white/90 rounded-3xl border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-2xl backdrop-blur-md">
+        <div className="bg-white/90 rounded-none border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-2xl backdrop-blur-md">
           <div className="border-b border-slate-200 pb-6">
-            <span className="text-xs font-bold text-blue-600 uppercase tracking-widest flex items-center gap-2">
-              <Mail className="w-4 h-4 text-cyan-600" /> Get in touch
+            <span className="text-xs font-bold text-black uppercase tracking-widest flex items-center gap-2">
+              <Mail className="w-4 h-4 text-black" /> Get in touch
             </span>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-2">Contact Findora</h1>
             <p className="text-sm text-slate-600 mt-2">
@@ -198,15 +198,15 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
           </div>
           
           {isSubmitted ? (
-            <div className="p-8 rounded-3xl bg-emerald-500/10 border border-emerald-500/30 text-center space-y-3">
-              <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
+            <div className="p-8 rounded-none bg-black/5 border border-black/20 text-center space-y-3">
+              <CheckCircle2 className="w-12 h-12 text-black mx-auto" />
               <h3 className="text-xl font-bold text-slate-900">Message Delivered</h3>
               <p className="text-xs text-slate-700 max-w-sm mx-auto">
                 Thank you for contacting us. A Findora platform representative will review your note and respond to {contactEmail} shortly.
               </p>
               <button
                 onClick={() => setIsSubmitted(false)}
-                className="mt-4 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full text-xs font-bold transition-all shadow-md shadow-emerald-500/20"
+                className="mt-4 px-5 py-2.5 bg-black hover:bg-slate-800 text-white rounded-none text-xs font-bold transition-all"
               >
                 Send another message
               </button>
@@ -222,7 +222,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
                     value={contactName}
                     onChange={(e) => setContactName(e.target.value)}
                     placeholder="John Doe"
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 outline-none focus:border-blue-500 text-xs text-slate-900 placeholder-slate-400"
+                    className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 outline-none focus:border-black text-xs text-slate-900 placeholder-slate-400"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -233,7 +233,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
                     value={contactEmail}
                     onChange={(e) => setContactEmail(e.target.value)}
                     placeholder="name@example.com"
-                    className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 outline-none focus:border-blue-500 text-xs text-slate-900 placeholder-slate-400"
+                    className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 outline-none focus:border-black text-xs text-slate-900 placeholder-slate-400"
                   />
                 </div>
               </div>
@@ -245,7 +245,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
                   value={contactSubject}
                   onChange={(e) => setContactSubject(e.target.value)}
                   placeholder="Price discrepancy, partner request, or product feedback..."
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 outline-none focus:border-blue-500 text-xs text-slate-900 placeholder-slate-400"
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 outline-none focus:border-black text-xs text-slate-900 placeholder-slate-400"
                 />
               </div>
               <div className="space-y-1.5">
@@ -256,12 +256,12 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
                   value={contactMessage}
                   onChange={(e) => setContactMessage(e.target.value)}
                   placeholder="Write your note here..."
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 outline-none focus:border-blue-500 text-xs text-slate-900 placeholder-slate-400"
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 outline-none focus:border-black text-xs text-slate-900 placeholder-slate-400"
                 ></textarea>
               </div>
               <button
                 type="submit"
-                className="py-3 px-8 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-full transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2"
+                className="py-3 px-8 bg-black hover:bg-slate-800 text-white font-bold text-xs rounded-full transition-all shadow-lg shadow-black/10 flex items-center gap-2"
               >
                 <Send className="w-4 h-4" />
                 <span>Submit Inquiry</span>
@@ -273,10 +273,10 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
 
       {/* Privacy Policy */}
       {page === 'privacy' && (
-        <div className="bg-white/90 rounded-3xl border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-2xl backdrop-blur-md">
+        <div className="bg-white/90 rounded-none border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-2xl backdrop-blur-md">
           <div className="border-b border-slate-200 pb-6">
-            <span className="text-xs font-bold text-blue-600 uppercase tracking-widest flex items-center gap-2">
-              <Lock className="w-4 h-4 text-cyan-600" /> Legal
+            <span className="text-xs font-bold text-black uppercase tracking-widest flex items-center gap-2">
+              <Lock className="w-4 h-4 text-black" /> Legal
             </span>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-2">
               Privacy Policy
@@ -331,10 +331,10 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
 
       {/* Terms and Conditions */}
       {page === 'terms' && (
-        <div className="bg-white/90 rounded-3xl border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-2xl backdrop-blur-md">
+        <div className="bg-white/90 rounded-none border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-2xl backdrop-blur-md">
           <div className="border-b border-slate-200 pb-6">
-            <span className="text-xs font-bold text-blue-600 uppercase tracking-widest flex items-center gap-2">
-              <Scale className="w-4 h-4 text-cyan-600" /> Legal
+            <span className="text-xs font-bold text-black uppercase tracking-widest flex items-center gap-2">
+              <Scale className="w-4 h-4 text-black" /> Legal
             </span>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-2">
               Terms & Conditions
@@ -377,10 +377,10 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
 
       {/* Affiliate Disclosure */}
       {page === 'affiliate-disclosure' && (
-        <div className="bg-white/90 rounded-3xl border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-2xl backdrop-blur-md">
+        <div className="bg-white/90 rounded-none border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-2xl backdrop-blur-md">
           <div className="border-b border-slate-200 pb-6">
-            <span className="text-xs font-bold text-blue-600 uppercase tracking-widest flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-cyan-600" /> Transparency
+            <span className="text-xs font-bold text-black uppercase tracking-widest flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-black" /> Transparency
             </span>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-2">
               Affiliate Disclosure
@@ -413,10 +413,10 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
 
       {/* Cookie Disclosure */}
       {page === 'cookie-disclosure' && (
-        <div className="bg-white/90 rounded-3xl border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-2xl backdrop-blur-md">
+        <div className="bg-white/90 rounded-none border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-2xl backdrop-blur-md">
           <div className="border-b border-slate-200 pb-6">
-            <span className="text-xs font-bold text-blue-600 uppercase tracking-widest flex items-center gap-2">
-              <Cookie className="w-4 h-4 text-cyan-600" /> Transparency
+            <span className="text-xs font-bold text-black uppercase tracking-widest flex items-center gap-2">
+              <Cookie className="w-4 h-4 text-black" /> Transparency
             </span>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-2">
               Cookie & Analytics Policy

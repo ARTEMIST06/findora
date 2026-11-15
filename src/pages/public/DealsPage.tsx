@@ -32,8 +32,8 @@ export const DealsPage: React.FC<DealsPageProps> = ({ onNavigate }) => {
       {/* Header */}
       <div className="pb-6 border-b border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 uppercase tracking-widest mb-1.5 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
-            <Flame className="w-3.5 h-3.5 fill-amber-400 text-amber-600" />
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-black uppercase tracking-widest mb-1.5 bg-black/5 px-3 py-1 rounded-full border border-black/10">
+            <Flame className="w-3.5 h-3.5 fill-black text-black" />
             <span>Biggest Discounts vs MRP</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-1">
@@ -54,7 +54,7 @@ export const DealsPage: React.FC<DealsPageProps> = ({ onNavigate }) => {
                 onClick={() => setMinDiscount(disc)}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   minDiscount === disc
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold'
+                    ? 'bg-black text-white shadow-md shadow-black/10 font-bold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -73,13 +73,13 @@ export const DealsPage: React.FC<DealsPageProps> = ({ onNavigate }) => {
           ))}
         </div>
       ) : (
-        <div className="text-center py-24 bg-white/80 rounded-3xl border border-slate-200/80 p-8 shadow-xl">
+        <div className="text-center py-24 bg-white/80 rounded-none border border-slate-200/80 p-8 shadow-xl">
           <p className="text-slate-600 text-sm">
             No deals found with {minDiscount}%+ discount right now.
           </p>
           <button
             onClick={() => setMinDiscount(5)}
-            className="mt-4 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full text-xs font-semibold hover:from-blue-500 hover:to-indigo-500 transition-all shadow-md shadow-indigo-500/20"
+            className="mt-4 px-6 py-2.5 bg-black text-white rounded-full text-xs font-semibold hover:bg-slate-800 transition-all shadow-md shadow-black/10"
           >
             Show all available deals
           </button>

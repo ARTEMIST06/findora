@@ -45,20 +45,17 @@ export const TrendingProducts: React.FC<TrendingProductsProps> = ({ onNavigate }
   if (trendingList.length === 0) return null;
 
   return (
-    <section className="py-5 sm:py-8 max-w-7xl mx-auto px-4 sm:px-6">
+    <section className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6">
       <Reveal>
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-5 sm:mb-6">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-amber-600">🔥</span>
-              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                Most clicked right now
-              </span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              Most clicked right now
+            </span>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold uppercase text-black tracking-tight">
               Trending Deals
             </h2>
-            <p className="text-sm text-slate-600 mt-1">
+            <p className="text-sm sm:text-base text-slate-500 mt-2">
               What shoppers are actually opening — ranked by real clicks and views.
             </p>
           </div>
@@ -66,7 +63,7 @@ export const TrendingProducts: React.FC<TrendingProductsProps> = ({ onNavigate }
           <div className="flex items-center gap-3 self-start sm:self-auto">
             <button
               onClick={() => onNavigate('/deals')}
-              className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1.5 transition-colors group py-1"
+              className="text-xs sm:text-sm font-semibold text-black hover:text-slate-700 flex items-center gap-1.5 transition-colors group py-1"
             >
               <span>View All</span>
               <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
