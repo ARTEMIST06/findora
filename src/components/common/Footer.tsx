@@ -34,7 +34,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   };
 
   return (
-    <footer className="bg-white text-slate-600 border-t border-slate-200/80 pt-16 pb-12 mt-20 relative overflow-hidden">
+    <footer className="bg-white text-slate-600 border-t border-slate-200/80 pt-16 pb-12 mt-8 relative overflow-hidden">
       {/* Background ambient lighting */}
       <div className="absolute bottom-0 left-1/3 w-[600px] h-[300px] bg-blue-600/5 rounded-full blur-[140px] pointer-events-none -z-10"></div>
 

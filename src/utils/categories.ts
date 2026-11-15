@@ -30,6 +30,9 @@ export function normalizeCategoryKey(value: string | undefined | null): string {
     cellphones: 'smartphones',
     homedecor: 'homedecor',
     homedecoration: 'homedecor',
+    homeandkitchen: 'homekitchen',
+    headphonesearbudsaccessorie: 'headphonesearbudsaccessories',
+    decorativeaccessorie: 'decorativeaccessories',
   };
   return aliases[key] || key;
 }
