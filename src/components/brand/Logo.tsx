@@ -60,14 +60,14 @@ export const Logo: React.FC<LogoProps> = ({
       style={{ height: '1.25em', width: '1.04em', marginBottom: '-0.46em' }}
       id="findora-logo-mark"
     >
-      <circle cx="42" cy="42" r="34" stroke="currentColor" strokeWidth="11" />
+      <circle cx="42" cy="42" r="34" stroke="currentColor" strokeWidth="14" />
       <line
         x1="66"
         y1="66"
         x2="92"
         y2="92"
         stroke="currentColor"
-        strokeWidth="11"
+        strokeWidth="14"
         strokeLinecap="round"
       />
     </svg>
@@ -89,14 +89,14 @@ export const Logo: React.FC<LogoProps> = ({
           className="shrink-0"
           style={{ height: dim, width: (dim * 100) / 120 }}
         >
-          <circle cx="42" cy="42" r="34" stroke="currentColor" strokeWidth="11" />
+          <circle cx="42" cy="42" r="34" stroke="currentColor" strokeWidth="14" />
           <line
             x1="66"
             y1="66"
             x2="92"
             y2="92"
             stroke="currentColor"
-            strokeWidth="11"
+            strokeWidth="14"
             strokeLinecap="round"
           />
         </svg>

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronRight, ShieldCheck, Mail, AlertCircle, FileText, Lock, Cookie, Scale, Send, CheckCircle2 } from 'lucide-react';
 import { SEOHead } from '../../components/common/SEOHead';
+import { useToast } from '../../components/common/Toast';
+import { useFindoraStore } from '../../services/store';
 
 interface LegalPageProps {
-  page: 'about' | 'contact' | 'privacy' | 'terms' | 'affiliate-disclosure' | 'cookie-disclosure';
+  page: 'about' | 'contact' | 'privacy' | 'terms' | 'affiliate-disclosure' | 'cookie-disclosure' | 'faq';
   onNavigate: (path: string) => void;
 }
 
@@ -47,6 +49,12 @@ const LEGAL_SEO_CONFIG: Record<
     canonical: '/cookie-disclosure',
     breadcrumbTitle: 'Cookie & Analytics',
   },
+  faq: {
+    title: 'FAQ | Findora',
+    desc: 'Frequently asked questions about Findora — how it works, how buying works, and how prices are checked.',
+    canonical: '/faq',
+    breadcrumbTitle: 'FAQ',
+  },
 };
 
 export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
@@ -55,6 +63,9 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
   const [contactSubject, setContactSubject] = useState('');
   const [contactMessage, setContactMessage] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const { showToast } = useToast();
+  const store = useFindoraStore();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -67,10 +78,27 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
     breadcrumbTitle: 'Information',
   };
 
-  const handleContactSubmit = (e: React.FormEvent) => {
+  const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSending) return;
+    setIsSending(true);
+    // Saved for real in Firestore (store.submitContactMessage). If the
+    // write fails, say so — the old version showed "Message Delivered"
+    // while saving nothing anywhere.
+    const ok = await store.submitContactMessage({
+      name: contactName,
+      email: contactEmail,
+      subject: contactSubject,
+      message: contactMessage,
+    });
+    setIsSending(false);
+    if (!ok) {
+      showToast("Couldn't send your message right now — please try again.", 'error');
+      return;
+    }
     setIsSubmitted(true);
     setContactName('');
+    setContactEmail('');
     setContactSubject('');
     setContactMessage('');
   };
@@ -96,6 +124,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
       />
       {page === 'about' && <Breadcrumb title="About Findora" />}
       {page === 'contact' && <Breadcrumb title="Contact Us" />}
+      {page === 'faq' && <Breadcrumb title="FAQ" />}
       {page === 'privacy' && <Breadcrumb title="Privacy Policy" />}
       {page === 'terms' && <Breadcrumb title="Terms & Conditions" />}
       {page === 'affiliate-disclosure' && <Breadcrumb title="Affiliate Disclosure" />}
@@ -103,7 +132,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
 
       {/* About Page */}
       {page === 'about' && (
-        <div className="bg-white/90 rounded-none border border-slate-200/80 p-8 sm:p-12 space-y-10 shadow-2xl backdrop-blur-md">
+        <div className="bg-white/90 rounded-none border border-slate-200/80 p-8 sm:p-12 space-y-10 shadow-none backdrop-blur-md">
           <div className="border-b border-slate-200 pb-6">
             <span className="text-xs font-bold text-black uppercase tracking-widest flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-black" /> About Us
@@ -184,9 +213,85 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
         </div>
       )}
 
+      {/* FAQ Page */}
+      {page === 'faq' && (
+        <div className="bg-white/90 rounded-none border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-none backdrop-blur-md">
+          <div className="border-b border-slate-200 pb-6">
+            <span className="text-xs font-bold text-black uppercase tracking-widest flex items-center gap-2">
+              <FileText className="w-4 h-4 text-black" /> Help
+            </span>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-2">
+              Frequently Asked Questions
+            </h1>
+            <p className="text-sm text-slate-600 mt-2">
+              Straight answers about how Findora works — no fine print.
+            </p>
+          </div>
+
+          <div className="text-sm text-slate-700 leading-relaxed">
+            <div className="py-5 border-b border-slate-200">
+              <h3 className="text-base font-bold text-slate-900">What is Findora?</h3>
+              <p className="mt-1.5">Findora is a product-discovery site for India. We research products people actually buy — budget tech, college essentials, home and everyday picks — and list only the ones we could verify on Amazon India, with the price and the date it was last checked.</p>
+            </div>
+            <div className="py-5 border-b border-slate-200">
+              <h3 className="text-base font-bold text-slate-900">How do I buy a product?</h3>
+              <p className="mt-1.5">Tap &ldquo;Check Price&rdquo; on any product and you go straight to Amazon. You pay on Amazon, Amazon delivers the order, and Amazon handles returns. Findora never takes your payment.</p>
+            </div>
+            <div className="py-5 border-b border-slate-200">
+              <h3 className="text-base font-bold text-slate-900">Does Findora sell anything itself?</h3>
+              <p className="mt-1.5">No. Findora has no cart, no checkout, and no inventory. It is a discovery site, not a store — the whole transaction happens on Amazon.</p>
+            </div>
+            <div className="py-5 border-b border-slate-200">
+              <h3 className="text-base font-bold text-slate-900">Are the prices on Findora live?</h3>
+              <p className="mt-1.5">No — they are checked snapshots, not live prices. Every listing shows the date its price was last checked on Amazon India. Prices change often, so always verify the price on Amazon before buying.</p>
+            </div>
+            <div className="py-5 border-b border-slate-200">
+              <h3 className="text-base font-bold text-slate-900">Why is the price on Amazon different from Findora?</h3>
+              <p className="mt-1.5">Amazon prices change frequently — deals expire, sellers change, and prices can differ by colour, size, or variant. The price on Amazon is always the final word.</p>
+            </div>
+            <div className="py-5 border-b border-slate-200">
+              <h3 className="text-base font-bold text-slate-900">How does Findora earn money?</h3>
+              <p className="mt-1.5">Findora uses Amazon Associates links. If you buy through a link on this site, Findora may earn a small commission — it costs you nothing extra. Read the full{' '}
+                <button onClick={() => onNavigate('/affiliate-disclosure')} className="text-black font-bold hover:underline">Affiliate Disclosure</button>.
+              </p>
+            </div>
+            <div className="py-5 border-b border-slate-200">
+              <h3 className="text-base font-bold text-slate-900">Do I need an account to use Findora?</h3>
+              <p className="mt-1.5">No. You can browse and search freely without an account. An account is only needed for the wishlist and price alerts.</p>
+            </div>
+            <div className="py-5 border-b border-slate-200">
+              <h3 className="text-base font-bold text-slate-900">How do I report a wrong price or request a product?</h3>
+              <p className="mt-1.5">Use the{' '}
+                <button onClick={() => onNavigate('/contact')} className="text-black font-bold hover:underline">contact form</button>
+                {' '}or write to us at{' '}
+                <a href="mailto:findorame@gmail.com" className="text-black font-bold hover:underline">findorame@gmail.com</a>.
+              </p>
+            </div>
+            <div className="py-5 border-b border-slate-200">
+              <h3 className="text-base font-bold text-slate-900">What if a product is out of stock on Amazon?</h3>
+              <p className="mt-1.5">The listing on Findora may be stale — stock changes fast. Check the product page on Amazon for the current availability.</p>
+            </div>
+            <div className="py-5 border-b border-slate-200">
+              <h3 className="text-base font-bold text-slate-900">What about delivery and returns?</h3>
+              <p className="mt-1.5">Amazon&rsquo;s delivery and return policies apply to every order. Findora cannot track, change, or cancel an order placed on Amazon.</p>
+            </div>
+            <div className="py-5 border-b border-slate-200">
+              <h3 className="text-base font-bold text-slate-900">Does Findora show sponsored products or paid rankings?</h3>
+              <p className="mt-1.5">No. We do not take money to rank a product higher, and we do not show fake reviews or invented discounts. If we could not verify something, we do not show it.</p>
+            </div>
+            <div className="py-5">
+              <h3 className="text-base font-bold text-slate-900">Is my personal data safe?</h3>
+              <p className="mt-1.5">Findora collects only what it needs to run the site — for example, your email if you subscribe to alerts or send us a message. Read the full{' '}
+                <button onClick={() => onNavigate('/privacy')} className="text-black font-bold hover:underline">Privacy Policy</button>.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Contact Page */}
       {page === 'contact' && (
-        <div className="bg-white/90 rounded-none border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-2xl backdrop-blur-md">
+        <div className="bg-white/90 rounded-none border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-none backdrop-blur-md">
           <div className="border-b border-slate-200 pb-6">
             <span className="text-xs font-bold text-black uppercase tracking-widest flex items-center gap-2">
               <Mail className="w-4 h-4 text-black" /> Get in touch
@@ -261,10 +366,11 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
               </div>
               <button
                 type="submit"
-                className="py-3 px-8 bg-black hover:bg-slate-800 text-white font-bold text-xs rounded-full transition-all shadow-lg shadow-black/10 flex items-center gap-2"
+                disabled={isSending}
+                className="py-3 px-8 bg-black hover:bg-slate-800 text-white font-bold text-xs rounded-full transition-all shadow-lg shadow-black/10 flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <Send className="w-4 h-4" />
-                <span>Submit Inquiry</span>
+                <span>{isSending ? 'Sending…' : 'Submit Inquiry'}</span>
               </button>
             </form>
           )}
@@ -273,7 +379,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
 
       {/* Privacy Policy */}
       {page === 'privacy' && (
-        <div className="bg-white/90 rounded-none border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-2xl backdrop-blur-md">
+        <div className="bg-white/90 rounded-none border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-none backdrop-blur-md">
           <div className="border-b border-slate-200 pb-6">
             <span className="text-xs font-bold text-black uppercase tracking-widest flex items-center gap-2">
               <Lock className="w-4 h-4 text-black" /> Legal
@@ -281,7 +387,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
             <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-2">
               Privacy Policy
             </h1>
-            <p className="text-xs text-slate-600 mt-2">Last Updated: September 16, 2026</p>
+            <p className="text-xs text-slate-600 mt-2">Last Updated: November 15, 2026</p>
           </div>
           
           <div className="text-sm text-slate-700 leading-relaxed space-y-4">
@@ -331,7 +437,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
 
       {/* Terms and Conditions */}
       {page === 'terms' && (
-        <div className="bg-white/90 rounded-none border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-2xl backdrop-blur-md">
+        <div className="bg-white/90 rounded-none border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-none backdrop-blur-md">
           <div className="border-b border-slate-200 pb-6">
             <span className="text-xs font-bold text-black uppercase tracking-widest flex items-center gap-2">
               <Scale className="w-4 h-4 text-black" /> Legal
@@ -339,7 +445,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
             <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-2">
               Terms & Conditions
             </h1>
-            <p className="text-xs text-slate-600 mt-2">Last Updated: September 16, 2026</p>
+            <p className="text-xs text-slate-600 mt-2">Last Updated: November 15, 2026</p>
           </div>
           
           <div className="text-sm text-slate-700 leading-relaxed space-y-4">
@@ -377,7 +483,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
 
       {/* Affiliate Disclosure */}
       {page === 'affiliate-disclosure' && (
-        <div className="bg-white/90 rounded-none border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-2xl backdrop-blur-md">
+        <div className="bg-white/90 rounded-none border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-none backdrop-blur-md">
           <div className="border-b border-slate-200 pb-6">
             <span className="text-xs font-bold text-black uppercase tracking-widest flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-black" /> Transparency
@@ -385,7 +491,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
             <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-2">
               Affiliate Disclosure
             </h1>
-            <p className="text-xs text-slate-600 mt-2">Last Updated: September 16, 2026</p>
+            <p className="text-xs text-slate-600 mt-2">Last Updated: November 15, 2026</p>
           </div>
           
           <div className="text-sm text-slate-700 leading-relaxed space-y-4">
@@ -413,7 +519,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
 
       {/* Cookie Disclosure */}
       {page === 'cookie-disclosure' && (
-        <div className="bg-white/90 rounded-none border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-2xl backdrop-blur-md">
+        <div className="bg-white/90 rounded-none border border-slate-200/80 p-8 sm:p-12 space-y-6 shadow-none backdrop-blur-md">
           <div className="border-b border-slate-200 pb-6">
             <span className="text-xs font-bold text-black uppercase tracking-widest flex items-center gap-2">
               <Cookie className="w-4 h-4 text-black" /> Transparency
@@ -421,7 +527,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
             <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-2">
               Cookie & Analytics Policy
             </h1>
-            <p className="text-xs text-slate-600 mt-2">Last Updated: September 16, 2026</p>
+            <p className="text-xs text-slate-600 mt-2">Last Updated: November 15, 2026</p>
           </div>
           
           <div className="text-sm text-slate-700 leading-relaxed space-y-4">

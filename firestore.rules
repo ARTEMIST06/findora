@@ -190,6 +190,36 @@ service cloud.firestore {
         && incoming().source is string;
       allow update, delete: if isAdmin();
     }
+
+    // --- CONTACT MESSAGES ---
+    // Public create so guests can send a message from the contact page
+    // (the write goes through the client SDK in store.submitContactMessage).
+    // Shape-checked so the collection can't be used as a junk store;
+    // reads are admin-only.
+    // NOTE: rules in this file only take effect after a deploy
+    // (Firebase console > Firestore > Rules, or `firebase deploy
+    // --only firestore:rules`). Until then the send call fails and
+    // the contact page says so instead of faking success.
+    match /contactMessages/{docId} {
+      allow read: if isAdmin();
+      allow create: if incoming().keys().hasAll(['name', 'email', 'subject', 'message', 'createdAt', 'source'])
+        && incoming().keys().size() == 6
+        && incoming().name is string
+        && incoming().name.size() >= 1
+        && incoming().name.size() <= 100
+        && incoming().email is string
+        && incoming().email.size() >= 5
+        && incoming().email.size() <= 100
+        && incoming().subject is string
+        && incoming().subject.size() >= 1
+        && incoming().subject.size() <= 200
+        && incoming().message is string
+        && incoming().message.size() >= 1
+        && incoming().message.size() <= 2000
+        && incoming().createdAt is string
+        && incoming().source is string;
+      allow update, delete: if isAdmin();
+    }
   }
 }
 
