@@ -28,7 +28,7 @@ export const CategoryShowcase: React.FC<CategoryShowcaseProps> = ({ onNavigate }
   if (!liveSynced || shown.length === 0) return null;
 
   return (
-    <section className="py-6 sm:py-8 max-w-7xl mx-auto px-4 sm:px-6">
+    <section className="py-5 sm:py-8 max-w-7xl mx-auto px-4 sm:px-6">
       <Reveal>
         <div className="flex items-end justify-between mb-4 px-1">
           <div>
@@ -44,7 +44,7 @@ export const CategoryShowcase: React.FC<CategoryShowcaseProps> = ({ onNavigate }
           </div>
           <button
             onClick={() => onNavigate('/categories')}
-            className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1.5 transition-colors group shrink-0"
+            className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1.5 transition-colors group shrink-0 py-1"
           >
             <span>View all</span>
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -64,7 +64,7 @@ export const CategoryShowcase: React.FC<CategoryShowcaseProps> = ({ onNavigate }
             >
               <button
                 onClick={() => onNavigate(`/category/${cat.slug}`)}
-                className="group relative w-full h-52 sm:h-60 lg:h-64 rounded-3xl overflow-hidden text-left shadow-lg hover:shadow-2xl transition-all duration-300 card-lift focus:outline-none focus:ring-4 focus:ring-blue-500/30"
+                className="group relative w-full h-44 sm:h-60 lg:h-64 rounded-3xl overflow-hidden text-left shadow-lg hover:shadow-2xl transition-all duration-300 card-lift focus:outline-none focus:ring-4 focus:ring-blue-500/30"
               >
                 {asset?.image ? (
                   <img

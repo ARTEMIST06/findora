@@ -2,6 +2,7 @@ import React from 'react';
 import { Clock, ArrowRight, Sparkles } from 'lucide-react';
 import { ProductCard } from '../common/ProductCard';
 import { useFindoraStore } from '../../services/store';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 interface RecentlyAddedProps {
   onNavigate: (route: string) => void;
@@ -10,16 +11,18 @@ interface RecentlyAddedProps {
 export const RecentlyAdded: React.FC<RecentlyAddedProps> = ({ onNavigate }) => {
   const store = useFindoraStore();
   const products = store.getAllProductsWithPrices(true);
-  
+  // Phones show 4 newest instead of 8 — same scroll saving as Trending.
+  const isMobile = useIsMobile();
+
   const recentProducts = [...products]
     .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-    .slice(0, 8);
+    .slice(0, isMobile ? 4 : 8);
 
   if (recentProducts.length === 0) return null;
 
   return (
-    <section className="py-8 max-w-7xl mx-auto px-4 sm:px-6">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+    <section className="py-5 sm:py-8 max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-5 sm:mb-6">
         <div>
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">
             <Sparkles className="w-3.5 h-3.5 text-blue-600" />
@@ -34,7 +37,7 @@ export const RecentlyAdded: React.FC<RecentlyAddedProps> = ({ onNavigate }) => {
         </div>
         <button
           onClick={() => onNavigate('/products')}
-          className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 group self-start sm:self-auto"
+          className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 group self-start sm:self-auto py-1"
         >
           <span>View all {products.length} products</span>
           <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />

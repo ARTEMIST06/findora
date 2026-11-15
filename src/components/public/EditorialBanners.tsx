@@ -8,9 +8,9 @@ interface EditorialBannersProps {
 
 export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }) => {
   return (
-    <section className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6">
+    <section className="py-5 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6">
       {/* Section Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-5 sm:mb-8">
         <div>
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 uppercase tracking-widest mb-1.5">
             <Sparkles className="w-3.5 h-3.5 text-cyan-600" />
@@ -30,7 +30,7 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
         {/* Banner 1: Top Deals. Bigger Savings. */}
         <div
           onClick={() => onNavigate(EDITORIAL_ASSETS.topDeals.targetRoute)}
-          className="group relative rounded-3xl overflow-hidden border border-slate-200/90 hover:border-amber-500/50 bg-white transition-all duration-300 cursor-pointer flex flex-col justify-between shadow-xl hover:shadow-2xl hover:shadow-amber-500/10 min-h-[340px]"
+          className="group relative rounded-3xl overflow-hidden border border-slate-200/90 hover:border-amber-500/50 bg-white transition-all duration-300 cursor-pointer flex flex-col justify-between shadow-xl hover:shadow-2xl hover:shadow-amber-500/10 min-h-[260px] sm:min-h-[340px]"
         >
           {/* Background Image with Dark Vignette Overlay */}
           <div className="absolute inset-0 z-0">
@@ -52,7 +52,7 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
               </span>
             </div>
 
-            <div className="mt-20">
+            <div className="mt-12 sm:mt-20">
               <h3 className="text-xl font-extrabold text-white group-hover:text-amber-200 transition-colors leading-snug">
                 {EDITORIAL_ASSETS.topDeals.title}
               </h3>
@@ -71,7 +71,7 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
         {/* Banner 2: Smart Picks For Your Setup */}
         <div
           onClick={() => onNavigate(EDITORIAL_ASSETS.setup.targetRoute)}
-          className="group relative rounded-3xl overflow-hidden border border-slate-200/90 hover:border-blue-500/50 bg-white transition-all duration-300 cursor-pointer flex flex-col justify-between shadow-xl hover:shadow-2xl hover:shadow-blue-500/10 min-h-[340px]"
+          className="group relative rounded-3xl overflow-hidden border border-slate-200/90 hover:border-blue-500/50 bg-white transition-all duration-300 cursor-pointer flex flex-col justify-between shadow-xl hover:shadow-2xl hover:shadow-blue-500/10 min-h-[260px] sm:min-h-[340px]"
         >
           <div className="absolute inset-0 z-0">
             <img
@@ -91,7 +91,7 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
               </span>
             </div>
 
-            <div className="mt-20">
+            <div className="mt-12 sm:mt-20">
               <h3 className="text-xl font-extrabold text-white group-hover:text-cyan-200 transition-colors leading-snug">
                 {EDITORIAL_ASSETS.setup.title}
               </h3>
@@ -110,7 +110,7 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
         {/* Banner 3: Upgrade Your Everyday */}
         <div
           onClick={() => onNavigate(EDITORIAL_ASSETS.everyday.targetRoute)}
-          className="group relative rounded-3xl overflow-hidden border border-slate-200/90 hover:border-emerald-500/50 bg-white transition-all duration-300 cursor-pointer flex flex-col justify-between shadow-xl hover:shadow-2xl hover:shadow-emerald-500/10 min-h-[340px]"
+          className="group relative rounded-3xl overflow-hidden border border-slate-200/90 hover:border-emerald-500/50 bg-white transition-all duration-300 cursor-pointer flex flex-col justify-between shadow-xl hover:shadow-2xl hover:shadow-emerald-500/10 min-h-[260px] sm:min-h-[340px]"
         >
           <div className="absolute inset-0 z-0">
             <img
@@ -130,7 +130,7 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
               </span>
             </div>
 
-            <div className="mt-20">
+            <div className="mt-12 sm:mt-20">
               <h3 className="text-xl font-extrabold text-white group-hover:text-emerald-200 transition-colors leading-snug">
                 {EDITORIAL_ASSETS.everyday.title}
               </h3>
@@ -149,7 +149,7 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
         {/* Banner 4: Discover What's Trending */}
         <div
           onClick={() => onNavigate(EDITORIAL_ASSETS.trending.targetRoute)}
-          className="group relative rounded-3xl overflow-hidden border border-slate-200/90 hover:border-purple-500/50 bg-white transition-all duration-300 cursor-pointer flex flex-col justify-between shadow-xl hover:shadow-2xl hover:shadow-purple-500/10 min-h-[340px]"
+          className="group relative rounded-3xl overflow-hidden border border-slate-200/90 hover:border-purple-500/50 bg-white transition-all duration-300 cursor-pointer flex flex-col justify-between shadow-xl hover:shadow-2xl hover:shadow-purple-500/10 min-h-[260px] sm:min-h-[340px]"
         >
           <div className="absolute inset-0 z-0">
             <img
@@ -169,7 +169,7 @@ export const EditorialBanners: React.FC<EditorialBannersProps> = ({ onNavigate }
               </span>
             </div>
 
-            <div className="mt-20">
+            <div className="mt-12 sm:mt-20">
               <h3 className="text-xl font-extrabold text-white group-hover:text-purple-200 transition-colors leading-snug">
                 {EDITORIAL_ASSETS.trending.title}
               </h3>

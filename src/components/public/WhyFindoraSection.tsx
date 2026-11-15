@@ -38,9 +38,9 @@ export const WhyFindoraSection: React.FC = () => {
   ];
 
   return (
-    <section className="pt-12 sm:pt-20 pb-8 max-w-7xl mx-auto px-4 sm:px-6">
+    <section className="pt-6 sm:pt-20 pb-8 max-w-7xl mx-auto px-4 sm:px-6">
       <Reveal>
-        <div className="text-center max-w-3xl mx-auto mb-12">
+        <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-12">
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 uppercase tracking-widest mb-3 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
             <ShieldCheck className="w-4 h-4 text-cyan-600" />
             <span>The Findora Advantage</span>
@@ -57,10 +57,10 @@ export const WhyFindoraSection: React.FC = () => {
           {benefits.map((item, index) => (
             <div
               key={index}
-              className={`group relative p-6 bg-white/80 hover:bg-[#121B30] rounded-3xl border border-slate-200/80 ${item.glow} transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-xl backdrop-blur-sm card-lift`}
+              className={`group relative p-5 sm:p-6 bg-white/80 hover:bg-[#121B30] rounded-3xl border border-slate-200/80 ${item.glow} transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-xl backdrop-blur-sm card-lift`}
             >
               <div className="relative z-10">
-                <div className="w-12 h-12 rounded-2xl bg-white shadow-md border border-slate-300/60 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-12 h-12 rounded-2xl bg-white shadow-md border border-slate-300/60 flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300">
                   {item.icon}
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 mb-3 group-hover:text-blue-700 transition-colors">
