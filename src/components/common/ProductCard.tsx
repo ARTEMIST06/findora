@@ -181,8 +181,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
             </span>
           </div>
 
-          {/* Action Row */}
-          <div className="grid grid-cols-2 gap-2 pt-1">
+          {/* Action Row — Check Price gets the wider share: in narrow
+              Trending cards the two equal columns squeezed its label to
+              ~2px of padding. */}
+          <div className="grid grid-cols-[1fr_1.4fr] gap-2 pt-1">
             <button
               onClick={(e) => {
                 e.stopPropagation();
