@@ -13,7 +13,7 @@ const LEGAL_SEO_CONFIG: Record<
 > = {
   about: {
     title: 'About Us | Findora',
-    desc: "Learn about Findora's mission to help you find the best prices across multiple stores.",
+    desc: 'Learn what Findora is, who runs it, and how its verified Amazon India listings work.',
     canonical: '/about',
     breadcrumbTitle: 'About Findora',
   },
@@ -103,33 +103,83 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
 
       {/* About Page */}
       {page === 'about' && (
-        <div className="bg-white/90 rounded-3xl border border-slate-200/80 p-8 sm:p-12 space-y-8 shadow-2xl backdrop-blur-md">
+        <div className="bg-white/90 rounded-3xl border border-slate-200/80 p-8 sm:p-12 space-y-10 shadow-2xl backdrop-blur-md">
           <div className="border-b border-slate-200 pb-6">
             <span className="text-xs font-bold text-blue-600 uppercase tracking-widest flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-cyan-600" /> About Us
             </span>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-2">
-              Findora: Intelligent Price Discovery
+              Find it. Compare it. Buy smarter.
             </h1>
             <p className="text-sm text-slate-600 mt-2">
-              Empowering shoppers with transparent, verified Amazon India prices.
+              Findora is a product-discovery site for India. We find the best products, verify them on Amazon India, and send you straight there to buy — no store, no checkout, no confusion.
+            </p>
+            <div className="flex flex-wrap gap-2 mt-5">
+              <span className="px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold">592 verified products</span>
+              <span className="px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold">78 categories</span>
+              <span className="px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold">1 store: Amazon India</span>
+            </div>
+          </div>
+
+          <div className="text-sm text-slate-700 leading-relaxed space-y-4">
+            <h2 className="text-lg font-bold text-slate-900">What is Findora?</h2>
+            <p>
+              Findora started in 2026 in India, built around one frustration: choosing the right product online felt like guesswork. Too many listings, too many fake discounts, and no straight answer to a simple question — which one is actually worth buying?
+            </p>
+            <p>
+              So Findora does the searching for you. We research products people actually buy — budget tech, college essentials, home and everyday picks — and list only the ones we could verify on Amazon India, with the price and the date it was last checked.
             </p>
           </div>
-          
+
           <div className="text-sm text-slate-700 leading-relaxed space-y-4">
-            <p>
-              Findora was built to solve a simple problem: the frustration of overpaying for a product. We list one verified Amazon India offer per product, with the price and the date it was last checked, so you know exactly what you are paying for.
-            </p>
-            <h3 className="text-lg font-bold text-slate-900 pt-4">Our Mission</h3>
-            <p>
-              Our mission is to bring transparency to online shopping. We believe every shopper deserves to know the verified price before buying. Our team checks and verifies prices before listing them, so you can make informed purchasing decisions.
-            </p>
-            <h3 className="text-lg font-bold text-slate-900 pt-4">How We Operate</h3>
+            <h2 className="text-lg font-bold text-slate-900">How it works</h2>
+            <ol className="space-y-4">
+              <li className="flex gap-3">
+                <span className="shrink-0 w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">1</span>
+                <p><strong className="text-slate-900">We find it.</strong> We research products people actually buy and list only ones we could verify on Amazon India.</p>
+              </li>
+              <li className="flex gap-3">
+                <span className="shrink-0 w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">2</span>
+                <p><strong className="text-slate-900">We check it.</strong> Every listing shows its price and the date it was last checked on Amazon India. Prices change often, so we always tell you to verify on Amazon before buying.</p>
+              </li>
+              <li className="flex gap-3">
+                <span className="shrink-0 w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">3</span>
+                <p><strong className="text-slate-900">You buy it — directly from Amazon.</strong> Tap Check Price and you go to Amazon. Amazon takes your payment, delivers the order, and handles returns. Findora never sells anything and never takes your money.</p>
+              </li>
+            </ol>
+          </div>
+
+          <div className="text-sm text-slate-700 leading-relaxed space-y-4">
+            <h2 className="text-lg font-bold text-slate-900">What Findora is not</h2>
             <ul className="list-disc pl-5 space-y-2 text-slate-700">
-              <li><strong className="text-slate-900">Real-Time Alerts:</strong> Users can set price alerts and receive notifications when a product drops to their desired price.</li>
-              <li><strong className="text-slate-900">Historical Tracking:</strong> We log price history data to show you if today's "deal" is genuinely a discount or a marketing tactic.</li>
-              <li><strong className="text-slate-900">Zero Added Markup:</strong> The prices you see on Findora are the same prices you will find on the retailer's official website. We never add our own markup.</li>
+              <li><strong className="text-slate-900">Not a store.</strong> No cart, no checkout, no inventory — Amazon handles the whole transaction.</li>
+              <li><strong className="text-slate-900">No sponsored picks.</strong> We do not take money to rank a product higher.</li>
+              <li><strong className="text-slate-900">No fake reviews or invented discounts.</strong> If we could not verify something, we do not show it.</li>
+              <li><strong className="text-slate-900">Prices are checked snapshots, not live prices.</strong> The price on Amazon is always the final word — that is why every listing shows when it was last checked.</li>
             </ul>
+          </div>
+
+          <div className="text-sm text-slate-700 leading-relaxed space-y-4">
+            <h2 className="text-lg font-bold text-slate-900">Who runs Findora</h2>
+            <p>
+              <strong className="text-slate-900">Arya Singh — Founder &amp; CEO.</strong> Findora is run by Arya Singh, a computer applications (BCA) student at Galgotias University in India. He started Findora because choosing the right product online felt like guesswork — and he wanted a straight answer for himself and for other students and budget buyers.
+            </p>
+            <p>
+              The whole team is two people: Arya, and Jarvis, his AI assistant, who handles the research, the catalogue, and the website. No investors, no office, no sponsors — just a student building something useful, one verified product at a time.
+            </p>
+            <p className="flex items-center gap-2">
+              <Mail className="w-4 h-4 text-cyan-600" />
+              <span>Questions, a wrong price, or a product we should list? Write to us at{' '}
+                <a href="mailto:findorame@gmail.com" className="text-blue-600 font-bold hover:underline">findorame@gmail.com</a>
+              </span>
+            </p>
+          </div>
+
+          <div className="text-xs text-slate-600 leading-relaxed bg-slate-50 border border-slate-200 rounded-2xl p-5">
+            <p>
+              Findora uses Amazon Associates links. If you buy through a link on this site, Findora may earn a small commission — it costs you nothing extra. Read the full{' '}
+              <button onClick={() => onNavigate('/affiliate-disclosure')} className="text-blue-600 font-bold hover:underline">Affiliate Disclosure</button>.
+            </p>
           </div>
         </div>
       )}
