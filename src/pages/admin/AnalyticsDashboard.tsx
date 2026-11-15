@@ -3,51 +3,61 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo, useTransition } from 'react';
+// Analytics & Audit Console — REALTIME rewrite (PR #43).
+//
+// What this page shows now is real Firestore data, updated live:
+//   - Page/product views: Firestore `siteEvents` (written by
+//     services/realtime.ts on every page view and product view).
+//   - Affiliate clicks: Firestore `clicks` (written by
+//     store.trackAffiliateClick on every "Check Price" click).
+//   - Active now: Firestore `activeSessions` (60s heartbeat per tab).
+//   - Searches, users, logins, audit logs: as before (already real).
+//
+// What was REMOVED in this rewrite (all of it was invented):
+//   - Hardcoded traffic-source percentages (46% Google / 28% Direct ...)
+//     times an invented visitor total.
+//   - Hardcoded geography (82% India / 9% US / ...) and device fallbacks
+//     (68/28/4) and invented engagement figures (2m 44s, 68.4%, +12% ...).
+//   - The visitor funnel, whose visitors were max(users*4, clicks*4, 48).
+//   - Product views from the ADMIN's own browser localStorage plus an
+//     invented +2 floor, and clicks from the local cache instead of the
+//     Firestore `clicks` collection.
+//   - CTR is now real: clicks / views, 0 when views are 0.
+// Empty states show 0 honestly. On-site events only exist from the day
+// this shipped — the page says so instead of backfilling invented history.
+// Historical traffic lives in GA4 (linked, never read back here).
+
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   BarChart3,
   Activity,
   Users,
   MousePointerClick,
-  TrendingUp,
   Eye,
   Search,
   ShoppingBag,
   ShieldCheck,
   ShieldAlert,
-  Calendar,
-  ArrowUpDown,
   RefreshCw,
   ExternalLink,
   Lock,
   CheckCircle2,
   AlertCircle,
-  Download,
-  Smartphone,
-  Monitor,
-  Tablet,
-  Globe,
   ArrowLeft,
   Clock,
   Sparkles,
   Layers,
   ChevronDown,
   ChevronUp,
-  FileText,
+  Download,
+  Globe,
   UserCheck,
-  Percent,
 } from 'lucide-react';
 import { useFindoraStore } from '../../services/store';
 import { SEOHead } from '../../components/common/SEOHead';
 import {
   analytics,
   AggregatedSearchQuery,
-  ProductPerformanceMetric,
-  CategoryAnalyticsMetric,
-  VisitorFunnelMetric,
-  TrafficSourceMetric,
-  DeviceAnalyticsMetric,
-  GeoAnalyticsMetric,
   UserMetricsRecord,
 } from '../../services/analytics';
 import {
@@ -56,13 +66,75 @@ import {
   AuditLogEntry,
   AdminLoginHistoryRecord,
 } from '../../services/audit';
-import { formatINR, formatRelativeTime } from '../../utils/formatters';
+import { formatRelativeTime } from '../../utils/formatters';
+import { db } from '../../lib/firebase';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import {
+  canonicalSourceFromHostname,
+  REALTIME_ACTIVE_WINDOW_MS,
+} from '../../services/realtime';
+import type { SiteEventDoc, ActiveSessionDoc } from '../../services/realtime';
 
 interface AnalyticsDashboardProps {
   onNavigate: (path: string) => void;
 }
 
 type DateRangeOption = 'today' | '7days' | '28days' | '90days' | 'custom';
+
+// Firestore `clicks` doc shape (written by store.trackAffiliateClick).
+interface ClickDoc {
+  id: string;
+  productId: string;
+  productName: string;
+  storeId: string;
+  storeName: string;
+  category: string;
+  price: number;
+  timestamp: string;
+  trafficSource: string;
+  device: string;
+}
+
+interface ProductRow {
+  productId: string;
+  slug: string;
+  name: string;
+  category: string;
+  brand: string;
+  image?: string;
+  views: number;
+  clicks: number;
+  ctr: number;
+}
+
+interface SourceRow {
+  source: string;
+  sessions: number;
+  views: number;
+  clicks: number;
+}
+
+interface CategoryRow {
+  category: string;
+  productCount: number;
+  views: number;
+  clicks: number;
+  ctr: number;
+}
+
+interface ActivityItem {
+  key: string;
+  kind: 'view' | 'product_view' | 'click';
+  title: string;
+  sub: string;
+  ts: string;
+}
+
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+// Dashboard queries are bounded (PR #43 cost guard): latest 500 events /
+// clicks, latest 200 sessions. At current traffic (tens of visitors/day)
+// that covers a full week with room to spare.
+const QUERY_LIMIT = 500;
 
 export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNavigate }) => {
   const store = useFindoraStore();
@@ -77,7 +149,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
   const isEditor = currentUser?.role === 'editor' || currentUser?.email === 'editor@findora.com';
 
   // Filters & Period State
-  const [dateRange, setDateRange] = useState<DateRangeOption>('28days');
+  const [dateRange, setDateRange] = useState<DateRangeOption>('7days');
   const [customStartDate, setCustomStartDate] = useState<string>('');
   const [customEndDate, setCustomEndDate] = useState<string>('');
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date>(new Date());
@@ -96,9 +168,26 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
     emailAuthUsers: 0,
   });
 
+  // Live realtime data (Firestore onSnapshot listeners, admin-only reads)
+  const [siteEvents, setSiteEvents] = useState<SiteEventDoc[]>([]);
+  const [liveClicks, setLiveClicks] = useState<ClickDoc[]>([]);
+  const [activeSessions, setActiveSessions] = useState<ActiveSessionDoc[]>([]);
+  // Set when a live listener is refused (e.g. the new firestore.rules for
+  // siteEvents / activeSessions have not been published yet). The page
+  // still loads everything else and says so honestly instead of faking 0s.
+  const [liveBlocked, setLiveBlocked] = useState<string | null>(null);
+
+  // Ticking clock so "active now" ages sessions out even when no snapshot
+  // arrives (a tab that closed stops heartbeating and drops out after 5m).
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const t = window.setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => window.clearInterval(t);
+  }, []);
+
   // Product Table Filter & Sort
   const [productSearch, setProductSearch] = useState('');
-  const [productSortBy, setProductSortBy] = useState<'views' | 'clicks' | 'ctr' | 'wishlist'>('clicks');
+  const [productSortBy, setProductSortBy] = useState<'views' | 'clicks' | 'ctr'>('clicks');
 
   // Audit Logs Filter State
   const [auditActorFilter, setAuditActorFilter] = useState<'all' | 'admin' | 'editor'>('all');
@@ -108,10 +197,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
 
   // Active section tab for clean focus
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'funnel' | 'products' | 'searches' | 'categories' | 'users' | 'logins' | 'audit'
+    'overview' | 'products' | 'searches' | 'categories' | 'users' | 'logins' | 'audit'
   >('overview');
 
-  // Load all analytics data
+  // Load the one-time analytics data (searches, audit, logins, users)
   const loadData = async () => {
     setIsRefreshing(true);
     try {
@@ -141,133 +230,287 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
     }
   }, [isAdmin]);
 
-  // Products and clicks from store
-  const allProducts = useMemo(() => store.getAllProductsWithPrices(true), [store]);
-  const allClicks = useMemo(() => store.getAffiliateClicks(), [store]);
-  const categories = useMemo(() => store.getCategories(), [store]);
-
-  // Derived Product Metrics
-  const productMetrics: ProductPerformanceMetric[] = useMemo(() => {
-    return analytics.getProductPerformanceData(allProducts, allClicks, []);
-  }, [allProducts, allClicks]);
-
-  // Filtered & Sorted Product Metrics
-  const filteredProducts = useMemo(() => {
-    let list = [...productMetrics];
-    if (productSearch.trim()) {
-      const q = productSearch.toLowerCase();
-      list = list.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          p.brand.toLowerCase().includes(q)
-      );
-    }
-
-    list.sort((a, b) => {
-      if (productSortBy === 'clicks') return b.amazonClicks - a.amazonClicks;
-      if (productSortBy === 'views') return b.views - a.views;
-      if (productSortBy === 'ctr') return b.affiliateCtr - a.affiliateCtr;
-      if (productSortBy === 'wishlist') return b.wishlistAdds - a.wishlistAdds;
-      return 0;
-    });
-
-    return list;
-  }, [productMetrics, productSearch, productSortBy]);
-
-  // Funnel Data
-  const funnelMetrics: VisitorFunnelMetric = useMemo(() => {
-    const totalVisitorsEstimate = Math.max(
-      userMetrics.totalUsers * 4,
-      allClicks.length > 0 ? allClicks.length * 4 : 48
+  // Live listeners: siteEvents, clicks, activeSessions. These replace the
+  // old one-time getDocs + localStorage reads entirely.
+  useEffect(() => {
+    if (!isAdmin) return;
+    const unsubs: Array<() => void> = [];
+    unsubs.push(
+      onSnapshot(
+        query(collection(db, 'siteEvents'), orderBy('ts', 'desc'), limit(QUERY_LIMIT)),
+        (snap) => {
+          setSiteEvents(snap.docs.map((d) => d.data() as SiteEventDoc));
+          setLiveBlocked((prev) => (prev === 'siteEvents' ? null : prev));
+        },
+        (err) => {
+          console.warn('siteEvents listener failed:', err);
+          setLiveBlocked('siteEvents');
+        }
+      )
     );
-    return analytics.getVisitorFunnel(totalVisitorsEstimate, allProducts.length, allClicks.length);
-  }, [userMetrics.totalUsers, allProducts.length, allClicks.length]);
+    unsubs.push(
+      onSnapshot(
+        query(collection(db, 'clicks'), orderBy('timestamp', 'desc'), limit(QUERY_LIMIT)),
+        (snap) => {
+          setLiveClicks(
+            snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<ClickDoc, 'id'>) }))
+          );
+        },
+        (err) => {
+          console.warn('clicks listener failed:', err);
+        }
+      )
+    );
+    unsubs.push(
+      onSnapshot(
+        query(collection(db, 'activeSessions'), orderBy('lastSeen', 'desc'), limit(200)),
+        (snap) => {
+          setActiveSessions(snap.docs.map((d) => d.data() as ActiveSessionDoc));
+          setLiveBlocked((prev) => (prev === 'activeSessions' ? null : prev));
+        },
+        (err) => {
+          console.warn('activeSessions listener failed:', err);
+          setLiveBlocked('activeSessions');
+        }
+      )
+    );
+    return () => {
+      unsubs.forEach((u) => u());
+    };
+  }, [isAdmin]);
 
-  // Category Analytics Data
-  const categoryMetrics: CategoryAnalyticsMetric[] = useMemo(() => {
-    return analytics.getCategoryAnalytics(categories, allProducts, allClicks);
-  }, [categories, allProducts, allClicks]);
+  // Products from the catalogue (for names/images in the product table)
+  const allProducts = useMemo(() => store.getAllProductsWithPrices(true), [store]);
 
-  // Traffic Source Estimates
-  const trafficSources: TrafficSourceMetric[] = useMemo(() => {
-    const totalVisitors = funnelMetrics.totalVisitors;
-    if (totalVisitors === 0) return [];
-    return [
-      {
-        source: 'Organic Search (Google, Bing)',
-        visitors: Math.round(totalVisitors * 0.46),
-        engagedSessions: Math.round(totalVisitors * 0.38),
-        productViews: Math.round(funnelMetrics.productViews * 0.48),
-        affiliateClicks: Math.round(allClicks.length * 0.44),
-      },
-      {
-        source: 'Direct Navigation',
-        visitors: Math.round(totalVisitors * 0.28),
-        engagedSessions: Math.round(totalVisitors * 0.22),
-        productViews: Math.round(funnelMetrics.productViews * 0.26),
-        affiliateClicks: Math.round(allClicks.length * 0.3),
-      },
-      {
-        source: 'Instagram & Social Feeds',
-        visitors: Math.round(totalVisitors * 0.14),
-        engagedSessions: Math.round(totalVisitors * 0.11),
-        productViews: Math.round(funnelMetrics.productViews * 0.15),
-        affiliateClicks: Math.round(allClicks.length * 0.16),
-      },
-      {
-        source: 'YouTube Reviews',
-        visitors: Math.round(totalVisitors * 0.08),
-        engagedSessions: Math.round(totalVisitors * 0.07),
-        productViews: Math.round(funnelMetrics.productViews * 0.08),
-        affiliateClicks: Math.round(allClicks.length * 0.07),
-      },
-      {
-        source: 'Referral / Tech Blogs',
-        visitors: Math.round(totalVisitors * 0.04),
-        engagedSessions: Math.round(totalVisitors * 0.03),
-        productViews: Math.round(funnelMetrics.productViews * 0.03),
-        affiliateClicks: Math.round(allClicks.length * 0.03),
-      },
-    ];
-  }, [funnelMetrics, allClicks.length]);
+  // --- Date range: Today and 7 days are real. On-site events only exist
+  // for the last 7 days, so 28/90/custom are clamped to the same 7-day
+  // window and the page says so — no invented history is backfilled.
+  const startOfTodayMs = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  }, []);
+  const rangeStartMs = dateRange === 'today' ? startOfTodayMs : Date.now() - SEVEN_DAYS_MS;
+  const isRangeClamped = dateRange === '28days' || dateRange === '90days' || dateRange === 'custom';
 
-  // Devices Breakdown
-  const deviceMetrics: DeviceAnalyticsMetric[] = useMemo(() => {
-    let mobileCount = 0;
-    let desktopCount = 0;
-    allClicks.forEach((c) => {
-      if (c.device === 'Mobile') mobileCount++;
-      else desktopCount++;
+  const eventsInRange = useMemo(
+    () => siteEvents.filter((e) => Date.parse(e.ts) >= rangeStartMs),
+    [siteEvents, rangeStartMs]
+  );
+  const clicksInRange = useMemo(
+    () => liveClicks.filter((c) => Date.parse(c.timestamp) >= rangeStartMs),
+    [liveClicks, rangeStartMs]
+  );
+
+  // --- KPI values: all counted from Firestore, 0 when empty ---
+  const viewsToday = useMemo(
+    () =>
+      siteEvents.filter((e) => e.type === 'view' && Date.parse(e.ts) >= startOfTodayMs).length,
+    [siteEvents, startOfTodayMs]
+  );
+  const views7d = useMemo(
+    () =>
+      siteEvents.filter((e) => e.type === 'view' && Date.parse(e.ts) >= Date.now() - SEVEN_DAYS_MS)
+        .length,
+    [siteEvents]
+  );
+  const clicksToday = useMemo(
+    () => liveClicks.filter((c) => Date.parse(c.timestamp) >= startOfTodayMs).length,
+    [liveClicks, startOfTodayMs]
+  );
+  const clicks7d = useMemo(
+    () => liveClicks.filter((c) => Date.parse(c.timestamp) >= Date.now() - SEVEN_DAYS_MS).length,
+    [liveClicks]
+  );
+  const activeNow = useMemo(
+    () =>
+      activeSessions.filter((s) => nowMs - Date.parse(s.lastSeen) <= REALTIME_ACTIVE_WINDOW_MS)
+        .length,
+    [activeSessions, nowMs]
+  );
+  const topProductByClicks = useMemo(() => {
+    const counts = new Map<string, { name: string; clicks: number }>();
+    for (const c of clicksInRange) {
+      const cur = counts.get(c.productId) || { name: c.productName || 'Unknown Product', clicks: 0 };
+      cur.clicks += 1;
+      counts.set(c.productId, cur);
+    }
+    let top: { name: string; clicks: number } | null = null;
+    for (const v of counts.values()) {
+      if (!top || v.clicks > top.clicks) top = v;
+    }
+    return top;
+  }, [clicksInRange]);
+  const topSource = useMemo(() => {
+    const sessions = new Map<string, Set<string>>();
+    for (const e of eventsInRange) {
+      let s = sessions.get(e.source);
+      if (!s) {
+        s = new Set<string>();
+        sessions.set(e.source, s);
+      }
+      s.add(e.sessionId);
+    }
+    let top: { source: string; sessions: number } | null = null;
+    for (const [source, s] of sessions) {
+      if (!top || s.size > top.sessions) top = { source, sessions: s.size };
+    }
+    return top;
+  }, [eventsInRange]);
+
+  // Earliest collected event, for the honest "collected since" note.
+  const collectedSinceLabel = useMemo(() => {
+    if (siteEvents.length === 0) return null;
+    const times = siteEvents
+      .map((e) => Date.parse(e.ts))
+      .filter((n) => !Number.isNaN(n));
+    if (times.length === 0) return null;
+    return new Date(Math.min(...times)).toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
     });
-    const total = Math.max(allClicks.length, 1);
-    const mobilePct = Math.round((mobileCount / total) * 100) || 68;
-    const desktopPct = Math.round((desktopCount / total) * 100) || 28;
-    const tabletPct = Math.max(0, 100 - mobilePct - desktopPct) || 4;
+  }, [siteEvents]);
 
-    return [
-      { device: 'Mobile', count: Math.round((funnelMetrics.totalVisitors * mobilePct) / 100), percentage: mobilePct },
-      { device: 'Desktop', count: Math.round((funnelMetrics.totalVisitors * desktopPct) / 100), percentage: desktopPct },
-      { device: 'Tablet', count: Math.round((funnelMetrics.totalVisitors * tabletPct) / 100), percentage: tabletPct },
-    ];
-  }, [allClicks, funnelMetrics.totalVisitors]);
+  // --- Product performance: real views (siteEvents product_view) and real
+  // clicks (Firestore clicks) per product. CTR = clicks / views, 0 when
+  // views are 0. Only products with activity in range are listed.
+  const productRows: ProductRow[] = useMemo(() => {
+    const viewCounts = new Map<string, number>();
+    for (const e of eventsInRange) {
+      if (e.type === 'product_view' && e.productId) {
+        viewCounts.set(e.productId, (viewCounts.get(e.productId) || 0) + 1);
+      }
+    }
+    const clickCounts = new Map<string, number>();
+    for (const c of clicksInRange) {
+      if (c.productId) clickCounts.set(c.productId, (clickCounts.get(c.productId) || 0) + 1);
+    }
+    const rows = allProducts
+      .map((p) => {
+        const views = viewCounts.get(p.id) || 0;
+        const clicks = clickCounts.get(p.id) || 0;
+        return {
+          productId: p.id,
+          slug: p.slug,
+          name: p.name,
+          category: p.category,
+          brand: p.brand || 'Generic',
+          image: p.images && p.images.length > 0 ? p.images[0] : undefined,
+          views,
+          clicks,
+          ctr: views > 0 ? Math.round((clicks / views) * 100) : 0,
+        };
+      })
+      .filter((r) => r.views > 0 || r.clicks > 0);
+    rows.sort((a, b) => {
+      if (productSortBy === 'clicks') return b.clicks - a.clicks;
+      if (productSortBy === 'views') return b.views - a.views;
+      return b.ctr - a.ctr;
+    });
+    return rows;
+  }, [allProducts, eventsInRange, clicksInRange, productSortBy]);
 
-  // Geography Breakdown
-  const geoMetrics: GeoAnalyticsMetric[] = useMemo(() => {
-    const total = funnelMetrics.totalVisitors;
-    return [
-      { country: 'India', region: 'Maharashtra, Karnataka, Delhi-NCR', visitors: Math.round(total * 0.82), percentage: 82 },
-      { country: 'United States', region: 'California, Texas, New York', visitors: Math.round(total * 0.09), percentage: 9 },
-      { country: 'United Kingdom', region: 'England, Greater London', visitors: Math.round(total * 0.04), percentage: 4 },
-      { country: 'United Arab Emirates', region: 'Dubai', visitors: Math.round(total * 0.03), percentage: 3 },
-      { country: 'Other Countries', region: 'Global', visitors: Math.round(total * 0.02), percentage: 2 },
-    ];
-  }, [funnelMetrics.totalVisitors]);
+  const filteredProducts = useMemo(() => {
+    if (!productSearch.trim()) return productRows;
+    const q = productSearch.toLowerCase();
+    return productRows.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q) ||
+        p.brand.toLowerCase().includes(q)
+    );
+  }, [productRows, productSearch]);
 
-  // Clicks by Store Breakdown
+  // --- Traffic sources: real aggregates from siteEvents (sessions + views)
+  // and Firestore clicks (clicks per source, via the click's referrer host).
+  const sourceRows: SourceRow[] = useMemo(() => {
+    const map = new Map<string, { sessions: Set<string>; views: number }>();
+    for (const e of eventsInRange) {
+      const cur = map.get(e.source) || { sessions: new Set<string>(), views: 0 };
+      cur.sessions.add(e.sessionId);
+      cur.views += 1;
+      map.set(e.source, cur);
+    }
+    const clickMap = new Map<string, number>();
+    for (const c of clicksInRange) {
+      const src =
+        c.trafficSource === 'Direct'
+          ? 'Direct'
+          : canonicalSourceFromHostname(c.trafficSource || '');
+      clickMap.set(src, (clickMap.get(src) || 0) + 1);
+    }
+    return Array.from(map.entries())
+      .map(([source, v]) => ({
+        source,
+        sessions: v.sessions.size,
+        views: v.views,
+        clicks: clickMap.get(source) || 0,
+      }))
+      .sort((a, b) => b.sessions - a.sessions);
+  }, [eventsInRange, clicksInRange]);
+
+  // --- Category performance: real views (product_view events) and real
+  // clicks (Firestore clicks carry their product's category).
+  const categoryRows: CategoryRow[] = useMemo(() => {
+    const map = new Map<string, { views: number; clicks: number }>();
+    for (const e of eventsInRange) {
+      if (e.type !== 'product_view') continue;
+      const cat = e.category || 'General';
+      const cur = map.get(cat) || { views: 0, clicks: 0 };
+      cur.views += 1;
+      map.set(cat, cur);
+    }
+    for (const c of clicksInRange) {
+      const cat = c.category || 'General';
+      const cur = map.get(cat) || { views: 0, clicks: 0 };
+      cur.clicks += 1;
+      map.set(cat, cur);
+    }
+    const productCounts = new Map<string, number>();
+    for (const p of allProducts) {
+      const cat = p.category || 'General';
+      productCounts.set(cat, (productCounts.get(cat) || 0) + 1);
+    }
+    return Array.from(map.entries())
+      .map(([category, v]) => ({
+        category,
+        productCount: productCounts.get(category) || 0,
+        views: v.views,
+        clicks: v.clicks,
+        ctr: v.views > 0 ? Math.round((v.clicks / v.views) * 100) : 0,
+      }))
+      .sort((a, b) => b.views - a.views);
+  }, [eventsInRange, clicksInRange, allProducts]);
+
+  // --- Recent activity: latest 20 events (views + clicks), live.
+  const recentActivity: ActivityItem[] = useMemo(() => {
+    const items: ActivityItem[] = [];
+    for (const e of siteEvents.slice(0, 20)) {
+      items.push({
+        key: `e-${e.ts}-${e.sessionId}-${e.path}`,
+        kind: e.type,
+        title: e.type === 'product_view' ? e.productName || 'Product view' : e.path,
+        sub: e.source,
+        ts: e.ts,
+      });
+    }
+    for (const c of liveClicks.slice(0, 20)) {
+      items.push({
+        key: `c-${c.id}`,
+        kind: 'click',
+        title: c.productName || 'Affiliate click',
+        sub: `${c.storeName || 'Amazon'} · ${c.trafficSource || 'Direct'}`,
+        ts: c.timestamp,
+      });
+    }
+    return items.sort((a, b) => Date.parse(b.ts) - Date.parse(a.ts)).slice(0, 20);
+  }, [siteEvents, liveClicks]);
+
+  // Clicks by Store Breakdown (Firestore clicks)
   const clicksByStore = useMemo(() => {
     const storeMap: Record<string, { storeId: string; storeName: string; clicks: number; totalValue: number }> = {};
-    allClicks.forEach((c) => {
+    clicksInRange.forEach((c) => {
       const storeId = c.storeId || 'store-amazon';
       const storeName = c.storeName || (storeId === 'store-amazon' ? 'Amazon India' : storeId.replace('store-', '').toUpperCase());
       if (!storeMap[storeId]) {
@@ -278,15 +521,15 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
     });
 
     const list = Object.values(storeMap).sort((a, b) => b.clicks - a.clicks);
-    const totalClicks = Math.max(allClicks.length, 1);
+    const totalClicks = Math.max(clicksInRange.length, 1);
     return list.map((s) => ({
       ...s,
       percentage: Math.round((s.clicks / totalClicks) * 100),
       avgPrice: s.clicks > 0 ? Math.round(s.totalValue / s.clicks) : 0,
     }));
-  }, [allClicks]);
+  }, [clicksInRange]);
 
-  // Clicks Over Time Breakdown (Past 7 Days timeline)
+  // Clicks Over Time Breakdown (Past 7 Days timeline, Firestore clicks)
   const clicksOverTime = useMemo(() => {
     const days: { date: string; label: string; count: number }[] = [];
     const now = new Date();
@@ -297,7 +540,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
       days.push({ date: dateStr, label, count: 0 });
     }
 
-    allClicks.forEach((c) => {
+    liveClicks.forEach((c) => {
       const cDate = (c.timestamp || '').split('T')[0];
       const match = days.find((d) => d.date === cDate);
       if (match) {
@@ -308,7 +551,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
     });
 
     return days;
-  }, [allClicks]);
+  }, [liveClicks]);
 
   // Filtered Audit Logs
   const filteredAuditLogs = useMemo(() => {
@@ -441,9 +684,16 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-emerald-500/10 border border-emerald-500/30 text-emerald-600">
                   Admin Exclusive
                 </span>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 flex items-center gap-1.5">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                  </span>
+                  Live
+                </span>
               </div>
               <p className="text-xs text-slate-600">
-                Visitor behavioral funnels, Amazon affiliate conversions, query insights, and security audit log.
+                Realtime visitor views, affiliate clicks, search insights, and security audit log — all counted from Firestore.
               </p>
             </div>
           </div>
@@ -535,7 +785,24 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
               className="px-3 py-1.5 border border-slate-200 rounded-lg text-slate-800"
             />
           </div>
-          <span className="text-slate-600 text-[11px]">Filtered analytics will display data within specified window.</span>
+          <span className="text-slate-600 text-[11px]">On-site events only go back 7 days — custom ranges show the same 7-day window.</span>
+        </div>
+      )}
+
+      {/* Live events blocked? (rules not published yet) */}
+      {liveBlocked && (
+        <div className="p-4 rounded-2xl border bg-amber-50/80 border-amber-200/80 text-amber-900 flex flex-col sm:flex-row items-start gap-3 text-xs">
+          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-bold">Live on-site events are not flowing yet.</p>
+            <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+              The Firestore rules for <span className="font-mono font-semibold">{liveBlocked}</span> have
+              not been published yet, so this page cannot read the new events. Publish{' '}
+              <span className="font-mono font-semibold">firestore.rules</span> from the Firebase
+              console (Firestore &gt; Rules), then refresh this page. Clicks, searches, users and
+              audit logs below still load from the existing rules.
+            </p>
+          </div>
         </div>
       )}
 
@@ -566,13 +833,22 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
             </div>
             <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
               {isGA4Active
-                ? 'External visitor traffic, page views, and conversion events are actively synchronizing to your Google Analytics property without recording PII.'
+                ? 'External visitor traffic, page views, and conversion events are actively synchronizing to your Google Analytics property without recording PII. Historical traffic lives in GA4 — the numbers below are on-site events only.'
                 : 'To enable live Google Analytics 4 visitor metrics, add VITE_GA_MEASUREMENT_ID in project environment settings. Findora is capturing internal affiliate clicks, search trends, and audit activity safely.'}
             </p>
           </div>
         </div>
 
         <div className="shrink-0 flex items-center gap-3 text-[11px] text-slate-600">
+          <a
+            href="https://analytics.google.com"
+            target="_blank"
+            rel="noreferrer"
+            className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 transition-colors inline-flex items-center gap-1.5 shadow-2xs"
+          >
+            <span>Open GA4</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
           <Clock className="w-3.5 h-3.5" />
           <span>Updated {formatRelativeTime(lastRefreshedAt.toISOString())}</span>
         </div>
@@ -582,8 +858,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-slate-200 text-xs font-bold text-slate-600">
         {[
           { id: 'overview', label: 'Overview & KPIs', icon: BarChart3 },
-          { id: 'funnel', label: 'Conversion Funnel', icon: TrendingUp },
-          { id: 'products', label: `Product Analytics (${allProducts.length})`, icon: ShoppingBag },
+          { id: 'products', label: `Product Analytics (${productRows.length})`, icon: ShoppingBag },
           { id: 'searches', label: `Search Trends (${topSearches.length})`, icon: Search },
           { id: 'categories', label: 'Category Metrics', icon: Layers },
           { id: 'users', label: 'User Accounts', icon: Users },
@@ -610,9 +885,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
       </div>
 
       {/* ========================================================================= */}
-      {/* SECTION: OVERVIEW & KPIS */}
+      {/* SECTION: OVERVIEW & KPIS (all real, counted from Firestore) */}
       {/* ========================================================================= */}
-      {(activeTab === 'overview' || activeTab === 'funnel') && (
+      {activeTab === 'overview' && (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
@@ -623,333 +898,303 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
 
           {/* Main KPI Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Total Visitors */}
+            {/* Views Today */}
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
               <div className="flex items-center justify-between text-slate-600">
-                <span className="text-xs font-bold uppercase tracking-wider">Total Visitors</span>
-                <Users className="w-4 h-4 text-blue-600" />
-              </div>
-              <div className="text-2xl sm:text-3xl font-black text-slate-900">
-                {funnelMetrics.totalVisitors.toLocaleString()}
-              </div>
-              <div className="text-[11px] text-slate-600 flex items-center justify-between">
-                <span>Unique: {Math.round(funnelMetrics.totalVisitors * 0.82)}</span>
-                <span className="text-emerald-600 font-semibold">+12% vs prior</span>
-              </div>
-            </div>
-
-            {/* Sessions */}
-            <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
-              <div className="flex items-center justify-between text-slate-600">
-                <span className="text-xs font-bold uppercase tracking-wider">Total Sessions</span>
-                <Activity className="w-4 h-4 text-indigo-600" />
-              </div>
-              <div className="text-2xl sm:text-3xl font-black text-slate-900">
-                {Math.round(funnelMetrics.totalVisitors * 1.4).toLocaleString()}
-              </div>
-              <div className="text-[11px] text-slate-600 flex items-center justify-between">
-                <span>Avg 1.4 sessions/user</span>
-                <span className="text-emerald-600 font-semibold">+8% vs prior</span>
-              </div>
-            </div>
-
-            {/* Product Views */}
-            <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
-              <div className="flex items-center justify-between text-slate-600">
-                <span className="text-xs font-bold uppercase tracking-wider">Product Views</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Views Today</span>
                 <Eye className="w-4 h-4 text-emerald-600" />
               </div>
               <div className="text-2xl sm:text-3xl font-black text-slate-900">
-                {funnelMetrics.productViews.toLocaleString()}
+                {viewsToday.toLocaleString()}
               </div>
-              <div className="text-[11px] text-slate-600 flex items-center justify-between">
-                <span>Detail pages: {funnelMetrics.productDetailViews}</span>
-                <span className="text-emerald-600 font-semibold">+15% vs prior</span>
-              </div>
+              <div className="text-[11px] text-slate-600">Page views recorded today</div>
             </div>
 
-            {/* Amazon Affiliate Clicks */}
+            {/* Views Last 7 Days */}
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
               <div className="flex items-center justify-between text-slate-600">
-                <span className="text-xs font-bold uppercase tracking-wider">Affiliate Clicks</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Views · 7 Days</span>
+                <Eye className="w-4 h-4 text-emerald-600" />
+              </div>
+              <div className="text-2xl sm:text-3xl font-black text-slate-900">
+                {views7d.toLocaleString()}
+              </div>
+              <div className="text-[11px] text-slate-600">Page views, last 7 days</div>
+            </div>
+
+            {/* Clicks Today */}
+            <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
+              <div className="flex items-center justify-between text-slate-600">
+                <span className="text-xs font-bold uppercase tracking-wider">Clicks Today</span>
                 <MousePointerClick className="w-4 h-4 text-amber-600" />
               </div>
               <div className="text-2xl sm:text-3xl font-black text-amber-600">
-                {allClicks.length.toLocaleString()}
+                {clicksToday.toLocaleString()}
               </div>
-              <div className="text-[11px] text-slate-600 flex items-center justify-between">
-                <span>Overall CTR: {funnelMetrics.overallCtr}%</span>
-                <span className="text-emerald-600 font-semibold">+18% vs prior</span>
-              </div>
+              <div className="text-[11px] text-slate-600">Outbound affiliate clicks today</div>
             </div>
 
-            {/* Returning vs New Visitors */}
+            {/* Clicks Last 7 Days */}
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
               <div className="flex items-center justify-between text-slate-600">
-                <span className="text-xs font-bold uppercase tracking-wider">New vs Returning</span>
-                <TrendingUp className="w-4 h-4 text-purple-600" />
+                <span className="text-xs font-bold uppercase tracking-wider">Clicks · 7 Days</span>
+                <MousePointerClick className="w-4 h-4 text-amber-600" />
               </div>
-              <div className="text-xl font-extrabold text-slate-900">
-                {Math.round(funnelMetrics.totalVisitors * 0.72)} / {Math.round(funnelMetrics.totalVisitors * 0.28)}
+              <div className="text-2xl sm:text-3xl font-black text-amber-600">
+                {clicks7d.toLocaleString()}
               </div>
-              <div className="text-[11px] text-slate-600">
-                72% New Visitors • 28% Returning
-              </div>
+              <div className="text-[11px] text-slate-600">Outbound affiliate clicks, last 7 days</div>
             </div>
 
-            {/* Authenticated Users */}
+            {/* Active Now */}
+            <div className="p-5 rounded-2xl bg-white border border-emerald-200 shadow-2xs space-y-2">
+              <div className="flex items-center justify-between text-slate-600">
+                <span className="text-xs font-bold uppercase tracking-wider">Active Now</span>
+                <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-emerald-600">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                  </span>
+                  Live
+                </span>
+              </div>
+              <div className="text-2xl sm:text-3xl font-black text-emerald-600">
+                {activeNow.toLocaleString()}
+              </div>
+              <div className="text-[11px] text-slate-600">Sessions active in the last 5 minutes</div>
+            </div>
+
+            {/* Top Product by Clicks */}
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
               <div className="flex items-center justify-between text-slate-600">
-                <span className="text-xs font-bold uppercase tracking-wider">Logged-in Users</span>
-                <Users className="w-4 h-4 text-sky-600" />
+                <span className="text-xs font-bold uppercase tracking-wider">Top Product · Clicks</span>
+                <ShoppingBag className="w-4 h-4 text-amber-600" />
               </div>
-              <div className="text-xl font-extrabold text-slate-900">
-                {userMetrics.totalUsers.toLocaleString()} accounts
+              <div className="text-base font-extrabold text-slate-900 truncate" title={topProductByClicks?.name || ''}>
+                {topProductByClicks ? topProductByClicks.name : '—'}
               </div>
               <div className="text-[11px] text-slate-600">
-                {userMetrics.googleAuthUsers} Google • {userMetrics.emailAuthUsers} Email
+                {topProductByClicks ? `${topProductByClicks.clicks} clicks in this range` : 'No clicks in this range yet'}
               </div>
             </div>
 
-            {/* Avg Engagement Time */}
+            {/* Top Traffic Source */}
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
               <div className="flex items-center justify-between text-slate-600">
-                <span className="text-xs font-bold uppercase tracking-wider">Avg Engagement</span>
-                <Clock className="w-4 h-4 text-teal-600" />
+                <span className="text-xs font-bold uppercase tracking-wider">Top Traffic Source</span>
+                <Globe className="w-4 h-4 text-blue-600" />
               </div>
-              <div className="text-xl font-extrabold text-slate-900">
-                2m 44s
-              </div>
-              <div className="text-[11px] text-slate-600">
-                High comparison dwell time
-              </div>
-            </div>
-
-            {/* Bounce Rate */}
-            <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
-              <div className="flex items-center justify-between text-slate-600">
-                <span className="text-xs font-bold uppercase tracking-wider">Engagement Rate</span>
-                <Percent className="w-4 h-4 text-rose-600" />
-              </div>
-              <div className="text-xl font-extrabold text-slate-900">
-                68.4%
+              <div className="text-base font-extrabold text-slate-900 truncate" title={topSource?.source || ''}>
+                {topSource ? topSource.source : '—'}
               </div>
               <div className="text-[11px] text-slate-600">
-                31.6% bounce rate (healthy)
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* SECTION: VISITOR FUNNEL */}
-      {/* ========================================================================= */}
-      {(activeTab === 'overview' || activeTab === 'funnel') && (
-        <div className="p-6 bg-white border border-slate-200/80 rounded-3xl shadow-2xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-4 border-b border-slate-100">
-            <div>
-              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-blue-600" />
-                <span>Findora Visitor Conversion Funnel</span>
-              </h3>
-              <p className="text-xs text-slate-600">
-                Progression from initial catalog discovery to final outbound Amazon merchant referral.
-              </p>
-            </div>
-            <div className="text-right">
-              <span className="text-xs font-semibold text-slate-600">Affiliate Conversion Rate: </span>
-              <span className="text-sm font-black text-amber-600">{funnelMetrics.overallCtr}%</span>
-            </div>
-          </div>
-
-          {/* Funnel Visual Pipeline */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Step 1: Visitors */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2 relative">
-              <div className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
-                1. Total Visitors
-              </div>
-              <div className="text-2xl font-black text-slate-900">
-                {funnelMetrics.totalVisitors.toLocaleString()}
-              </div>
-              <p className="text-[11px] text-slate-600">100% of incoming traffic</p>
-              <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden mt-2">
-                <div className="bg-slate-100 h-full w-full rounded-full" />
-              </div>
-            </div>
-
-            {/* Step 2: Product Views */}
-            <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 space-y-2 relative">
-              <div className="text-[11px] font-bold text-blue-700 uppercase tracking-wider">
-                2. Browsed Products
-              </div>
-              <div className="text-2xl font-black text-blue-900">
-                {funnelMetrics.productViews.toLocaleString()}
-              </div>
-              <p className="text-[11px] text-blue-600">
-                {Math.round((funnelMetrics.productViews / Math.max(funnelMetrics.totalVisitors, 1)) * 100)}% viewed catalog
-              </p>
-              <div className="w-full bg-blue-100 h-2 rounded-full overflow-hidden mt-2">
-                <div
-                  className="bg-blue-600 h-full rounded-full"
-                  style={{
-                    width: `${Math.min(100, Math.round((funnelMetrics.productViews / Math.max(funnelMetrics.totalVisitors, 1)) * 100))}%`,
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Step 3: Product Detail Views */}
-            <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100 space-y-2 relative">
-              <div className="text-[11px] font-bold text-indigo-700 uppercase tracking-wider">
-                3. Detail In-Depth
-              </div>
-              <div className="text-2xl font-black text-indigo-900">
-                {funnelMetrics.productDetailViews.toLocaleString()}
-              </div>
-              <p className="text-[11px] text-indigo-600">
-                {Math.round((funnelMetrics.productDetailViews / Math.max(funnelMetrics.totalVisitors, 1)) * 100)}% inspected specs & reviews
-              </p>
-              <div className="w-full bg-indigo-100 h-2 rounded-full overflow-hidden mt-2">
-                <div
-                  className="bg-indigo-600 h-full rounded-full"
-                  style={{
-                    width: `${Math.min(100, Math.round((funnelMetrics.productDetailViews / Math.max(funnelMetrics.totalVisitors, 1)) * 100))}%`,
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Step 4: Affiliate Outbound Clicks */}
-            <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-2 relative">
-              <div className="text-[11px] font-bold text-amber-800 uppercase tracking-wider">
-                4. Outbound Clicks
-              </div>
-              <div className="text-2xl font-black text-amber-600">
-                {funnelMetrics.affiliateClicks.toLocaleString()}
-              </div>
-              <p className="text-[11px] text-amber-700">
-                {funnelMetrics.overallCtr}% clicked to Amazon
-              </p>
-              <div className="w-full bg-amber-100 h-2 rounded-full overflow-hidden mt-2">
-                <div
-                  className="bg-amber-500 h-full rounded-full"
-                  style={{ width: `${Math.min(100, funnelMetrics.overallCtr)}%` }}
-                />
+                {topSource ? `${topSource.sessions} sessions in this range` : 'No sessions in this range yet'}
               </div>
             </div>
           </div>
 
-          {/* Non-clicking breakdown notice */}
-          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/60 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-600 gap-2">
-            <div>
-              <span className="font-bold text-slate-900">Browse-Only Visitors: </span>
-              <span>{funnelMetrics.nonClickingVisitors.toLocaleString()} visitors inspected product details but did not trigger an outbound affiliate redirect.</span>
-            </div>
-            <span className="text-[11px] font-semibold text-slate-600">Strictly aggregated; individual visitors remain anonymous.</span>
+          {/* Honest scope note */}
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/60 text-xs text-slate-600 leading-relaxed">
+            <span className="font-bold text-slate-900">On-site events collected since{' '}
+              {collectedSinceLabel || 'today'}.</span>{' '}
+            Every number above is counted from Firestore — 0 where nothing has been recorded yet.
+            {isRangeClamped && (
+              <>
+                {' '}28-day, 90-day and custom ranges show the same 7-day window: on-site events
+                only go back 7 days, and no history is invented.
+              </>
+            )}{' '}
+            Historical traffic lives in GA4.
           </div>
-        </div>
-      )}
 
-      {/* ========================================================================= */}
-      {/* SECTION: AFFILIATE PERFORMANCE (BY STORE & OVER TIME) */}
-      {/* ========================================================================= */}
-      {(activeTab === 'overview' || activeTab === 'funnel') && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Clicks by Store */}
-          <div className="p-6 bg-white border border-slate-200/80 rounded-3xl shadow-2xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div>
-                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                  <ExternalLink className="w-4 h-4 text-blue-600" />
-                  <span>Clicks by Store</span>
-                </h3>
-                <p className="text-[11px] text-slate-600">Distribution of outbound affiliate redirects across merchants</p>
+          {/* Traffic Sources + Recent Activity */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Traffic Sources (real aggregates) */}
+            <div className="p-6 bg-white border border-slate-200/80 rounded-3xl shadow-2xs space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                  <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-blue-600" />
+                    <span>Traffic Sources</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-600">Sessions, views and clicks by real source</p>
+                </div>
               </div>
-              <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full">
-                {allClicks.length} Total Clicks
-              </span>
+
+              <div className="divide-y divide-slate-100">
+                {sourceRows.length > 0 ? (
+                  sourceRows.map((source) => (
+                    <div key={source.source} className="py-3 flex items-center justify-between text-xs">
+                      <div>
+                        <span className="font-bold text-slate-900 block">{source.source}</span>
+                        <span className="text-[10px] text-slate-600">
+                          {source.sessions} sessions • {source.views} views
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-bold text-slate-900 block">{source.clicks} clicks</span>
+                        <span className="text-[10px] text-emerald-600 font-semibold">outbound</span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="py-8 text-center text-slate-600 text-xs">
+                    No on-site events in this range yet.
+                  </p>
+                )}
+              </div>
             </div>
 
-            {clicksByStore.length > 0 ? (
-              <div className="space-y-4">
-                {clicksByStore.map((store) => (
-                  <div key={store.storeId} className="space-y-1.5 text-xs">
-                    <div className="flex items-center justify-between font-semibold">
-                      <span className="font-bold text-slate-900 flex items-center gap-2">
-                        <span>{store.storeName}</span>
-                        {store.storeId === 'store-amazon' && (
-                          <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
-                            Primary
-                          </span>
-                        )}
+            {/* Recent Activity Feed (live) */}
+            <div className="p-6 bg-white border border-slate-200/80 rounded-3xl shadow-2xs space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                  <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-emerald-600" />
+                    <span>Recent Activity</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-600">Latest views and clicks, updating live</p>
+                </div>
+                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                  </span>
+                  Live
+                </span>
+              </div>
+
+              <div className="divide-y divide-slate-100 max-h-80 overflow-y-auto">
+                {recentActivity.length > 0 ? (
+                  recentActivity.map((item) => (
+                    <div key={item.key} className="py-2.5 flex items-center justify-between gap-3 text-xs">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
+                            item.kind === 'click'
+                              ? 'bg-amber-100 text-amber-800'
+                              : item.kind === 'product_view'
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}
+                        >
+                          {item.kind === 'click' ? 'Click' : item.kind === 'product_view' ? 'Product view' : 'View'}
+                        </span>
+                        <span className="font-semibold text-slate-900 truncate" title={item.title}>
+                          {item.title}
+                        </span>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className="text-[11px] text-slate-600 block">{item.sub}</span>
+                        <span className="text-[10px] text-slate-600">{formatRelativeTime(item.ts)}</span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="py-8 text-center text-slate-600 text-xs">
+                    No activity yet — views and clicks will appear here live once visitors arrive.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Affiliate Performance (By Store & Over Time, Firestore clicks) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Clicks by Store */}
+            <div className="p-6 bg-white border border-slate-200/80 rounded-3xl shadow-2xs space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                  <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                    <ExternalLink className="w-4 h-4 text-blue-600" />
+                    <span>Clicks by Store</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-600">Distribution of outbound affiliate redirects across merchants</p>
+                </div>
+                <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full">
+                  {clicksInRange.length} Total Clicks
+                </span>
+              </div>
+
+              {clicksByStore.length > 0 ? (
+                <div className="space-y-4">
+                  {clicksByStore.map((store) => (
+                    <div key={store.storeId} className="space-y-1.5 text-xs">
+                      <div className="flex items-center justify-between font-semibold">
+                        <span className="font-bold text-slate-900 flex items-center gap-2">
+                          <span>{store.storeName}</span>
+                          {store.storeId === 'store-amazon' && (
+                            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+                              Primary
+                            </span>
+                          )}
+                        </span>
+                        <span className="text-slate-600 font-bold">
+                          {store.clicks} clicks ({store.percentage}%)
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${
+                            store.storeId === 'store-amazon' ? 'bg-amber-500' : 'bg-blue-600'
+                          }`}
+                          style={{ width: `${store.percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-6 text-center text-xs text-slate-600 bg-slate-50 rounded-2xl border border-slate-100">
+                  No outbound affiliate clicks recorded yet.
+                </div>
+              )}
+            </div>
+
+            {/* Clicks Over Time */}
+            <div className="p-6 bg-white border border-slate-200/80 rounded-3xl shadow-2xs space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                  <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-emerald-600" />
+                    <span>Clicks Over Time</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-600">Daily trajectory of shopper outbound purchase intent</p>
+                </div>
+                <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
+                  Past 7 Days
+                </span>
+              </div>
+
+              <div className="grid grid-cols-7 gap-2 pt-2">
+                {clicksOverTime.map((day) => {
+                  const maxClicks = Math.max(...clicksOverTime.map((d) => d.count), 1);
+                  const heightPct = Math.max(12, Math.round((day.count / maxClicks) * 100));
+                  return (
+                    <div key={day.date} className="flex flex-col items-center gap-1.5 text-center">
+                      <span className="text-[11px] font-bold text-slate-800">{day.count}</span>
+                      <div className="w-full bg-slate-100 h-24 rounded-xl flex items-end p-1 overflow-hidden">
+                        <div
+                          className="w-full bg-emerald-500 rounded-lg transition-all"
+                          style={{ height: `${heightPct}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] text-slate-600 truncate w-full font-medium" title={day.label}>
+                        {day.label.split(',')[0]}
                       </span>
-                      <span className="text-slate-600 font-bold">
-                        {store.clicks} clicks ({store.percentage}%)
-                      </span>
                     </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${
-                          store.storeId === 'store-amazon' ? 'bg-amber-500' : 'bg-blue-600'
-                        }`}
-                        style={{ width: `${store.percentage}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
-            ) : (
-              <div className="p-6 text-center text-xs text-slate-600 bg-slate-50 rounded-2xl border border-slate-100">
-                No outbound affiliate clicks recorded yet.
-              </div>
-            )}
-          </div>
-
-          {/* Clicks Over Time */}
-          <div className="p-6 bg-white border border-slate-200/80 rounded-3xl shadow-2xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div>
-                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-emerald-600" />
-                  <span>Clicks Over Time</span>
-                </h3>
-                <p className="text-[11px] text-slate-600">Daily trajectory of shopper outbound purchase intent</p>
-              </div>
-              <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
-                Past 7 Days
-              </span>
-            </div>
-
-            <div className="grid grid-cols-7 gap-2 pt-2">
-              {clicksOverTime.map((day) => {
-                const maxClicks = Math.max(...clicksOverTime.map((d) => d.count), 1);
-                const heightPct = Math.max(12, Math.round((day.count / maxClicks) * 100));
-                return (
-                  <div key={day.date} className="flex flex-col items-center gap-1.5 text-center">
-                    <span className="text-[11px] font-bold text-slate-800">{day.count}</span>
-                    <div className="w-full bg-slate-100 h-24 rounded-xl flex items-end p-1 overflow-hidden">
-                      <div
-                        className="w-full bg-emerald-500 rounded-lg transition-all"
-                        style={{ height: `${heightPct}%` }}
-                      />
-                    </div>
-                    <span className="text-[10px] text-slate-600 truncate w-full font-medium" title={day.label}>
-                      {day.label.split(',')[0]}
-                    </span>
-                  </div>
-                );
-              })}
             </div>
           </div>
         </div>
       )}
 
       {/* ========================================================================= */}
-      {/* SECTION: PRODUCT PERFORMANCE ANALYTICS */}
+      {/* SECTION: PRODUCT PERFORMANCE ANALYTICS (real views + clicks) */}
       {/* ========================================================================= */}
-      {(activeTab === 'overview' || activeTab === 'products') && (
+      {activeTab === 'products' && (
         <div className="p-6 bg-white border border-slate-200/80 rounded-3xl shadow-2xs space-y-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-100">
             <div>
@@ -958,7 +1203,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                 <span>Product Performance Table</span>
               </h3>
               <p className="text-xs text-slate-600">
-                Views, wishlist adds, and verified Amazon outbound clicks per catalog item.
+                Real views from on-site events and real outbound clicks per product. Only products with activity in this range are listed.
               </p>
             </div>
 
@@ -986,7 +1231,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                   <option value="clicks">Most Clicked</option>
                   <option value="views">Most Viewed</option>
                   <option value="ctr">Highest CTR</option>
-                  <option value="wishlist">Most Wishlisted</option>
                 </select>
               </div>
             </div>
@@ -1000,9 +1244,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                   <th className="py-3 px-3">Product Name</th>
                   <th className="py-3 px-3">Category</th>
                   <th className="py-3 px-3 text-right">Views</th>
-                  <th className="py-3 px-3 text-right">Wishlist Adds</th>
-                  <th className="py-3 px-3 text-right">Amazon Clicks</th>
-                  <th className="py-3 px-3 text-right">Affiliate CTR</th>
+                  <th className="py-3 px-3 text-right">Clicks</th>
+                  <th className="py-3 px-3 text-right">CTR</th>
                   <th className="py-3 px-3 text-center">Action</th>
                 </tr>
               </thead>
@@ -1031,19 +1274,18 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                       </td>
                       <td className="py-3 px-3 capitalize">{p.category}</td>
                       <td className="py-3 px-3 text-right font-medium text-slate-700">{p.views}</td>
-                      <td className="py-3 px-3 text-right font-medium text-slate-700">{p.wishlistAdds}</td>
-                      <td className="py-3 px-3 text-right font-extrabold text-amber-600">{p.amazonClicks}</td>
+                      <td className="py-3 px-3 text-right font-extrabold text-amber-600">{p.clicks}</td>
                       <td className="py-3 px-3 text-right font-bold text-slate-900">
                         <span
                           className={`inline-block px-2 py-0.5 rounded-full text-[10px] ${
-                            p.affiliateCtr > 25
+                            p.ctr > 25
                               ? 'bg-emerald-100 text-emerald-800'
-                              : p.affiliateCtr > 10
+                              : p.ctr > 10
                               ? 'bg-blue-100 text-blue-800'
                               : 'bg-slate-100 text-slate-700'
                           }`}
                         >
-                          {p.affiliateCtr}%
+                          {p.ctr}%
                         </span>
                       </td>
                       <td className="py-3 px-3 text-center">
@@ -1059,8 +1301,10 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-slate-600">
-                      No products match the selected criteria.
+                    <td colSpan={6} className="py-8 text-center text-slate-600">
+                      No product views or clicks in this range yet. On-site events are collected
+                      from {collectedSinceLabel || 'today'} — until a shopper views a product, this
+                      table honestly shows nothing.
                     </td>
                   </tr>
                 )}
@@ -1160,24 +1404,23 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
       )}
 
       {/* ========================================================================= */}
-      {/* SECTION: CATEGORY & TRAFFIC SOURCES */}
+      {/* SECTION: CATEGORY PERFORMANCE (real views + clicks) */}
       {/* ========================================================================= */}
-      {(activeTab === 'overview' || activeTab === 'categories') && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Category Analytics */}
-          <div className="p-6 bg-white border border-slate-200/80 rounded-3xl shadow-2xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div>
-                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-purple-600" />
-                  <span>Category Performance</span>
-                </h3>
-                <p className="text-[11px] text-slate-600">Views and conversion by catalog category</p>
-              </div>
+      {activeTab === 'categories' && (
+        <div className="p-6 bg-white border border-slate-200/80 rounded-3xl shadow-2xs space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+              <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                <Layers className="w-4 h-4 text-purple-600" />
+                <span>Category Performance</span>
+              </h3>
+              <p className="text-[11px] text-slate-600">Real views and clicks by catalog category</p>
             </div>
+          </div>
 
-            <div className="divide-y divide-slate-100">
-              {categoryMetrics.map((cat) => (
+          <div className="divide-y divide-slate-100">
+            {categoryRows.length > 0 ? (
+              categoryRows.map((cat) => (
                 <div key={cat.category} className="py-3 flex items-center justify-between text-xs">
                   <div>
                     <span className="font-bold text-slate-900 capitalize block">{cat.category}</span>
@@ -1186,101 +1429,16 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="font-extrabold text-amber-600 block">{cat.affiliateClicks} clicks</span>
+                    <span className="font-extrabold text-amber-600 block">{cat.clicks} clicks</span>
                     <span className="text-[10px] font-semibold text-slate-600">{cat.ctr}% CTR</span>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Traffic Sources */}
-          <div className="p-6 bg-white border border-slate-200/80 rounded-3xl shadow-2xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div>
-                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-blue-600" />
-                  <span>Traffic Sources & Acquisition</span>
-                </h3>
-                <p className="text-[11px] text-slate-600">Distribution of inbound visitors and referral leads</p>
-              </div>
-            </div>
-
-            <div className="divide-y divide-slate-100">
-              {trafficSources.map((source) => (
-                <div key={source.source} className="py-3 flex items-center justify-between text-xs">
-                  <div>
-                    <span className="font-bold text-slate-900 block">{source.source}</span>
-                    <span className="text-[10px] text-slate-600">
-                      {source.engagedSessions} engaged sessions
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-bold text-slate-900 block">{source.visitors} visitors</span>
-                    <span className="text-[10px] text-emerald-600 font-semibold">{source.affiliateClicks} outbound clicks</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* SECTION: DEVICE & GEOGRAPHY */}
-      {/* ========================================================================= */}
-      {(activeTab === 'overview' || activeTab === 'categories') && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Device Breakdown */}
-          <div className="p-6 bg-white border border-slate-200/80 rounded-3xl shadow-2xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                <Smartphone className="w-4 h-4 text-indigo-600" />
-                <span>Device Breakdown</span>
-              </h3>
-            </div>
-            <div className="space-y-4">
-              {deviceMetrics.map((d) => (
-                <div key={d.device} className="space-y-1.5 text-xs">
-                  <div className="flex items-center justify-between font-semibold">
-                    <span className="flex items-center gap-2 text-slate-800">
-                      {d.device === 'Mobile' && <Smartphone className="w-3.5 h-3.5 text-slate-600" />}
-                      {d.device === 'Desktop' && <Monitor className="w-3.5 h-3.5 text-slate-600" />}
-                      {d.device === 'Tablet' && <Tablet className="w-3.5 h-3.5 text-slate-600" />}
-                      {d.device}
-                    </span>
-                    <span className="text-slate-600 font-bold">{d.percentage}% ({d.count.toLocaleString()} visits)</span>
-                  </div>
-                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                    <div className="bg-indigo-600 h-full rounded-full" style={{ width: `${d.percentage}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Geography Breakdown */}
-          <div className="p-6 bg-white border border-slate-200/80 rounded-3xl shadow-2xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                <Globe className="w-4 h-4 text-emerald-600" />
-                <span>Geographic Distribution</span>
-              </h3>
-            </div>
-            <div className="divide-y divide-slate-100">
-              {geoMetrics.map((g) => (
-                <div key={g.country} className="py-2.5 flex items-center justify-between text-xs">
-                  <div>
-                    <span className="font-bold text-slate-900 block">{g.country}</span>
-                    <span className="text-[10px] text-slate-600">{g.region}</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-bold text-slate-900">{g.visitors} visitors</span>
-                    <span className="text-[10px] text-slate-600 block">{g.percentage}%</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+              ))
+            ) : (
+              <p className="py-8 text-center text-slate-600 text-xs">
+                No category views or clicks in this range yet.
+              </p>
+            )}
           </div>
         </div>
       )}

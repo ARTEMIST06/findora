@@ -171,6 +171,64 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // --- REALTIME SITE EVENTS (PR #43) ---
+    // One doc per page view / product view, written by any visitor through
+    // the client SDK in services/realtime.ts. Shape-checked so the
+    // collection can't be used as a junk store; reads are admin-only and
+    // the docs are immutable (no update/delete for anyone).
+    // NOTE: rules in this file only take effect after a deploy
+    // (Firebase console > Firestore > Rules, or `firebase deploy
+    // --only firestore:rules`). Until then the event writes fail silently
+    // (by design) and the dashboard honestly shows 0.
+    match /siteEvents/{eventId} {
+      allow read: if isAdmin();
+      allow create: if incoming().keys().hasAll(['type', 'path', 'referrer', 'source', 'sessionId', 'ts'])
+        && incoming().type is string
+        && (incoming().type == 'view' || incoming().type == 'product_view')
+        && incoming().path is string
+        && incoming().path.size() <= 200
+        && incoming().referrer is string
+        && incoming().referrer.size() <= 100
+        && incoming().source is string
+        && incoming().source.size() <= 40
+        && incoming().sessionId is string
+        && incoming().sessionId.size() <= 64
+        && incoming().ts is string
+        && (!incoming().keys().hasAny(['utm_source']) || incoming().utm_source is string)
+        && (!incoming().keys().hasAny(['productId']) || incoming().productId is string)
+        && (!incoming().keys().hasAny(['productName']) || incoming().productName is string)
+        && (!incoming().keys().hasAny(['category']) || incoming().category is string)
+        && (incoming().type == 'view' || incoming().keys().hasAll(['productId', 'productName', 'category']));
+      allow update, delete: if false;
+    }
+
+    // --- REALTIME ACTIVE SESSIONS (PR #43) ---
+    // One doc per tab session, heartbeat-updated every 60s by its own
+    // visitor (services/realtime.ts). The doc id MUST equal the sessionId
+    // in the data, so a visitor can only ever touch their own session.
+    // Reads are admin-only; deletes are forbidden (docs age out of the
+    // "active now" window on lastSeen instead).
+    match /activeSessions/{sessionId} {
+      allow read: if isAdmin();
+      allow create: if incoming().keys().hasAll(['sessionId', 'lastSeen', 'path', 'source'])
+        && incoming().sessionId is string
+        && incoming().sessionId == sessionId
+        && incoming().lastSeen is string
+        && incoming().path is string
+        && incoming().path.size() <= 200
+        && incoming().source is string
+        && incoming().source.size() <= 40;
+      allow update: if incoming().keys().hasAll(['sessionId', 'lastSeen', 'path', 'source'])
+        && incoming().sessionId is string
+        && incoming().sessionId == sessionId
+        && incoming().lastSeen is string
+        && incoming().path is string
+        && incoming().path.size() <= 200
+        && incoming().source is string
+        && incoming().source.size() <= 40;
+      allow delete: if false;
+    }
+
     // --- NEWSLETTER SUBSCRIBERS ---
     // Public create so guests can subscribe from the footer (the write goes
     // through the client SDK in store.subscribeNewsletter). Shape-checked so
