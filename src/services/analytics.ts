@@ -386,6 +386,16 @@ class AnalyticsService {
       ],
     });
 
+    // Firestore product-view event for the realtime admin dashboard
+    // (PR #43). Same pattern as trackSearch's Firestore write below:
+    // dynamic import, fire-and-forget, never breaks the page. The
+    // dedup above already prevents double-fires.
+    import('./realtime')
+      .then(({ logProductView }) => {
+        logProductView({ id: product.id, name: product.name, category: product.category });
+      })
+      .catch(() => {});
+
     if (typeof window !== 'undefined') {
       try {
         const counts: Record<string, number> = JSON.parse(

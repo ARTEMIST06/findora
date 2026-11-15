@@ -47,6 +47,7 @@ const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard').then((m
 const AnalyticsDashboard = lazy(() => import('./pages/admin/AnalyticsDashboard').then((m) => ({ default: m.AnalyticsDashboard })));
 const DataCenter = lazy(() => import('./pages/admin/DataCenter').then((m) => ({ default: m.DataCenter })));
 import { analytics } from './services/analytics';
+import { logPageView } from './services/realtime';
 
 type NavigateFn = (path: string) => void;
 
@@ -118,8 +119,12 @@ function Shell() {
   }, []);
 
   // Track page views on route change (pathname only, as before).
+  // GA4 keeps its own page_view; logPageView writes the same view to
+  // Firestore `siteEvents` so the admin dashboard has view data of its
+  // own (PR #43). Both are fire-and-forget.
   useEffect(() => {
     analytics.trackPageView(location.pathname || '/');
+    logPageView(location.pathname || '/');
   }, [location.pathname]);
 
   // Scroll to top on every navigation (the old handler did this too).
