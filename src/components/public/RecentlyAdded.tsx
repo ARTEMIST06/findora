@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { ProductCard } from '../common/ProductCard';
 import { useFindoraStore } from '../../services/store';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -21,23 +21,22 @@ export const RecentlyAdded: React.FC<RecentlyAddedProps> = ({ onNavigate }) => {
   if (recentProducts.length === 0) return null;
 
   return (
-    <section className="py-5 sm:py-8 max-w-7xl mx-auto px-4 sm:px-6">
+    <section className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-5 sm:mb-6">
         <div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">
-            <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-            <span>Latest Arrivals</span>
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+            Latest Arrivals
+          </span>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold uppercase text-black tracking-tight">
             Newly Discovered Products
           </h2>
-          <p className="text-sm text-slate-600 mt-1">
+          <p className="text-sm sm:text-base text-slate-500 mt-2">
             Freshly indexed prices and specs, with verified Amazon India offers.
           </p>
         </div>
         <button
           onClick={() => onNavigate('/products')}
-          className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 group self-start sm:self-auto py-1"
+          className="text-xs sm:text-sm font-semibold text-black hover:text-slate-700 flex items-center gap-1 group self-start sm:self-auto py-1"
         >
           <span>View all {products.length} products</span>
           <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />

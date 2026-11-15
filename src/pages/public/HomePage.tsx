@@ -1,6 +1,7 @@
 import React from 'react';
 import { SEOHead } from '../../components/common/SEOHead';
 import { HeroSection } from '../../components/public/HeroSection';
+import { LiveEngine } from '../../components/public/LiveEngine';
 import { PopularCategories } from '../../components/public/PopularCategories';
 import { CategoryShowcase } from '../../components/public/CategoryShowcase';
 import { TrendingProducts } from '../../components/public/TrendingProducts';
@@ -17,15 +18,20 @@ interface HomePageProps {
 
 export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
   return (
-    <div className="space-y-2 sm:space-y-4">
-      {/* Mobile scroll is the homepage's biggest cost: tighter gaps below sm. */}
-      <SEOHead 
+    <div>
+      {/* Sections carry their own vertical padding. */}
+      <SEOHead
         title="Findora — Find It. Compare It. Buy Smarter."
         description="Find products, check verified Amazon India prices, discover better deals, and buy smarter with Findora."
         canonicalPath="/"
         isHomePage={true}
       />
       <HeroSection onNavigate={onNavigate} />
+      {/* Spotlight — curated carousel, now its own section (it used to be
+          the hero's right column). */}
+      <section className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6">
+        <LiveEngine onNavigate={onNavigate} />
+      </section>
       <PopularCategories onNavigate={onNavigate} />
       <CategoryShowcase onNavigate={onNavigate} />
       <TrendingProducts onNavigate={onNavigate} />

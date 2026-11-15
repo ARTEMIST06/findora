@@ -87,12 +87,12 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-12 animate-pulse">
         <div className="h-4 w-1/3 bg-slate-100 rounded-full"></div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-          <div className="lg:col-span-5 aspect-square bg-white rounded-3xl border border-slate-200"></div>
+          <div className="lg:col-span-5 aspect-square bg-white rounded-none border border-slate-200"></div>
           <div className="lg:col-span-7 space-y-4">
             <div className="h-6 w-1/4 bg-slate-100 rounded-full"></div>
             <div className="h-10 w-3/4 bg-slate-100 rounded-xl"></div>
-            <div className="h-20 w-full bg-slate-100 rounded-2xl"></div>
-            <div className="h-32 w-full bg-white rounded-3xl mt-6 border border-slate-200"></div>
+            <div className="h-20 w-full bg-slate-100 rounded-none"></div>
+            <div className="h-32 w-full bg-white rounded-none mt-6 border border-slate-200"></div>
           </div>
         </div>
       </div>
@@ -107,8 +107,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
           description="The requested product was not found in our catalog. Browse our live catalog or search on Amazon India via Findora."
           noIndex={true}
         />
-        <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mb-4 text-slate-600">
-          <AlertTriangle className="w-8 h-8 text-amber-600" />
+        <div className="w-16 h-16 rounded-none bg-white border border-slate-200 flex items-center justify-center mb-4 text-slate-600">
+          <AlertTriangle className="w-8 h-8 text-black" />
         </div>
         <h2 className="text-2xl font-bold text-slate-900 mb-2">Product Not Found</h2>
         <p className="text-slate-600 mb-6 max-w-sm">
@@ -116,7 +116,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
         </p>
         <button
           onClick={() => onNavigate('/products')}
-          className="px-6 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm transition-all shadow-lg shadow-indigo-500/20"
+          className="px-6 py-2.5 rounded-full bg-black hover:bg-slate-800 text-white font-semibold text-sm transition-all shadow-lg shadow-black/10"
         >
           Browse All Products
         </button>
@@ -255,17 +255,17 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
 
       {/* Breadcrumbs */}
       <nav className="flex items-center gap-2 text-xs text-slate-600 overflow-x-auto whitespace-nowrap pb-1 no-scrollbar">
-        <button onClick={() => onNavigate('/')} className="hover:text-blue-600 transition-colors">
+        <button onClick={() => onNavigate('/')} className="hover:text-black transition-colors">
           Home
         </button>
         <ChevronRight className="w-3.5 h-3.5 shrink-0 text-slate-600" />
-        <button onClick={() => onNavigate('/products')} className="hover:text-blue-600 transition-colors">
+        <button onClick={() => onNavigate('/products')} className="hover:text-black transition-colors">
           Products
         </button>
         <ChevronRight className="w-3.5 h-3.5 shrink-0 text-slate-600" />
         <button
           onClick={() => onNavigate(`/category/${slugifyCategoryLabel(product.category)}`)}
-          className="hover:text-blue-600 capitalize transition-colors"
+          className="hover:text-black capitalize transition-colors"
         >
           {product.category}
         </button>
@@ -277,13 +277,13 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
         {/* Left: Product Images Gallery */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="aspect-square w-full rounded-3xl bg-slate-100 border border-slate-200/80 p-8 flex items-center justify-center relative overflow-hidden shadow-2xl">
+          <div className="aspect-square w-full rounded-none bg-slate-100 border border-slate-200/80 p-8 flex items-center justify-center relative overflow-hidden shadow-2xl">
             {/* Ambient Glow */}
             <div className="absolute inset-0 product-backdrop-glow pointer-events-none"></div>
 
             {product.badge && (
-              <span className="absolute top-4 left-4 inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-blue-600/90 text-white shadow-md border border-blue-400/30 z-10 backdrop-blur-md">
-                <Sparkles className="w-3.5 h-3.5 text-cyan-700" />
+              <span className="absolute top-4 left-4 inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-black/90 text-white shadow-md border border-white/30 z-10 backdrop-blur-md">
+                <Sparkles className="w-3.5 h-3.5 text-white" />
                 {product.badge}
               </span>
             )}
@@ -302,9 +302,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                 <button
                   key={idx}
                   onClick={() => setSelectedImageIndex(idx)}
-                  className={`w-16 h-16 rounded-2xl border p-1 bg-slate-100 shrink-0 overflow-hidden transition-all ${
+                  className={`w-16 h-16 rounded-none border p-1 bg-slate-100 shrink-0 overflow-hidden transition-all ${
                     selectedImageIndex === idx
-                      ? 'border-blue-500 ring-2 ring-blue-500/30 shadow-md'
+                      ? 'border-black ring-2 ring-black/20 shadow-md'
                       : 'border-slate-800 hover:border-slate-700 opacity-70 hover:opacity-100'
                   }`}
                 >
@@ -320,7 +320,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
           <div>
             {/* Brand — ratings are NOT shown: stored ratings are unverified. */}
             <div className="flex items-center justify-between gap-2 mb-3">
-              <span className="text-xs font-extrabold uppercase tracking-wider text-blue-600 bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full">
+              <span className="text-xs font-extrabold uppercase tracking-wider text-black bg-black/5 border border-black/10 px-3 py-1 rounded-full">
                 {product.brand}
               </span>
               <span className="text-xs text-slate-600 font-medium capitalize">{product.category}</span>
@@ -337,18 +337,18 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
             </p>
 
             {/* Lowest Price Banner / Best Store highlight */}
-            <div className="mt-6 p-5 sm:p-6 rounded-3xl bg-white border border-blue-500/30 relative overflow-hidden shadow-2xl">
+            <div className="mt-6 p-5 sm:p-6 rounded-none bg-white border border-black/20 relative overflow-hidden shadow-2xl">
               {/* Backlight */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/15 rounded-full blur-3xl pointer-events-none"></div>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-black/5 rounded-full blur-3xl pointer-events-none"></div>
 
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">
+                    <span className="text-xs font-bold text-black uppercase tracking-wider">
                       Price on Amazon
                     </span>
                     {product.maxDiscountPercent ? (
-                      <span className="text-[11px] font-extrabold bg-amber-400 text-slate-900 px-2.5 py-0.5 rounded-full shadow-sm">
+                      <span className="text-[11px] font-extrabold bg-black text-slate-900 px-2.5 py-0.5 rounded-full shadow-sm">
                         Save {product.maxDiscountPercent}%
                       </span>
                     ) : null}
@@ -365,7 +365,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                     )}
 
                     {bestOffer?.priceDrop && (
-                      <span className="inline-flex items-center gap-1 bg-rose-500/20 text-rose-700 border border-rose-500/30 px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1 bg-black text-white border border-black px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap">
                         <TrendingDown className="w-3.5 h-3.5" />
                         {bestOffer.priceDrop.percentage}% OFF (↓{formatINR(bestOffer.priceDrop.amount)})
                       </span>
@@ -374,7 +374,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                   
                   {product.bestStore && (
                     <p className="text-xs sm:text-sm text-slate-700 font-medium mt-2 flex items-center gap-1.5">
-                      <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <ShieldCheck className="w-4 h-4 text-black shrink-0" />
                       <span>Best price at <strong className="text-slate-900 font-bold">{product.bestStore.name}</strong></span>
                       {bestOffer?.shippingNote && (
                         <span className="text-slate-600 font-normal hidden sm:inline">• {bestOffer.shippingNote}</span>
@@ -412,7 +412,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                           console.warn('Affiliate tracking error:', err);
                         }
                       }}
-                      className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-sm transition-all shadow-xl shadow-indigo-500/20 flex items-center justify-center gap-2 shrink-0 group active:scale-95"
+                      className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-black hover:bg-slate-800 text-white font-bold text-sm transition-all shadow-xl shadow-black/10 flex items-center justify-center gap-2 shrink-0 group active:scale-95"
                     >
                       <span>Check Price</span>
                       <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -435,11 +435,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                 onClick={handleWishlistToggle}
                 className={`flex-1 min-w-[120px] py-2.5 px-4 rounded-full border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
                   isWishlisted
-                    ? 'bg-rose-500/20 text-rose-300 border-rose-500/50'
+                    ? 'bg-black text-white border-black'
                     : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100 hover:text-slate-900'
                 }`}
               >
-                <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-rose-500 text-rose-400' : 'text-slate-400'}`} />
+                <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-white text-white' : 'text-slate-400'}`} />
                 <span>{isWishlisted ? 'Saved' : 'Wishlist'}</span>
               </button>
 
@@ -447,11 +447,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                 onClick={handleCompareToggle}
                 className={`flex-1 min-w-[120px] py-2.5 px-4 rounded-full border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
                   isCompared
-                    ? 'bg-blue-500/20 text-blue-300 border-blue-500/50'
+                    ? 'bg-black text-white border-black'
                     : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100 hover:text-slate-900'
                 }`}
               >
-                <Scale className={`w-4 h-4 ${isCompared ? 'text-blue-400' : 'text-slate-400'}`} />
+                <Scale className={`w-4 h-4 ${isCompared ? 'text-white' : 'text-slate-400'}`} />
                 <span>{isCompared ? 'In Compare' : 'Compare'}</span>
               </button>
               
@@ -467,9 +467,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
 
           {/* "Why Findora Picked It" Callout Box */}
           {product.whyFindora && (
-            <div className="p-5 rounded-3xl bg-white border border-blue-500/30 text-slate-700 shadow-xl mt-6">
-              <div className="flex items-center gap-2 font-bold text-blue-700 text-sm mb-2">
-                <Sparkles className="w-4 h-4 text-cyan-600" />
+            <div className="p-5 rounded-none bg-white border border-black/20 text-slate-700 shadow-xl mt-6">
+              <div className="flex items-center gap-2 font-bold text-black text-sm mb-2">
+                <Sparkles className="w-4 h-4 text-black" />
                 <span>Why Findora Recommends This</span>
               </div>
               <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-normal">
@@ -498,7 +498,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
 
         {/* Table Container */}
         {sortedOffers.length > 0 ? (
-          <div className="bg-white/90 rounded-3xl border border-slate-200/80 overflow-hidden shadow-2xl">
+          <div className="bg-white/90 rounded-none border border-slate-200/80 overflow-hidden shadow-2xl">
             <div className="overflow-x-auto no-scrollbar">
               <table className="w-full text-left text-sm min-w-[600px]">
                 <thead className="bg-white text-slate-600 border-b border-slate-200 text-xs font-bold uppercase tracking-wider">
@@ -523,7 +523,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                       <tr
                         key={offer.id}
                         className={`hover:bg-slate-100/40 transition-colors group ${
-                          isLowest ? 'bg-blue-600/10' : ''
+                          isLowest ? 'bg-black/5' : ''
                         }`}
                       >
                         {/* Merchant */}
@@ -543,7 +543,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                                 {formatINR(offer.price)}
                               </span>
                               {discount > 0 && (
-                                <span className="inline-flex items-center text-[10px] font-bold text-emerald-600 bg-emerald-500/15 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                                <span className="inline-flex items-center text-[10px] font-bold text-black bg-white0/15 px-1.5 py-0.5 rounded border border-black/20">
                                   {discount}% OFF
                                 </span>
                               )}
@@ -591,7 +591,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                               }}
                               className={`inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold transition-all shadow-md w-[120px] ${
                                 isLowest
-                                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-indigo-500/20'
+                                  ? 'bg-black hover:bg-slate-800 text-white shadow-black/10'
                                   : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
                               }`}
                             >
@@ -615,7 +615,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
             </div>
           </div>
         ) : (
-          <div className="bg-white border border-slate-200 border-dashed rounded-3xl p-10 text-center">
+          <div className="bg-white border border-slate-200 border-dashed rounded-none p-10 text-center">
             <h3 className="text-slate-900 font-bold mb-1">No Offers Available</h3>
             <p className="text-slate-600 text-sm">We couldn't find any live pricing for this product right now. Set a price alert to be notified when it returns.</p>
           </div>
@@ -627,15 +627,15 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-200/80">
           {/* Pros */}
           {product.pros.length > 0 && (
-            <div className="p-6 rounded-3xl bg-white/80 border border-emerald-500/20 shadow-xl">
-              <div className="flex items-center gap-2 text-emerald-600 font-extrabold text-base mb-4">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+            <div className="p-6 rounded-none bg-white/80 border border-black/20 shadow-xl">
+              <div className="flex items-center gap-2 text-black font-extrabold text-base mb-4">
+                <CheckCircle2 className="w-5 h-5 text-black" />
                 <span>Strengths & Highlights</span>
               </div>
               <ul className="space-y-3 text-sm text-slate-700 font-normal">
                 {product.pros.map((pro, idx) => (
                   <li key={idx} className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 shrink-0"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-black mt-2 shrink-0"></span>
                     <span className="leading-relaxed">{pro}</span>
                   </li>
                 ))}
@@ -645,15 +645,15 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
 
           {/* Cons */}
           {product.cons.length > 0 && (
-            <div className="p-6 rounded-3xl bg-white/80 border border-rose-500/20 shadow-xl">
-              <div className="flex items-center gap-2 text-rose-600 font-extrabold text-base mb-4">
-                <XCircle className="w-5 h-5 text-rose-600" />
+            <div className="p-6 rounded-none bg-white/80 border border-black/20 shadow-xl">
+              <div className="flex items-center gap-2 text-black font-extrabold text-base mb-4">
+                <XCircle className="w-5 h-5 text-black" />
                 <span>Things to Consider</span>
               </div>
               <ul className="space-y-3 text-sm text-slate-700 font-normal">
                 {product.cons.map((con, idx) => (
                   <li key={idx} className="flex items-start gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-2 shrink-0"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-black mt-2 shrink-0"></span>
                     <span className="leading-relaxed">{con}</span>
                   </li>
                 ))}
@@ -670,7 +670,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
             onClick={() => setActiveTab('specs')}
             className={`px-5 py-2.5 text-xs sm:text-sm font-bold rounded-full transition-all whitespace-nowrap ${
               activeTab === 'specs'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                ? 'bg-black text-white shadow-md shadow-black/10'
                 : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
@@ -680,11 +680,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
             onClick={() => setActiveTab('history')}
             className={`px-5 py-2.5 text-xs sm:text-sm font-bold rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'history'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                ? 'bg-black text-white shadow-md shadow-black/10'
                 : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
-            <TrendingDown className={`w-4 h-4 ${activeTab === 'history' ? 'text-slate-900' : 'text-emerald-600'}`} />
+            <TrendingDown className={`w-4 h-4 ${activeTab === 'history' ? 'text-slate-900' : 'text-black'}`} />
             <span>Price History & Alerts</span>
           </button>
           {product.description && (
@@ -692,7 +692,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
               onClick={() => setActiveTab('description')}
               className={`px-5 py-2.5 text-xs sm:text-sm font-bold rounded-full transition-all whitespace-nowrap ${
                 activeTab === 'description'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                  ? 'bg-black text-white shadow-md shadow-black/10'
                   : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
@@ -703,7 +703,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
 
         {/* Tab 1: Specs */}
         {activeTab === 'specs' && (
-          <div className="bg-white/90 rounded-3xl border border-slate-200/80 p-6 sm:p-8 overflow-hidden shadow-2xl">
+          <div className="bg-white/90 rounded-none border border-slate-200/80 p-6 sm:p-8 overflow-hidden shadow-2xl">
             {Object.keys(product.specifications).length > 0 ? (
               <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-1 text-sm">
                 {Object.entries(product.specifications).map(([key, val]) => (
@@ -721,7 +721,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
 
         {/* Tab 2: Price History Chart */}
         {activeTab === 'history' && (
-          <div className="bg-white/90 rounded-3xl border border-slate-200/80 p-6 sm:p-8 space-y-8 shadow-2xl">
+          <div className="bg-white/90 rounded-none border border-slate-200/80 p-6 sm:p-8 space-y-8 shadow-2xl">
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
               <div className="max-w-xl">
                 <h3 className="font-extrabold text-slate-900 text-xl tracking-tight">Recorded Price Trend</h3>
@@ -731,9 +731,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
               </div>
 
               {/* Price Alert Signup */}
-              <div className="bg-white p-5 rounded-2xl border border-blue-500/30 shrink-0 w-full md:w-auto shadow-lg">
+              <div className="bg-white p-5 rounded-none border border-black/20 shrink-0 w-full md:w-auto shadow-lg">
                 <h4 className="font-bold text-slate-900 text-sm flex items-center gap-1.5 mb-3">
-                  <BellRing className="w-4 h-4 text-blue-600" /> Wait for a better price?
+                  <BellRing className="w-4 h-4 text-black" /> Wait for a better price?
                 </h4>
                 {!currentUser ? (
                   <button
@@ -757,14 +757,14 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                         value={targetPrice}
                         onChange={(e) => setTargetPrice(e.target.value)}
                         placeholder="Target price..."
-                        className="pl-8 pr-4 py-2 text-xs font-bold text-slate-900 rounded-full border border-slate-300 outline-none focus:border-blue-500 w-full sm:w-40 bg-white"
+                        className="pl-8 pr-4 py-2 text-xs font-bold text-slate-900 rounded-full border border-slate-300 outline-none focus:border-black w-full sm:w-40 bg-white"
                         disabled={isSettingAlert}
                       />
                     </div>
                     <button
                       type="submit"
                       disabled={isSettingAlert}
-                      className="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-full text-xs font-bold flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 transition-all shadow-md shadow-indigo-500/20"
+                      className="px-5 py-2 bg-black hover:bg-slate-800 text-white rounded-full text-xs font-bold flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 transition-all shadow-md shadow-black/10"
                     >
                       {isSettingAlert ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : null}
                       <span>{existingAlert ? 'Update Alert' : 'Set Alert'}</span>
@@ -782,11 +782,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
               
               return (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-white border border-emerald-500/30 p-4 rounded-2xl">
-                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-1">Lowest Recorded</p>
+                  <div className="bg-white border border-black/20 p-4 rounded-none">
+                    <p className="text-[10px] font-bold text-black uppercase tracking-wider mb-1">Lowest Recorded</p>
                     <p className="text-xl font-extrabold text-slate-900">{lowestHistory ? formatINR(lowestHistory) : 'N/A'}</p>
                   </div>
-                  <div className="bg-white border border-slate-200 p-4 rounded-2xl">
+                  <div className="bg-white border border-slate-200 p-4 rounded-none">
                     <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">Highest Recorded</p>
                     <p className="text-xl font-extrabold text-slate-900">{highestHistory ? formatINR(highestHistory) : 'N/A'}</p>
                   </div>
@@ -823,8 +823,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-full flex flex-col items-center justify-center text-slate-600 bg-white rounded-2xl border border-slate-200 border-dashed">
-                  <TrendingDown className="w-10 h-10 mb-3 opacity-40 text-blue-600" />
+                <div className="h-full flex flex-col items-center justify-center text-slate-600 bg-white rounded-none border border-slate-200 border-dashed">
+                  <TrendingDown className="w-10 h-10 mb-3 opacity-40 text-black" />
                   <p className="text-base font-bold text-slate-900">No price history available yet</p>
                   <p className="text-xs mt-1 max-w-sm text-center text-slate-600">Price history will appear on this chart as Findora tracks this product's price fluctuations over time.</p>
                 </div>
@@ -835,7 +835,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
 
         {/* Tab 3: Full Description */}
         {activeTab === 'description' && product.description && (
-          <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 text-sm text-slate-700 leading-loose space-y-6 shadow-2xl font-normal">
+          <div className="bg-white rounded-none border border-slate-200/80 p-6 sm:p-8 text-sm text-slate-700 leading-loose space-y-6 shadow-2xl font-normal">
             <p>{product.description}</p>
             {product.tags && product.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-200">
@@ -854,9 +854,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
       </section>
 
       {/* Trust & Transparency */}
-      <section className="bg-white/80 rounded-3xl p-6 border border-slate-200/80 mt-10 mb-24 lg:mb-10 text-xs sm:text-sm text-slate-600 leading-relaxed">
+      <section className="bg-white/80 rounded-none p-6 border border-slate-200/80 mt-10 mb-24 lg:mb-10 text-xs sm:text-sm text-slate-600 leading-relaxed">
         <div className="flex gap-4">
-          <Info className="w-6 h-6 shrink-0 text-blue-600" />
+          <Info className="w-6 h-6 shrink-0 text-black" />
           <div className="space-y-2">
             <p><strong className="text-slate-900 font-semibold">Transparency Disclosure:</strong> Findora is an independent price comparison service. When you click a "Check Price" link and make a purchase on a merchant's website, we may earn an affiliate commission at no extra cost to you. This supports our platform.</p>
             <p>Prices, discounts, and inventory availability are controlled by the merchants and are subject to change without notice. The final price and terms of sale are always confirmed at the merchant's checkout. Findora does not process your transaction.</p>
@@ -871,7 +871,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
             <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900">Similar Alternatives</h2>
             <button
               onClick={() => onNavigate(`/category/${slugifyCategoryLabel(product.category)}`)}
-              className="text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors"
+              className="text-xs sm:text-sm font-bold text-black hover:text-black transition-colors"
             >
               View category →
             </button>
@@ -897,12 +897,12 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
             onClick={handleWishlistToggle} 
             className={`p-3 rounded-full border transition-colors ${
               isWishlisted
-                ? 'bg-rose-500/20 border-rose-500/50 text-rose-400'
+                ? 'bg-black border-black text-white'
                 : 'bg-slate-800/80 border-slate-700 text-slate-400'
             }`}
             aria-label="Wishlist"
           >
-            <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-rose-500' : ''}`} />
+            <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-white' : ''}`} />
           </button>
           {bestOffer?.affiliateUrl ? (
             <a
@@ -922,7 +922,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                   console.warn('Mobile affiliate tracking error:', err);
                 }
               }}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full font-bold text-sm shadow-md shadow-indigo-500/20 whitespace-nowrap active:scale-95 transition-transform"
+              className="px-6 py-3 bg-black text-white rounded-full font-bold text-sm shadow-md shadow-black/10 whitespace-nowrap active:scale-95 transition-transform"
             >
               Check Price
             </a>
@@ -937,7 +937,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
       {/* Share Modal */}
       {isShareModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
-          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl border border-slate-200 overflow-hidden">
+          <div className="bg-white rounded-none w-full max-w-sm shadow-2xl border border-slate-200 overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-slate-200 bg-white">
               <h3 className="font-extrabold text-slate-900 text-lg">Share Product</h3>
               <button
@@ -954,7 +954,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                   showToast('Link copied to clipboard!', 'success');
                   setIsShareModalOpen(false);
                 }}
-                className="w-full text-left px-5 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold text-sm text-white transition-colors"
+                className="w-full text-left px-5 py-3.5 rounded-none bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold text-sm text-white transition-colors"
               >
                 Copy Link
               </button>
@@ -962,7 +962,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                 href={`https://wa.me/?text=${encodeURIComponent(`Check out ${product.name} on Findora! ${currentUrl}`)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="block w-full text-left px-5 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold text-sm text-white transition-colors"
+                className="block w-full text-left px-5 py-3.5 rounded-none bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold text-sm text-white transition-colors"
               >
                 Share on WhatsApp
               </a>
@@ -970,13 +970,13 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slug, onNa
                 href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out ${product.name} on Findora!`)}&url=${encodeURIComponent(currentUrl)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="block w-full text-left px-5 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold text-sm text-white transition-colors"
+                className="block w-full text-left px-5 py-3.5 rounded-none bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold text-sm text-white transition-colors"
               >
                 Share on X (Twitter)
               </a>
               <a
                 href={`mailto:?subject=${encodeURIComponent(`Findora - ${product.name}`)}&body=${encodeURIComponent(`Check out this product I found on Findora:\n\n${product.name}\n${currentUrl}`)}`}
-                className="block w-full text-left px-5 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold text-sm text-white transition-colors"
+                className="block w-full text-left px-5 py-3.5 rounded-none bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold text-sm text-white transition-colors"
               >
                 Share via Email
               </a>

@@ -153,14 +153,14 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
   if (totalProducts === 0) {
     return (
       <div
-        className={`w-full rounded-2xl sm:rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-7 flex flex-col justify-between shadow-2xl relative overflow-hidden backdrop-blur-xl ${className}`}
+        className={`w-full rounded-none border border-slate-200 bg-white p-5 sm:p-7 flex flex-col justify-between relative overflow-hidden ${className}`}
         id="live-engine-empty"
       >
         <div className="flex items-center justify-between z-10 border-b border-slate-200/80 pb-3">
           <div className="flex items-center gap-2">
             <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-black opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-black"></span>
             </span>
             <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
               Spotlight
@@ -172,7 +172,7 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
         </div>
 
         <div className="py-12 sm:py-16 text-center z-10 flex flex-col items-center justify-center">
-          <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-4 text-blue-600">
+          <div className="w-14 h-14 rounded-2xl bg-black/5 border border-black/10 flex items-center justify-center mb-4 text-black">
             <Layers className="w-7 h-7 animate-pulse" />
           </div>
           <h4 className="text-base sm:text-lg font-bold text-slate-900 mb-1.5">
@@ -186,7 +186,7 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
         <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-[11px] text-slate-600">
           <span>Findora Spotlight</span>
           <span className="flex items-center gap-1 text-slate-600">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <ShieldCheck className="w-3.5 h-3.5 text-black" />
             Verified Amazon India offers
           </span>
         </div>
@@ -234,26 +234,24 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
 
   return (
     <div
-      className={`w-full rounded-2xl sm:rounded-3xl border border-slate-200/80 bg-white shadow-2xl relative overflow-hidden backdrop-blur-xl group transition-all duration-300 hover:border-blue-500/40 ${className}`}
+      className={`w-full rounded-none border border-slate-200 bg-white relative overflow-hidden group transition-all duration-300 ${className}`}
       onMouseEnter={() => setHoverPaused(true)}
       onMouseLeave={() => setHoverPaused(false)}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       id="findora-spotlight"
     >
-      {/* Subtle atmospheric ambient glow */}
-      <div className="absolute top-0 right-1/4 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -z-0"></div>
 
       {/* Top Header Bar */}
       <div className="relative z-10 px-4 sm:px-6 pt-4 sm:pt-5 pb-3 border-b border-slate-200/80 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
           <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-black opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-black"></span>
           </span>
           <span className="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
             <span>Spotlight</span>
-            <span className="text-[10px] font-bold text-amber-600 px-1.5 py-0.2 rounded bg-amber-500/10 border border-amber-500/20">
+            <span className="text-[10px] font-bold text-white px-1.5 py-0.2 rounded bg-black border border-black">
               FEATURED
             </span>
           </span>
@@ -267,7 +265,7 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
             title={manualPaused ? 'Resume auto-rotation' : 'Pause rotation'}
             aria-label={manualPaused ? 'Resume rotation' : 'Pause rotation'}
           >
-            {manualPaused ? <Play className="w-2.5 h-2.5 text-blue-600" /> : <Pause className="w-2.5 h-2.5" />}
+            {manualPaused ? <Play className="w-2.5 h-2.5 text-black" /> : <Pause className="w-2.5 h-2.5" />}
             <span className="hidden sm:inline">{manualPaused ? 'Paused' : 'Auto'}</span>
           </button>
 
@@ -295,10 +293,10 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
               <div className="grid grid-cols-12 gap-3 sm:gap-4 items-center">
                 {/* Left/Top: Product Image Box */}
                 <div className="col-span-5 sm:col-span-5 relative">
-                  <div className="relative aspect-square w-full rounded-2xl bg-white p-3 border border-slate-200/90 flex items-center justify-center overflow-hidden shadow-inner group-hover:border-blue-500/30 transition-colors">
+                  <div className="relative aspect-square w-full rounded-none bg-slate-100 p-3 border border-slate-200 flex items-center justify-center overflow-hidden transition-colors">
                     {/* Discount badge on image */}
                     {activeProduct.maxDiscountPercent && activeProduct.maxDiscountPercent > 0 && (
-                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-rose-500 text-white shadow-md flex items-center gap-0.5 z-10">
+                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-black text-white flex items-center gap-0.5 z-10">
                         <Tag className="w-2.5 h-2.5" />
                         {activeProduct.maxDiscountPercent}%
                       </span>
@@ -308,7 +306,7 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
                       src={productImage}
                       alt={activeProduct.name}
                       onError={(e) => handleImageFallback(e, activeProduct.category)}
-                      className="w-full h-full object-contain filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.6)] transition-transform duration-300 group-hover:scale-105"
+                      className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                       loading="eager"
                     />
                   </div>
@@ -318,7 +316,7 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
                 <div className="col-span-7 sm:col-span-7 flex flex-col justify-center text-left min-w-0">
                   {/* Brand & Category pill */}
                   <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-600">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-black">
                       {activeProduct.brand}
                     </span>
                     <span className="text-slate-600 text-xs">•</span>
@@ -328,7 +326,7 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
                   </div>
 
                   {/* Title */}
-                  <h3 className="text-sm sm:text-base font-bold text-slate-900 line-clamp-2 leading-tight group-hover:text-blue-700 transition-colors mb-2.5">
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 line-clamp-2 leading-tight mb-2.5">
                     {activeProduct.name}
                   </h3>
 
@@ -358,8 +356,8 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
                   {activeProduct.bestStore && (
                     <div className="mt-2 flex items-center gap-1.5">
                       <span className="text-[10px] text-slate-600 uppercase tracking-wider">At</span>
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[11px] font-semibold text-emerald-600">
-                        <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-black text-[11px] font-semibold text-black">
+                        <ShieldCheck className="w-3 h-3 text-black" />
                         {activeProduct.bestStore.name.replace(' India', '')}
                       </span>
                     </div>
@@ -370,13 +368,13 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
               {/* Single verified offer — Findora lists Amazon India only. */}
               <div className="mt-3.5 pt-3 border-t border-slate-200/70 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/10 text-[10px] font-semibold text-amber-700 border border-amber-500/30">
-                    <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-black text-[10px] font-semibold text-white border border-black">
+                    <ShieldCheck className="w-3 h-3 text-white" />
                     Amazon India · Verified offer
                   </span>
                 </div>
 
-                <span className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 shrink-0 ml-auto group-hover:translate-x-0.5 transition-transform">
+                <span className="text-xs font-semibold text-black hover:text-slate-700 flex items-center gap-1 shrink-0 ml-auto group-hover:translate-x-0.5 transition-transform">
                   <span>View details</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </span>
@@ -387,7 +385,7 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
       </div>
 
       {/* Bottom Controls Strip: Prev / Indicators / Next */}
-      <div className="relative z-10 px-4 sm:px-6 py-3 bg-slate-50 border-t border-slate-200/80 flex items-center justify-between">
+      <div className="relative z-10 px-4 sm:px-6 py-3 bg-white border-t border-slate-200 flex items-center justify-between">
         {/* Previous Button */}
         <button
           onClick={(e) => {
@@ -415,8 +413,8 @@ export const LiveEngine: React.FC<LiveEngineProps> = ({
                 }}
                 className={`h-2 rounded-full transition-all duration-300 ${
                   isActive
-                    ? 'w-6 bg-gradient-to-r from-blue-500 to-cyan-400 shadow-sm shadow-blue-500/50'
-                    : 'w-2 bg-slate-200 hover:bg-slate-500'
+                    ? 'w-6 bg-black'
+                    : 'w-2 bg-slate-300 hover:bg-black'
                 }`}
                 aria-label={`Jump to product ${idx + 1}`}
                 aria-current={isActive ? 'true' : 'false'}

@@ -36,8 +36,8 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ onNavigate }) =>
       />
       <Reveal>
         <div className="pb-6 border-b border-slate-200/80">
-          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 uppercase tracking-widest mb-1.5">
-            <Layers className="w-4 h-4 text-cyan-600" />
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-black uppercase tracking-widest mb-1.5">
+            <Layers className="w-4 h-4 text-black" />
             <span>Product Categories</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
@@ -59,7 +59,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ onNavigate }) =>
             <Reveal key={cat.key} delay={Math.min(i, 5) * 40}>
               <div
                 onClick={() => onNavigate(`/category/${cat.slug}`)}
-                className="relative p-6 bg-white/90 hover:bg-white rounded-3xl border border-slate-200/80 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer flex flex-col justify-between group overflow-hidden card-lift h-full"
+                className="relative p-6 bg-white/90 hover:bg-white rounded-none border border-slate-200/80 hover:border-black/40 hover:shadow-2xl hover:shadow-black/5 transition-all duration-300 cursor-pointer flex flex-col justify-between group overflow-hidden card-lift h-full"
               >
                 {asset?.image && (
                   <div className="absolute top-0 right-0 w-1/2 h-44 pointer-events-none opacity-60 group-hover:opacity-90 transition-opacity duration-300 overflow-hidden rounded-tr-3xl">
@@ -77,7 +77,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ onNavigate }) =>
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-4">
                     <div
-                      className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 group-hover:bg-gradient-to-tr group-hover:from-blue-600 group-hover:to-indigo-600 group-hover:text-white transition-all flex items-center justify-center shadow-sm"
+                      className="w-14 h-14 rounded-none bg-black/5 border border-black/10 text-black group-hover:bg-black group-hover:text-white transition-all flex items-center justify-center shadow-sm"
                       style={{ borderColor: `${accent}40` }}
                     >
                       <CategoryIcon categoryKey={cat.key} className="w-7 h-7" />
@@ -87,7 +87,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ onNavigate }) =>
                     </span>
                   </div>
 
-                  <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                  <h3 className="text-lg font-bold text-slate-900 group-hover:text-black transition-colors">
                     {cat.name}
                   </h3>
                   <p className={`text-xs text-slate-600 mt-2 leading-relaxed font-normal ${asset?.image ? 'max-w-[58%]' : ''}`}>
@@ -113,7 +113,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ onNavigate }) =>
                   )}
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-slate-200/80 flex items-center justify-between text-xs font-bold text-blue-600 group-hover:text-blue-700 relative z-10">
+                <div className="mt-6 pt-4 border-t border-slate-200/80 flex items-center justify-between text-xs font-bold text-black group-hover:text-black relative z-10">
                   <span>Explore {cat.name}</span>
                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </div>

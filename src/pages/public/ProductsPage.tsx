@@ -222,8 +222,8 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
       {/* Header with Title & Sort */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200/80">
         <div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 uppercase tracking-widest mb-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-cyan-600" />
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-black uppercase tracking-widest mb-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-black" />
             <span>Product Catalog</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -244,10 +244,10 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
             onClick={() => setIsMobileFilterOpen(true)}
             className="lg:hidden px-3.5 py-2 rounded-full border border-slate-300 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 flex items-center gap-2 shadow-sm"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600" />
+            <SlidersHorizontal className="w-3.5 h-3.5 text-black" />
             <span>Filters</span>
             {activeFilterCount > 0 && (
-              <span className="bg-blue-600 text-white rounded-full px-1.5 py-0.2 text-[10px] font-bold">
+              <span className="bg-black text-white rounded-full px-1.5 py-0.2 text-[10px] font-bold">
                 {activeFilterCount}
               </span>
             )}
@@ -260,7 +260,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="appearance-none bg-white border border-slate-300/80 rounded-full px-3.5 py-2 pr-8 text-xs font-semibold text-slate-700 outline-none focus:border-blue-500 cursor-pointer shadow-md"
+                className="appearance-none bg-white border border-slate-300/80 rounded-full px-3.5 py-2 pr-8 text-xs font-semibold text-slate-700 outline-none focus:border-black cursor-pointer shadow-md"
               >
                 <option value="relevance">Featured & Relevant</option>
                 <option value="price_asc">Lowest Price First</option>
@@ -277,13 +277,13 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
       {/* Main Grid: Sidebar Filters + Products */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 pt-6">
         {/* Desktop Sidebar Filters */}
-        <aside className="hidden lg:block space-y-6 bg-white/80 border border-slate-200/80 rounded-3xl p-5 backdrop-blur-md h-fit sticky top-24 shadow-xl">
+        <aside className="hidden lg:block space-y-6 bg-white/80 border border-slate-200/80 rounded-none p-5 backdrop-blur-md h-fit sticky top-24 shadow-xl">
           <div className="flex items-center justify-between pb-3 border-b border-slate-200">
             <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
-              <Filter className="w-4 h-4 text-blue-600" />
+              <Filter className="w-4 h-4 text-black" />
               <span>Filters</span>
               {activeFilterCount > 0 && (
-                <span className="bg-blue-600/30 text-blue-700 border border-blue-500/30 px-2 py-0.2 rounded-full text-xs font-semibold">
+                <span className="bg-black/30 text-black border border-black/20 px-2 py-0.2 rounded-full text-xs font-semibold">
                   {activeFilterCount}
                 </span>
               )}
@@ -291,7 +291,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
             {activeFilterCount > 0 && (
               <button
                 onClick={handleClearFilters}
-                className="text-xs text-rose-600 hover:text-rose-700 font-semibold"
+                className="text-xs text-black hover:text-black font-semibold"
               >
                 Clear all
               </button>
@@ -309,7 +309,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Filter by keyword..."
-                className="w-full pl-8 pr-3 py-2 text-xs bg-white border border-slate-300/80 rounded-full text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500"
+                className="w-full pl-8 pr-3 py-2 text-xs bg-white border border-slate-300/80 rounded-full text-slate-900 placeholder-slate-400 outline-none focus:border-black"
               />
               <Search className="w-3.5 h-3.5 text-slate-600 absolute left-3 top-2.5" />
             </div>
@@ -325,7 +325,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
                 onClick={() => setSelectedCategory('all')}
                 className={`w-full text-left px-3 py-1.5 rounded-xl transition-all flex items-center justify-between ${
                   selectedCategory === 'all'
-                    ? 'bg-blue-600/20 text-blue-700 font-bold border border-blue-500/30'
+                    ? 'bg-black/10 text-black font-bold border border-black/20'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                 }`}
               >
@@ -340,7 +340,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
                     onClick={() => setSelectedCategory(c.slug)}
                     className={`w-full text-left px-3 py-1.5 rounded-xl transition-all flex items-center justify-between ${
                       selectedCategory === c.slug
-                        ? 'bg-blue-600/20 text-blue-700 font-bold border border-blue-500/30'
+                        ? 'bg-black/10 text-black font-bold border border-black/20'
                         : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                     }`}
                   >
@@ -367,7 +367,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
                     type="checkbox"
                     checked={selectedBrands.includes(brand)}
                     onChange={() => toggleBrand(brand)}
-                    className="rounded bg-white border-slate-300 text-blue-600 focus:ring-blue-500/30"
+                    className="rounded bg-white border-slate-300 text-black focus:ring-black/20"
                   />
                   <span>{brand}</span>
                 </label>
@@ -379,7 +379,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
           <div className="space-y-2 pt-3 border-t border-slate-200">
             <div className="flex justify-between text-xs">
               <span className="font-bold text-slate-700 uppercase tracking-wider">Max Price</span>
-              <span className="font-bold text-blue-600">
+              <span className="font-bold text-black">
                 {maxPrice >= 300000 ? 'Any Price' : `₹${maxPrice.toLocaleString('en-IN')}`}
               </span>
             </div>
@@ -390,7 +390,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
               step={5000}
               value={maxPrice}
               onChange={(e) => setMaxPrice(Number(e.target.value))}
-              className="w-full accent-blue-500"
+              className="w-full accent-black"
             />
             <div className="flex justify-between text-[10px] text-slate-600">
               <span>₹10,000</span>
@@ -403,38 +403,38 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
         <div className="lg:col-span-3">
           {/* Active filter pills */}
           {activeFilterCount > 0 && (
-            <div className="flex flex-wrap items-center gap-2 mb-6 p-3 bg-white rounded-2xl border border-slate-200">
+            <div className="flex flex-wrap items-center gap-2 mb-6 p-3 bg-white rounded-none border border-slate-200">
               <span className="text-xs text-slate-600 font-medium">Active:</span>
               {selectedCategory !== 'all' && (
-                <span className="inline-flex items-center gap-1.5 text-xs bg-blue-500/10 border border-blue-500/30 text-blue-700 px-2.5 py-1 rounded-full">
+                <span className="inline-flex items-center gap-1.5 text-xs bg-black/5 border border-black/20 text-black px-2.5 py-1 rounded-full">
                   Category: {categoryNameForSlug(allProducts, selectedCategory)}
                   <button onClick={() => setSelectedCategory('all')}>
-                    <X className="w-3 h-3 text-blue-600 hover:text-slate-900" />
+                    <X className="w-3 h-3 text-black hover:text-slate-900" />
                   </button>
                 </span>
               )}
               {selectedBrands.map((b) => (
                 <span
                   key={b}
-                  className="inline-flex items-center gap-1.5 text-xs bg-blue-500/10 border border-blue-500/30 text-blue-700 px-2.5 py-1 rounded-full"
+                  className="inline-flex items-center gap-1.5 text-xs bg-black/5 border border-black/20 text-black px-2.5 py-1 rounded-full"
                 >
                   {b}
                   <button onClick={() => toggleBrand(b)}>
-                    <X className="w-3 h-3 text-blue-600 hover:text-slate-900" />
+                    <X className="w-3 h-3 text-black hover:text-slate-900" />
                   </button>
                 </span>
               ))}
               {maxPrice < 300000 && (
-                <span className="inline-flex items-center gap-1.5 text-xs bg-blue-500/10 border border-blue-500/30 text-blue-700 px-2.5 py-1 rounded-full">
+                <span className="inline-flex items-center gap-1.5 text-xs bg-black/5 border border-black/20 text-black px-2.5 py-1 rounded-full">
                   Under ₹{maxPrice.toLocaleString('en-IN')}
                   <button onClick={() => setMaxPrice(300000)}>
-                    <X className="w-3 h-3 text-blue-600 hover:text-slate-900" />
+                    <X className="w-3 h-3 text-black hover:text-slate-900" />
                   </button>
                 </span>
               )}
               <button
                 onClick={handleClearFilters}
-                className="text-xs text-rose-600 hover:text-rose-700 font-semibold ml-auto"
+                className="text-xs text-black hover:text-black font-semibold ml-auto"
               >
                 Reset All
               </button>
@@ -449,7 +449,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5" aria-hidden="true">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="rounded-3xl border border-slate-200 bg-white h-80 animate-pulse" />
+                  <div key={i} className="rounded-none border border-slate-200 bg-white h-80 animate-pulse" />
                 ))}
               </div>
             </div>
@@ -460,8 +460,8 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
               ))}
             </div>
           ) : (
-            <div className="text-center py-20 px-4 bg-white rounded-3xl border border-slate-200">
-              <div className="w-16 h-16 rounded-2xl bg-slate-100/80 flex items-center justify-center mx-auto mb-4 text-slate-600 border border-slate-300">
+            <div className="text-center py-20 px-4 bg-white rounded-none border border-slate-200">
+              <div className="w-16 h-16 rounded-none bg-slate-100/80 flex items-center justify-center mx-auto mb-4 text-slate-600 border border-slate-300">
                 <Search className="w-7 h-7" />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-2">No products match your filters</h3>
@@ -485,7 +485,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
               )}
               <button
                 onClick={handleClearFilters}
-                className="px-6 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-lg shadow-indigo-500/20"
+                className="px-6 py-2.5 rounded-full bg-black hover:bg-slate-800 text-white font-semibold text-xs shadow-lg shadow-black/10"
               >
                 Clear all filters
               </button>

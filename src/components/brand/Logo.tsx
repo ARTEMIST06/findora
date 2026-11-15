@@ -15,7 +15,7 @@ export const Logo: React.FC<LogoProps> = ({
   className = '',
   onClick,
 }) => {
-  // Dimensions based on size
+  // Dimensions based on size (icon variant only)
   const iconSizes = {
     sm: 28,
     md: 38,
@@ -37,100 +37,69 @@ export const Logo: React.FC<LogoProps> = ({
     xl: 'text-sm',
   };
 
-  const iconDim = iconSizes[size];
-  const isDark = variant === 'dark';
+  // 'light' = white wordmark for dark backgrounds; every other variant
+  // renders black (monochrome — the mark uses currentColor throughout).
+  const isLight = variant === 'light';
+  const colourClass = isLight ? 'text-white' : 'text-black';
+  const taglineClass = isLight ? 'text-white/60' : 'text-slate-500';
 
-  // SVG Icon representing the custom Findora 'F' with magnifying lens discovery symbol
-  const LogoIcon = (
+  // The ring-O: a magnifier ring that reads as the letter O in FINDORA.
+  // Geometry (viewBox 0 0 100 120): the circle spans y 8–76 (68 units).
+  // The svg is 1.25em tall so the circle renders at ~0.71em — cap height —
+  // and a -0.46em bottom margin drops the circle's bottom edge exactly onto
+  // the text baseline (the handle then dips ~0.17em below it, like a tail).
+  // In a flex row with items-baseline the svg's bottom margin edge is its
+  // baseline, so the ring aligns with the surrounding capitals.
+  const RingO = (
     <svg
-      width={iconDim}
-      height={iconDim}
-      viewBox="0 0 120 120"
+      viewBox="0 0 100 120"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="shrink-0 transition-transform duration-200 group-hover:scale-105 drop-shadow-[0_0_12px_rgba(59,130,246,0.35)]"
+      aria-hidden="true"
+      className="shrink-0"
+      style={{ height: '1.25em', width: '1.04em', marginBottom: '-0.46em' }}
       id="findora-logo-mark"
     >
-      <defs>
-        {/* Main F top swoop gradient */}
-        <linearGradient id="fTopGrad" x1="10" y1="15" x2="110" y2="55" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#3B82F6" />
-          <stop offset="50%" stopColor="#6366F1" />
-          <stop offset="100%" stopColor="#8B5CF6" />
-        </linearGradient>
-
-        {/* Stem navy-purple gradient */}
-        <linearGradient id="fStemGrad" x1="15" y1="40" x2="70" y2="110" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#2563EB" />
-          <stop offset="60%" stopColor="#4F46E5" />
-          <stop offset="100%" stopColor="#1E1B4B" />
-        </linearGradient>
-
-        {/* Lens glow gradient */}
-        <linearGradient id="lensRingGrad" x1="25" y1="50" x2="65" y2="85" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#FFFFFF" />
-          <stop offset="100%" stopColor="#E0E7FF" />
-        </linearGradient>
-
-        {/* Ambient shadow */}
-        <filter id="logoShadow" x="-10%" y="-10%" width="130%" height="130%" filterUnits="userSpaceOnUse">
-          <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#1E3A8A" floodOpacity="0.35" />
-        </filter>
-      </defs>
-
-      {/* Rounded soft container if wanted or standalone icon */}
-      <g filter="url(#logoShadow)">
-        {/* Top Arm of 'F' - aerodynamic curved wing */}
-        <path
-          d="M 28 22 C 28 16 33 12 40 12 L 88 12 C 98 12 105 19 104 29 C 103 38 96 44 86 44 L 64 44 C 54 44 48 49 46 58 L 44 68 C 44 70 42 72 40 72 L 30 72 C 27 72 25 70 25 67 L 28 22 Z"
-          fill="url(#fTopGrad)"
-        />
-
-        {/* Lower body of 'F' with integrated discovery lens */}
-        <path
-          d="M 25 52 L 52 52 C 58 52 64 56 64 62 L 64 80 C 64 92 54 102 42 102 L 30 102 C 24 102 20 98 21 92 L 25 52 Z"
-          fill="url(#fStemGrad)"
-        />
-
-        {/* Discovery Magnifying Ring integrated into the stem of F */}
-        <circle
-          cx="44"
-          cy="74"
-          r="16"
-          stroke="url(#lensRingGrad)"
-          strokeWidth="6.5"
-          fill="#0F172A"
-          fillOpacity="0.4"
-        />
-
-        {/* Magnifying Glass Inner Refraction Dot */}
-        <circle
-          cx="40"
-          cy="70"
-          r="3"
-          fill="#38BDF8"
-          fillOpacity="0.9"
-        />
-
-        {/* Magnifying Glass Handle protruding diagonally */}
-        <path
-          d="M 55 85 L 67 97 C 69 99 69 102 67 104 C 65 106 62 106 60 104 L 48 92 Z"
-          fill="url(#lensRingGrad)"
-          stroke="#4338CA"
-          strokeWidth="1.5"
-        />
-      </g>
+      <circle cx="42" cy="42" r="34" stroke="currentColor" strokeWidth="11" />
+      <line
+        x1="66"
+        y1="66"
+        x2="92"
+        y2="92"
+        stroke="currentColor"
+        strokeWidth="11"
+        strokeLinecap="round"
+      />
     </svg>
   );
 
   if (variant === 'icon') {
+    const dim = iconSizes[size];
     return (
       <div
         onClick={onClick}
-        className={`inline-flex items-center justify-center cursor-pointer select-none ${className}`}
+        className={`inline-flex items-center justify-center cursor-pointer select-none ${colourClass} ${className}`}
         title="Findora - Find it. Compare it. Buy smarter."
       >
-        {LogoIcon}
+        <svg
+          viewBox="0 0 100 120"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+          className="shrink-0"
+          style={{ height: dim, width: (dim * 100) / 120 }}
+        >
+          <circle cx="42" cy="42" r="34" stroke="currentColor" strokeWidth="11" />
+          <line
+            x1="66"
+            y1="66"
+            x2="92"
+            y2="92"
+            stroke="currentColor"
+            strokeWidth="11"
+            strokeLinecap="round"
+          />
+        </svg>
       </div>
     );
   }
@@ -138,49 +107,19 @@ export const Logo: React.FC<LogoProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`inline-flex items-center gap-2.5 group cursor-pointer select-none ${className}`}
+      className={`inline-flex items-center gap-2.5 group cursor-pointer select-none ${colourClass} ${className}`}
       id="findora-brand-header"
     >
-      {LogoIcon}
-
       <div className="flex flex-col">
-        <div className="flex items-center tracking-tight leading-none">
-          <span
-            className={`font-extrabold tracking-tight ${textSizes[size]} ${
-              isDark ? 'text-[#0B132B]' : 'text-slate-900'
-            }`}
-          >
-            Find
-          </span>
-          {/* Stylized 'o' with dual-tone ring */}
-          <span className="relative inline-flex items-center justify-center">
-            <span
-              className={`font-extrabold ${textSizes[size]} text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600`}
-            >
-              o
-            </span>
-          </span>
-          <span
-            className={`font-extrabold tracking-tight ${textSizes[size]} ${
-              isDark ? 'text-[#0B132B]' : 'text-slate-900'
-            }`}
-          >
-            ra
-          </span>
-          <span
-            className={`font-semibold ml-0.5 self-start text-[10px] ${
-              isDark ? 'text-blue-600' : 'text-blue-600'
-            }`}
-          >
-            ™
-          </span>
+        <div className="flex items-baseline tracking-tight leading-none">
+          <span className={`font-extrabold uppercase ${textSizes[size]}`}>Find</span>
+          {RingO}
+          <span className={`font-extrabold uppercase ${textSizes[size]}`}>ra</span>
         </div>
 
         {showTagline && (
           <span
-            className={`hidden sm:block font-medium tracking-wide mt-0.5 ${taglineSizes[size]} ${
-              isDark ? 'text-slate-600' : 'text-slate-600'
-            }`}
+            className={`hidden sm:block font-medium tracking-wide mt-1 ${taglineSizes[size]} ${taglineClass}`}
           >
             Find it. Compare it. Buy smarter.
           </span>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flame, ArrowRight, TrendingDown, Tag } from 'lucide-react';
+import { ArrowRight, TrendingDown, Tag } from 'lucide-react';
 import { ProductCard } from '../common/ProductCard';
 import { useFindoraStore } from '../../services/store';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -23,23 +23,22 @@ export const BestDealsSection: React.FC<BestDealsSectionProps> = ({ onNavigate }
   if (deals.length === 0) return null;
 
   return (
-    <section className="py-5 sm:py-8 max-w-7xl mx-auto px-4 sm:px-6">
+    <section className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-5 sm:mb-6">
         <div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 uppercase tracking-widest mb-1 px-3 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
-            <Flame className="w-3.5 h-3.5 text-amber-600 fill-amber-400" />
-            <span>Aggressive Discounts</span>
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+            Aggressive Discounts
+          </span>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold uppercase text-black tracking-tight mt-1">
             Prices Worth Checking Today
           </h2>
-          <p className="text-sm text-slate-600 mt-1">
+          <p className="text-sm sm:text-base text-slate-500 mt-2">
             Biggest savings vs MRP on Amazon India — the discount is the gap between the stored price and its MRP.
           </p>
         </div>
         <button
           onClick={() => onNavigate('/deals')}
-          className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 group self-start sm:self-auto py-1"
+          className="text-xs sm:text-sm font-semibold text-black hover:text-slate-700 flex items-center gap-1 group self-start sm:self-auto py-1"
         >
           <span>Explore all deals</span>
           <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />

@@ -70,7 +70,7 @@ export function BlogPage({ onNavigate }: { onNavigate: (path: string) => void })
           <button
             key={g.title}
             onClick={() => onNavigate(g.path)}
-            className="text-left p-5 rounded-2xl bg-slate-900/[0.03] border border-slate-200 hover:border-indigo-400/50 transition-colors"
+            className="text-left p-5 rounded-none bg-slate-900/[0.03] border border-slate-200 hover:border-black/50 transition-colors"
           >
             <h2 className="text-lg font-bold text-slate-900 mb-1">{g.title}</h2>
             <p className="text-sm text-slate-600">{g.text}</p>

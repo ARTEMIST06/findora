@@ -28,23 +28,23 @@ export const CategoryShowcase: React.FC<CategoryShowcaseProps> = ({ onNavigate }
   if (!liveSynced || shown.length === 0) return null;
 
   return (
-    <section className="py-5 sm:py-8 max-w-7xl mx-auto px-4 sm:px-6">
+    <section className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6">
       <Reveal>
         <div className="flex items-end justify-between mb-4 px-1">
           <div>
-            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
               Big categories, best picks
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold uppercase text-black tracking-tight">
               Shop the big categories
             </h2>
-            <p className="text-sm text-slate-600 mt-1">
+            <p className="text-sm sm:text-base text-slate-500 mt-2">
               The categories with the most verified Amazon India picks — tap one to explore.
             </p>
           </div>
           <button
             onClick={() => onNavigate('/categories')}
-            className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1.5 transition-colors group shrink-0 py-1"
+            className="text-xs sm:text-sm font-semibold text-black hover:text-slate-700 flex items-center gap-1.5 transition-colors group shrink-0 py-1"
           >
             <span>View all</span>
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -64,7 +64,7 @@ export const CategoryShowcase: React.FC<CategoryShowcaseProps> = ({ onNavigate }
             >
               <button
                 onClick={() => onNavigate(`/category/${cat.slug}`)}
-                className="group relative w-full h-44 sm:h-60 lg:h-64 rounded-3xl overflow-hidden text-left shadow-lg hover:shadow-2xl transition-all duration-300 card-lift focus:outline-none focus:ring-4 focus:ring-blue-500/30"
+                className="group relative w-full h-44 sm:h-60 lg:h-64 rounded-none overflow-hidden text-left transition-all duration-300 card-lift focus:outline-none focus:ring-4 focus:ring-black/20"
               >
                 {asset?.image ? (
                   <img
@@ -75,9 +75,9 @@ export const CategoryShowcase: React.FC<CategoryShowcaseProps> = ({ onNavigate }
                   />
                 ) : (
                   <div
-                    className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center"
+                    className="absolute inset-0 bg-black flex items-center justify-center"
                   >
-                    <CategoryIcon categoryKey={cat.key} className="w-20 h-20 text-white/30" />
+                    <CategoryIcon categoryKey={cat.key} className="w-20 h-20 text-white/40" />
                   </div>
                 )}
                 {/* Readability gradient — dark at the bottom where the text sits */}
@@ -86,7 +86,7 @@ export const CategoryShowcase: React.FC<CategoryShowcaseProps> = ({ onNavigate }
                   <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-white/90 bg-black/40 backdrop-blur-sm border border-white/20 rounded-full px-2.5 py-0.5 mb-2">
                     {cat.count} {cat.count === 1 ? 'product' : 'products'}
                   </span>
-                  <h3 className="text-lg sm:text-xl lg:text-2xl font-extrabold text-white leading-tight">
+                  <h3 className="text-lg sm:text-xl lg:text-2xl font-extrabold uppercase text-white leading-tight">
                     {cat.name}
                   </h3>
                   <span className="mt-1.5 inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-white/90 group-hover:text-white transition-colors">

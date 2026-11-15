@@ -87,15 +87,15 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
   return (
     <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-slate-200 transition-colors">
       {/* Top Utility Announcement Bar */}
-      <div className="bg-indigo-50 border-b border-indigo-100 text-slate-700 text-xs py-1.5 px-4 sm:px-6">
+      <div className="bg-black border-b border-black text-white text-xs py-1.5 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 text-blue-600 font-medium tracking-wide">
-              <Sparkles className="w-3.5 h-3.5 text-cyan-600" />
+            <span className="inline-flex items-center gap-1.5 text-white font-medium tracking-wide">
+              <Sparkles className="w-3.5 h-3.5 text-white" />
               Verified Amazon India deals
             </span>
-            <span className="hidden sm:inline text-slate-600">•</span>
-            <span className="hidden sm:inline text-slate-600">
+            <span className="hidden sm:inline text-white/60">•</span>
+            <span className="hidden sm:inline text-white/70">
               One verified offer per product, checked by our team
             </span>
           </div>
@@ -104,7 +104,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
             {(currentUser?.role === 'admin' || currentUser?.role === 'editor') && (
               <button
                 onClick={() => onNavigate('/admin')}
-                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold transition-all shadow-sm"
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white text-black hover:bg-slate-200 font-semibold transition-all"
               >
                 <LayoutDashboard className="w-3 h-3" />
                 <span>Admin Panel</span>
@@ -157,18 +157,18 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
             >
               <span>Compare</span>
               {compareList.length > 0 && (
-                <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                <span className="w-2 h-2 rounded-full bg-black animate-pulse"></span>
               )}
             </button>
             <button
               onClick={() => onNavigate('/deals')}
               className={`px-2.5 xl:px-3.5 py-1.5 xl:py-2 rounded-full transition-all flex items-center gap-1.5 ${
                 currentRoute === '/deals'
-                  ? 'text-amber-600 bg-amber-500/15 font-semibold'
-                  : 'hover:text-amber-600 hover:bg-amber-500/10'
+                  ? 'text-black bg-black/5 font-semibold'
+                  : 'hover:text-black hover:bg-black/5'
               }`}
             >
-              <Flame className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-amber-600" />
+              <Flame className="w-3.5 h-3.5 xl:w-4 xl:h-4 text-black" />
               <span>Deals</span>
             </button>
             <button
@@ -196,7 +196,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
               }}
               onFocus={() => setIsSearchOpen(true)}
               placeholder="Search products, brands..."
-              className="w-full pl-9 pr-8 py-2 xl:py-2.5 bg-white/90 hover:bg-white focus:bg-white text-slate-900 placeholder-slate-400 text-xs xl:text-sm rounded-full border border-slate-300/60 focus:border-blue-500/70 focus:ring-4 focus:ring-blue-500/15 transition-all outline-none"
+              className="w-full pl-9 pr-8 py-2 xl:py-2.5 bg-white/90 hover:bg-white focus:bg-white text-slate-900 placeholder-slate-400 text-xs xl:text-sm rounded-full border border-slate-300/60 focus:border-black focus:ring-4 focus:ring-black/10 transition-all outline-none"
             />
             <Search className="absolute left-3 top-2.5 xl:top-3 w-3.5 h-3.5 xl:w-4 xl:h-4 text-slate-600 pointer-events-none" />
             {searchQuery && (
@@ -215,7 +215,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
             <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-300/80 overflow-hidden z-50 backdrop-blur-xl">
               <div className="p-2.5 border-b border-slate-200 text-[11px] font-semibold text-slate-600 uppercase tracking-wider px-3 flex items-center justify-between">
                 <span>Matching Products</span>
-                <span className="text-blue-600">{searchSuggestions.length} found</span>
+                <span className="text-black">{searchSuggestions.length} found</span>
               </div>
               <div className="divide-y divide-slate-200/60 max-h-80 overflow-y-auto">
                 {searchSuggestions.map((prod) => (
@@ -239,7 +239,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
                         <div className="text-xs text-slate-600 flex items-center gap-2 mt-0.5">
                           <span>{prod.brand}</span>
                           <span>•</span>
-                          <span className="text-emerald-600 font-semibold">
+                          <span className="text-black font-semibold">
                             {formatINR(prod.lowestPrice)}
                           </span>
                         </div>
@@ -251,7 +251,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
               </div>
               <div
                 onClick={handleSearchSubmit}
-                className="p-2.5 bg-white/90 text-center text-xs font-semibold text-blue-600 hover:text-blue-700 cursor-pointer border-t border-slate-200"
+                className="p-2.5 bg-white/90 text-center text-xs font-semibold text-black hover:text-slate-700 cursor-pointer border-t border-slate-200"
               >
                 View all results for "{searchQuery}" →
               </div>
@@ -266,17 +266,17 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
             onClick={() => onNavigate('/compare')}
             className={`hidden sm:flex relative p-2 sm:px-3 sm:py-2 rounded-full border text-xs sm:text-sm font-medium transition-all items-center gap-1.5 ${
               currentRoute === '/compare'
-                ? 'bg-blue-600/20 text-blue-600 border-blue-500/50'
+                ? 'bg-black text-white border-black'
                 : 'text-slate-700 border-slate-200 bg-white/80 hover:bg-slate-100 hover:text-slate-900 hover:border-slate-300'
             }`}
             title="Compare products side-by-side"
           >
-            <Scale className="w-4 h-4 text-blue-600" />
+            <Scale className="w-4 h-4" />
             <span className="hidden 2xl:inline text-xs">Compare</span>
             <span
               className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
                 compareList.length > 0
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-white text-black'
                   : 'bg-slate-100 text-slate-600'
               }`}
             >
@@ -289,17 +289,17 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
             onClick={() => onNavigate('/wishlist')}
             className={`relative p-2 sm:px-3 sm:py-2 rounded-full border text-xs sm:text-sm font-medium transition-all flex items-center gap-1.5 ${
               currentRoute === '/wishlist'
-                ? 'bg-rose-500/20 text-rose-600 border-rose-500/50'
+                ? 'bg-black text-white border-black'
                 : 'text-slate-700 border-slate-200 bg-white/80 hover:bg-slate-100 hover:text-slate-900 hover:border-slate-300'
             }`}
             title="Saved Wishlist"
           >
-            <Heart className="w-4 h-4 text-rose-600" />
+            <Heart className="w-4 h-4" />
             <span className="hidden 2xl:inline text-xs">Wishlist</span>
             <span
               className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
                 wishlist.length > 0
-                  ? 'bg-rose-600 text-slate-900'
+                  ? 'bg-white text-black'
                   : 'bg-slate-100 text-slate-600'
               }`}
             >
@@ -318,10 +318,10 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
                   <img
                     src={currentUser.avatar}
                     alt={currentUser.name}
-                    className="w-7 h-7 rounded-full object-cover ring-1 ring-blue-500/40"
+                    className="w-7 h-7 rounded-full object-cover ring-1 ring-black/20"
                   />
                 ) : (
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white text-xs font-bold flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-full bg-black text-white text-xs font-bold flex items-center justify-center">
                     {currentUser.name.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -337,7 +337,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
             ) : (
               <button
                 onClick={() => onNavigate('/login')}
-                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-xs sm:text-sm font-semibold transition-all shadow-lg shadow-indigo-500/20 active:scale-95 flex items-center gap-1.5"
+                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-black hover:bg-slate-800 text-white text-xs sm:text-sm font-semibold transition-all active:scale-95 flex items-center gap-1.5"
               >
                 <User className="w-3.5 h-3.5" />
                 <span>Sign In</span>
@@ -350,7 +350,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
                 <div className="px-4 py-2.5 border-b border-slate-200">
                   <p className="text-xs font-semibold text-slate-900">{currentUser.name}</p>
                   <p className="text-[11px] text-slate-600 truncate">{currentUser.email}</p>
-                  <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-slate-100 text-blue-700">
+                  <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-black text-white">
                     Role: {currentUser.role}
                   </span>
                 </div>
@@ -363,7 +363,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
                     }}
                     className="w-full px-4 py-2 text-left text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 flex items-center gap-2"
                   >
-                    <LayoutDashboard className="w-4 h-4 text-blue-600" />
+                    <LayoutDashboard className="w-4 h-4 text-black" />
                     <span>Admin Dashboard</span>
                   </button>
                 )}
@@ -376,7 +376,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
                     }}
                     className="w-full px-4 py-2 text-left text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 flex items-center gap-2"
                   >
-                    <BarChart3 className="w-4 h-4 text-emerald-600" />
+                    <BarChart3 className="w-4 h-4 text-black" />
                     <span>Analytics & Audit</span>
                   </button>
                 )}
@@ -399,9 +399,9 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
                     setIsUserMenuOpen(false);
                     store.logout();
                   }}
-                  className="w-full px-4 py-2 text-left text-xs font-medium text-rose-600 hover:bg-rose-950/40 flex items-center gap-2"
+                  className="w-full px-4 py-2 text-left text-xs font-medium text-black hover:bg-black/5 flex items-center gap-2"
                 >
-                  <LogOut className="w-4 h-4 text-rose-600" />
+                  <LogOut className="w-4 h-4 text-black" />
                   <span>Sign Out</span>
                 </button>
               </div>
@@ -429,7 +429,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search products, brands..."
-              className="w-full pl-10 pr-4 py-2.5 bg-white text-slate-900 placeholder-slate-400 text-sm rounded-full border border-slate-300 outline-none"
+              className="w-full pl-10 pr-4 py-2.5 bg-white text-slate-900 placeholder-slate-400 text-sm rounded-full border border-slate-300 focus:border-black outline-none"
             />
             <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-600 pointer-events-none" />
           </form>
@@ -467,7 +467,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
                 setIsMobileMenuOpen(false);
                 onNavigate('/deals');
               }}
-              className="px-3.5 py-2.5 rounded-xl text-left hover:bg-slate-900/[0.03] flex items-center gap-2 text-amber-600 font-semibold"
+              className="px-3.5 py-2.5 rounded-xl text-left hover:bg-slate-900/[0.03] flex items-center gap-2 text-black font-semibold"
             >
               <Flame className="w-4 h-4" />
               <span>Trending Deals</span>
@@ -481,7 +481,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
             >
               <span>Compare Products</span>
               {compareList.length > 0 && (
-                <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full font-bold">
+                <span className="bg-black text-white text-xs px-2 py-0.5 rounded-full font-bold">
                   {compareList.length}
                 </span>
               )}
@@ -495,7 +495,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
             >
               <span>Wishlist</span>
               {wishlist.length > 0 && (
-                <span className="bg-rose-500 text-slate-900 text-xs px-2 py-0.5 rounded-full font-bold">
+                <span className="bg-black text-white text-xs px-2 py-0.5 rounded-full font-bold">
                   {wishlist.length}
                 </span>
               )}
@@ -507,7 +507,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
               }}
               className="px-3.5 py-2.5 rounded-xl text-left hover:bg-slate-900/[0.03] flex items-center gap-2"
             >
-              <BookOpen className="w-4 h-4 text-blue-600" />
+              <BookOpen className="w-4 h-4 text-black" />
               <span>Buying Guides & Blog</span>
             </button>
 
@@ -517,7 +517,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
                   setIsMobileMenuOpen(false);
                   onNavigate('/admin');
                 }}
-                className="px-3.5 py-2.5 rounded-xl text-left bg-blue-600/20 text-blue-600 border border-blue-500/30 font-semibold flex items-center gap-2 mt-2"
+                className="px-3.5 py-2.5 rounded-xl text-left bg-black text-white border border-black font-semibold flex items-center gap-2 mt-2"
               >
                 <LayoutDashboard className="w-4 h-4" />
                 <span>Go to Admin Panel</span>
