@@ -34,13 +34,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigate }) => {
             : 'Verified Amazon India deals'}
         </p>
 
-        {/* Giant editorial headline — Findora's own tagline */}
+        {/* Giant editorial headline — Findora's tagline */}
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold uppercase text-black tracking-tight leading-[1.05] mb-4 sm:mb-6">
-          Find it.
+          We search.
           <br />
-          Compare it.
-          <br />
-          Buy smarter.
+          You shop.
         </h1>
 
         {/* One small grey subline */}

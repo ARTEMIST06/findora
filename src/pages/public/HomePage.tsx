@@ -21,8 +21,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
     <div>
       {/* Sections carry their own vertical padding. */}
       <SEOHead
-        title="Findora — Find It. Compare It. Buy Smarter."
-        description="Find products, check verified Amazon India prices, discover better deals, and buy smarter with Findora."
+        title="Findora — We Search. You Shop."
+        description="We search, you shop — Findora finds verified products on Amazon India with checked prices and real deals."
         canonicalPath="/"
         isHomePage={true}
       />

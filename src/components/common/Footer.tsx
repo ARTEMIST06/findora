@@ -226,7 +226,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
         {/* Bottom copyright & attribution */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/50">
-          <p>© {new Date().getFullYear()} Findora. Find it. Compare it. Buy smarter.</p>
+          <p>© {new Date().getFullYear()} Findora. We search. You shop.</p>
           <div className="flex items-center gap-4">
             <span className="text-white/50">Verified Amazon Deals</span>
             <span>•</span>
@@ -254,7 +254,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               {Array.from({ length: 4 }).map((_, i) => (
                 <span key={i} className="flex items-center">
                   <span className="text-4xl sm:text-6xl font-extrabold uppercase tracking-tight text-white px-4 sm:px-6">
-                    Find it. Compare it. Buy smarter.
+                    We search. You shop.
                   </span>
                   <span className="text-4xl sm:text-6xl font-extrabold text-white/30">•</span>
                 </span>
