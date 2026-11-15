@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { GA_MEASUREMENT_ID } from '../../services/analytics';
 
 export const Analytics = () => {
   useEffect(() => {
@@ -12,8 +13,8 @@ export const Analytics = () => {
       }
     }
 
-    // Google Analytics (GA4)
-    const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+    // Google Analytics (GA4) — env var first, built-in Measurement ID fallback
+    const gaId = GA_MEASUREMENT_ID;
     if (gaId && gaId.trim() && typeof document !== 'undefined') {
       if (!document.getElementById('ga4-script')) {
         const script = document.createElement('script');
