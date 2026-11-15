@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useLocation } from 'react-router-dom';
 
 export interface BreadcrumbItem {
   name: string;
@@ -75,7 +76,10 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
     return description.trim();
   }, [description]);
 
-  // 3. Resolve canonical URL cleanly
+  // 3. Resolve canonical URL cleanly. Real routes (react-router, PR #34):
+  // the canonical is the real pathname — no hash fragments any more.
+  // useLocation keeps it reactive across client-side navigations.
+  const location = useLocation();
   const canonicalUrl = useMemo(() => {
     if (url && url.startsWith('http')) {
       try {
@@ -86,28 +90,23 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
       }
     }
 
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://findora.in';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://findora-one.vercel.app';
 
     if (canonicalPath) {
       const clean = canonicalPath.startsWith('/') ? canonicalPath : `/${canonicalPath}`;
       return `${origin}${clean}`;
     }
 
-    if (typeof window !== 'undefined') {
-      const hash = window.location.hash.replace(/^#/, '');
-      const pathPart = (hash ? hash : window.location.pathname).split('?')[0];
-      const clean = pathPart.startsWith('/') ? pathPart : `/${pathPart}`;
-      return `${origin}${clean === '' ? '/' : clean}`;
-    }
-
-    return `${origin}/`;
-  }, [url, canonicalPath]);
+    const pathPart = location.pathname.split('?')[0];
+    const clean = pathPart.startsWith('/') ? pathPart : `/${pathPart}`;
+    return `${origin}${clean === '' ? '/' : clean}`;
+  }, [url, canonicalPath, location.pathname]);
 
   // 4. Absolute Image URL
   const fullImageUrl = useMemo(() => {
     if (!image) return DEFAULT_IMAGE;
     if (image.startsWith('http://') || image.startsWith('https://')) return image;
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://findora.in';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://findora-one.vercel.app';
     return `${origin}${image.startsWith('/') ? image : `/${image}`}`;
   }, [image]);
 
@@ -119,7 +118,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
   // 6. JSON-LD Structured Data Builder
   const structuredDataList = useMemo(() => {
     const list: Record<string, any>[] = [];
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://findora.in';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://findora-one.vercel.app';
 
     // A. WebSite & Organization Schema (rendered on Home or when isHomePage=true)
     if (isHomePage) {
@@ -134,7 +133,7 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
           '@type': 'SearchAction',
           'target': {
             '@type': 'EntryPoint',
-            'urlTemplate': `${origin}/#/search?q={search_term_string}`,
+            'urlTemplate': `${origin}/search?q={search_term_string}`,
           },
           'query-input': 'required name=search_term_string',
         },

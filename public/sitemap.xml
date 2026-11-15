@@ -1,20 +1,95 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Findora sitemap.
-     The app is hash-routed (/#/products, /#/categories, ...), so crawlers
-     only ever see the homepage: URL fragments are stripped from sitemap
-     locs, and the clean paths would all serve the same index.html. Listing
-     only the one URL Google can actually crawl.
-     The previous sitemap listed findora.in (wrong domain, site is
-     findora-one.vercel.app) and 12 fabricated seed products (iPhone 16 Pro,
-     S25 Ultra, MacBook Air M3, ...) that were deleted from the catalogue in
-     PR #9 — those entries are gone.
-     The real fix is real routes (react-router) + a generated sitemap; until
-     then, this file stays honest and minimal. -->
+     Real routes (react-router BrowserRouter, PR #34): every URL below is a
+     real path that serves its own page — crawlers no longer see only the
+     homepage. Static + top-category pages are listed; the 592 individual
+     product pages are NOT listed yet (that needs a build-time generator fed
+     by the live catalogue — follow-up, not hand-maintained here). Search
+     pages are deliberately excluded (query-dependent URLs don't belong in
+     a sitemap). -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://findora-one.vercel.app/</loc>
     <lastmod>2026-11-15</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://findora-one.vercel.app/products</loc>
+    <lastmod>2026-11-15</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://findora-one.vercel.app/categories</loc>
+    <lastmod>2026-11-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://findora-one.vercel.app/category/home-kitchen</loc>
+    <lastmod>2026-11-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://findora-one.vercel.app/category/earbuds</loc>
+    <lastmod>2026-11-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://findora-one.vercel.app/category/mobile-accessories</loc>
+    <lastmod>2026-11-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://findora-one.vercel.app/category/shoes</loc>
+    <lastmod>2026-11-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://findora-one.vercel.app/category/laptop-accessories</loc>
+    <lastmod>2026-11-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://findora-one.vercel.app/category/appliances</loc>
+    <lastmod>2026-11-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://findora-one.vercel.app/deals</loc>
+    <lastmod>2026-11-15</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://findora-one.vercel.app/faq</loc>
+    <lastmod>2026-11-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://findora-one.vercel.app/about</loc>
+    <lastmod>2026-11-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://findora-one.vercel.app/contact</loc>
+    <lastmod>2026-11-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://findora-one.vercel.app/blog</loc>
+    <lastmod>2026-11-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>

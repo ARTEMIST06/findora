@@ -22,7 +22,17 @@ export function normalizeCategoryKey(value: string | undefined | null): string {
   const aliases: Record<string, string> = {
     largeappiliances: 'largeappliances',
     appiliances: 'appliances',
-    kitchenappliances: 'kitchen',
+    // 2026-11-15 merges (aliases only — stored data untouched):
+    // "Kitchen" (9) + "Kitchen Appliances" + "Home appliances" (1) all fold
+    // into "Home & Kitchen", and "Bagpacks" (3) into "Bags & Luggage".
+    // Bare "home" (3) is deliberately NOT aliased: those products come from
+    // the original AI Studio seed catalogue, are not identifiable from the
+    // repo/workspace files, and "home" is genuinely ambiguous (decor?
+    // appliances? general home goods?) — guessing would misfile them.
+    kitchen: 'homekitchen',
+    kitchenappliances: 'homekitchen',
+    homeappliances: 'homekitchen',
+    bagpacks: 'bagsluggage',
     tws: 'earbuds',
     earphones: 'earbuds',
     truewirelessearbuds: 'earbuds',
@@ -151,6 +161,7 @@ export function categoryAccent(key: string): string {
     mobileaccessories: '#3B82F6',
     powerbanks: '#F59E0B',
     kitchen: '#10B981',
+    homekitchen: '#10B981',
     homeappliances: '#14B8A6',
     largeappliances: '#14B8A6',
     appliances: '#14B8A6',
