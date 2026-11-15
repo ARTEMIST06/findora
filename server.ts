@@ -11,6 +11,8 @@ import fs from 'fs';
 // whole API down — including /api/health, which needs no auth at all.
 // Only the two token-verifying routes ever touch Firebase Admin, and only
 // when a request actually arrives.
+import firebaseConfigJson from './firebase-applet-config.json';
+
 let firebaseConfig: any = null;
 try {
   const configPath = path.join(process.cwd(), 'firebase-applet-config.json');
@@ -19,6 +21,15 @@ try {
   }
 } catch (e) {
   console.error("Firebase config read failed:", e);
+}
+// The fs read above works locally, but Vercel's file tracer does not ship
+// runtime-read JSON into the serverless bundle, so firebaseConfig was null
+// in production (the Pinterest feed returned 500 "Catalog feed
+// unavailable"). The static import is bundled by esbuild into
+// dist/server.cjs, so it is always present. (The key is a public Firebase
+// web key, already shipped in the client bundle; it is not a secret.)
+if (!firebaseConfig) {
+  firebaseConfig = firebaseConfigJson;
 }
 
 let adminApp: any = null;
