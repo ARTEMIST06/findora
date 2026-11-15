@@ -1,8 +1,6 @@
 import React from 'react';
 import { SEOHead } from '../../components/common/SEOHead';
 import { HeroSection } from '../../components/public/HeroSection';
-import { LiveEngine } from '../../components/public/LiveEngine';
-import { PopularCategories } from '../../components/public/PopularCategories';
 import { CategoryShowcase } from '../../components/public/CategoryShowcase';
 import { TrendingProducts } from '../../components/public/TrendingProducts';
 import { StoreBannerStrip } from '../../components/public/StoreBannerStrip';
@@ -27,12 +25,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         isHomePage={true}
       />
       <HeroSection onNavigate={onNavigate} />
-      {/* Spotlight — curated carousel, now its own section (it used to be
-          the hero's right column). */}
-      <section className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6">
-        <LiveEngine onNavigate={onNavigate} />
-      </section>
-      <PopularCategories onNavigate={onNavigate} />
+      {/* Big categories sit right below the hero now (Amazon-style cards
+          with real products inside). The Spotlight carousel (LiveEngine)
+          and the small PopularCategories chip row were removed — the
+          homepage stays clean and the categories carry the top. */}
       <CategoryShowcase onNavigate={onNavigate} />
       <TrendingProducts onNavigate={onNavigate} />
       <StoreBannerStrip onNavigate={onNavigate} />
