@@ -165,7 +165,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
               <strong className="text-slate-900">Arya Singh — Founder &amp; CEO.</strong> Findora is run by Arya Singh, a computer applications (BCA) student at Galgotias University in India. He started Findora because choosing the right product online felt like guesswork — and he wanted a straight answer for himself and for other students and budget buyers.
             </p>
             <p>
-              The whole team is two people: Arya, and Jarvis, his AI assistant, who handles the research, the catalogue, and the website. No investors, no office, no sponsors — just a student building something useful, one verified product at a time.
+              Findora is run entirely by Arya — he handles the research, the catalogue, and the website himself. No investors, no office, no sponsors — just a student building something useful, one verified product at a time.
             </p>
             <p className="flex items-center gap-2">
               <Mail className="w-4 h-4 text-cyan-600" />
