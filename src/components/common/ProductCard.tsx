@@ -2,6 +2,7 @@ import React from 'react';
 import { Heart, Scale, ShieldCheck, Tag, Sparkles } from 'lucide-react';
 import { ProductWithPrices } from '../../types';
 import { formatINR } from '../../utils/formatters';
+import { displayCategoryName } from '../../utils/categories';
 import { useFindoraStore } from '../../services/store';
 import { useToast } from './Toast';
 import { getProductImage, handleImageFallback } from '../../utils/visualAssets';
@@ -120,7 +121,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigate })
               so Findora never presents a star score it cannot stand behind. */}
           <div className="flex items-center justify-between gap-2 mb-2 text-[11px]">
             <span className="font-bold text-black uppercase tracking-wider">{product.brand}</span>
-            <span className="text-slate-600 font-medium capitalize truncate">{product.category}</span>
+            <span className="text-slate-600 font-medium capitalize truncate">{displayCategoryName(product.category)}</span>
           </div>
 
           {/* Product Title */}

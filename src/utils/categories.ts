@@ -25,6 +25,12 @@ export function normalizeCategoryKey(value: string | undefined | null): string {
     // 2026-11-15 merges (aliases only — stored data untouched):
     // "Kitchen" (9) + "Kitchen Appliances" + "Home appliances" (1) all fold
     // into "Home & Kitchen", and "Bagpacks" (3) into "Bags & Luggage".
+    // Round 2 (live check 2026-11-15 19:12 IST): the splinter groups the
+    // first pass missed fold in too — "Kitchen & Home Appliances" (6),
+    // "Small Kitchen Appliances" (1), "Kitchen items" (1) into Home &
+    // Kitchen; "Bags, Wallets and Luggage" (5), "Bags" (3), "Luggage" (1),
+    // "Luggage and travel" (2), "Handbags, Purses & Clutches" (1) into
+    // Bags & Luggage.
     // Bare "home" (3) is deliberately NOT aliased: those products come from
     // the original AI Studio seed catalogue, are not identifiable from the
     // repo/workspace files, and "home" is genuinely ambiguous (decor?
@@ -32,7 +38,15 @@ export function normalizeCategoryKey(value: string | undefined | null): string {
     kitchen: 'homekitchen',
     kitchenappliances: 'homekitchen',
     homeappliances: 'homekitchen',
+    kitchenhomeappliances: 'homekitchen',
+    smallkitchenappliances: 'homekitchen',
+    kitchenitems: 'homekitchen',
     bagpacks: 'bagsluggage',
+    bagswalletsandluggage: 'bagsluggage',
+    bags: 'bagsluggage',
+    luggage: 'bagsluggage',
+    luggageandtravel: 'bagsluggage',
+    handbagspursesclutches: 'bagsluggage',
     tws: 'earbuds',
     earphones: 'earbuds',
     truewirelessearbuds: 'earbuds',
@@ -64,6 +78,22 @@ export function slugifyCategoryLabel(label: string): string {
 /** Clean a raw category string for display: trim, collapse spaces, keep case. */
 export function cleanCategoryLabel(value: string): string {
   return value.replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Display name for a product's raw category, using the merged group's
+ * canonical name where one exists (so a card never shows a splinter label
+ * like "Bagpacks" while the category page says "Bags & Luggage").
+ * Anything unmerged falls back to the cleaned raw string.
+ */
+const CANONICAL_CATEGORY_NAMES: Record<string, string> = {
+  homekitchen: 'Home & Kitchen',
+  bagsluggage: 'Bags & Luggage',
+};
+
+export function displayCategoryName(raw: string): string {
+  const key = normalizeCategoryKey(cleanCategoryLabel(raw || 'General'));
+  return CANONICAL_CATEGORY_NAMES[key] || cleanCategoryLabel(raw || 'General');
 }
 
 /** "home-kitchen" -> "Home Kitchen" (fallback display name for a bare slug). */

@@ -3,6 +3,7 @@ import { ChevronRight, ShieldCheck, Mail, AlertCircle, FileText, Lock, Cookie, S
 import { SEOHead } from '../../components/common/SEOHead';
 import { useToast } from '../../components/common/Toast';
 import { useFindoraStore } from '../../services/store';
+import { deriveCategories } from '../../utils/categories';
 
 interface LegalPageProps {
   page: 'about' | 'contact' | 'privacy' | 'terms' | 'affiliate-disclosure' | 'cookie-disclosure' | 'faq';
@@ -144,8 +145,8 @@ export const LegalPage: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
               Findora is a product-discovery site for India. We find the best products, verify them on Amazon India, and send you straight there to buy — no store, no checkout, no confusion.
             </p>
             <div className="flex flex-wrap gap-2 mt-5">
-              <span className="px-3 py-1.5 rounded-full bg-black/5 border border-black/10 text-black text-xs font-bold">592 verified products</span>
-              <span className="px-3 py-1.5 rounded-full bg-black/5 border border-black/10 text-black text-xs font-bold">78 categories</span>
+              <span className="px-3 py-1.5 rounded-full bg-black/5 border border-black/10 text-black text-xs font-bold">{store.hasLiveProducts() ? `${store.getProducts(true).length} verified products` : '592 verified products'}</span>
+              <span className="px-3 py-1.5 rounded-full bg-black/5 border border-black/10 text-black text-xs font-bold">{store.hasLiveProducts() ? `${deriveCategories(store.getProducts(true)).length} categories` : '75 categories'}</span>
               <span className="px-3 py-1.5 rounded-full bg-black/5 border border-black/10 text-black text-xs font-bold">1 store: Amazon India</span>
             </div>
           </div>
