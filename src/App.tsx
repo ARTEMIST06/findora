@@ -214,7 +214,7 @@ export default function App() {
           <Navbar currentRoute={currentPath} onNavigate={handleNavigate} />
 
           {/* Main Content Area */}
-          <main className="flex-1 pb-16">
+          <main className="flex-1 pb-6">
             <Suspense
               fallback={
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 text-center">

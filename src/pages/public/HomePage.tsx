@@ -17,7 +17,7 @@ interface HomePageProps {
 
 export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
   return (
-    <div className="space-y-4 pb-12">
+    <div className="space-y-4">
       <SEOHead 
         title="Findora — Find It. Compare It. Buy Smarter."
         description="Find products, check verified Amazon India prices, discover better deals, and buy smarter with Findora."
