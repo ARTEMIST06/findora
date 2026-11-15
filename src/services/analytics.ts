@@ -3,6 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+// GA4 Measurement ID for the Findora property. A Measurement ID is a public
+// identifier by design (it appears in every page's source once loaded), so
+// keeping it in code is safe. The Vercel env var VITE_GA_MEASUREMENT_ID
+// takes precedence when set; this fallback keeps tracking live if the env
+// var is ever missing (e.g. Vercel dashboard sign-in unavailable).
+export const GA_MEASUREMENT_ID: string =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GA_MEASUREMENT_ID) || 'G-Z5NJ9TQMC6';
+
 // Storage keys for analytics metrics
 const STORAGE_KEYS = {
   PRODUCT_VIEWS: 'findora_analytics_prod_views_v1',
@@ -130,22 +138,17 @@ class AnalyticsService {
   }
 
   /**
-   * Checks if Google Analytics 4 is actively configured via environment variable.
+   * Checks if Google Analytics 4 is actively configured.
    */
   isGA4Configured(): boolean {
     if (typeof window === 'undefined') return false;
-    const gaId = (typeof import.meta !== 'undefined' && import.meta.env)
-      ? import.meta.env.VITE_GA_MEASUREMENT_ID
-      : undefined;
+    const gaId = GA_MEASUREMENT_ID;
     return Boolean(gaId && gaId.trim().length > 0 && gaId.startsWith('G-'));
   }
 
   getGA4MeasurementId(): string | null {
     if (typeof window === 'undefined') return null;
-    const gaId = (typeof import.meta !== 'undefined' && import.meta.env)
-      ? import.meta.env.VITE_GA_MEASUREMENT_ID
-      : undefined;
-    return gaId || null;
+    return GA_MEASUREMENT_ID || null;
   }
 
   /**
