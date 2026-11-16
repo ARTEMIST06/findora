@@ -39,6 +39,7 @@ import { ProductManagement } from '../../components/admin/ProductManagement';
 import { getAmazonProductUrl, getAmazonAffiliateUrl } from '../../utils/amazon';
 import { Product, Store as StoreType, PriceOffer, ProductDraft, Brand } from '../../types';
 import { formatINR, formatRelativeTime } from '../../utils/formatters';
+import { buildAdminCategoryOptions } from '../../utils/categories';
 import { useToast } from '../../components/common/Toast';
 import * as XLSX from 'xlsx';
 
@@ -92,6 +93,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
   const [editingProductOffers, setEditingProductOffers] = useState<Partial<PriceOffer>[]>([]);
 
+  // Category options for the Edit Product dialog, derived from the LIVE
+  // catalogue (all canonical categories + every distinct stored string).
+  // The old dropdown used only the 8 hardcoded mock categories, so a stored
+  // category like "Home & Kitchen" matched no option and saving silently
+  // overwrote it (proven live 2026-11-16: a desk lamp came back "cameras").
+  const categoryOptions = React.useMemo(
+    () => buildAdminCategoryOptions(products, editingProduct?.category),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [products, editingProduct?.category]
+  );
+
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const [editingOffer, setEditingOffer] = useState<Partial<PriceOffer> | null>(null);
 
@@ -137,11 +149,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
          setFetchResult({ success: false, message: `This merchant product may already exist as "${duplicateProduct.name}". Continue anyway or edit existing.` });
       } else {
         // Populate form
+        // NOTE: the stored category wins over the fetched guess. The fetch
+        // returns a Gemini-suggested category, which can be wrong — letting
+        // it overwrite the stored value silently rewrote categories (the
+        // 2026-11-16 "cameras" lamp). The fetched value only fills an
+        // empty category; the admin can still change it in the dropdown.
         setEditingProduct({
           ...editingProduct,
           name: resData.title || editingProduct?.name || '',
           brand: resData.brand || editingProduct?.brand || '',
-          category: resData.category || editingProduct?.category || categories[0]?.slug,
+          category: editingProduct?.category || resData.category || '',
           images: resData.images?.length ? resData.images : (editingProduct?.images || []),
         });
         
@@ -305,11 +322,14 @@ if (authLoading) {
     // New products start EMPTY. The old template pre-filled a fake phone
     // image, invented specs (Display/Processor/Camera...), a 4.8 rating
     // with 120 reviews, and made-up pros/cons — never ship invented data.
+    // Category also starts EMPTY: the old default (categories[0], i.e.
+    // "Smartphones") silently filed every new product under Smartphones
+    // unless the admin noticed. Save is blocked until one is picked.
     setEditingProduct({
       name: '',
       slug: '',
       brand: '',
-      category: categories[0]?.slug || '',
+      category: '',
       shortDescription: '',
       description: '',
       images: [],
@@ -415,6 +435,13 @@ if (authLoading) {
     e.preventDefault();
     if (!editingProduct?.name || !editingProduct.brand) {
       showToast('Please provide a product title and brand', 'error');
+      return;
+    }
+
+    // Category is required and explicit: an empty category used to fall
+    // back to categories[0] ("Smartphones") and silently misfile products.
+    if (!editingProduct.category) {
+      showToast('Please choose a category', 'error');
       return;
     }
     
@@ -1337,12 +1364,13 @@ if (authLoading) {
                   <div className="space-y-1">
                     <label className="font-semibold text-slate-700">Category{fetchedFields.category && <span className="ml-2 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">✓ AUTO</span>}</label>
                     <select
-                      value={editingProduct.category || categories[0]?.slug}
+                      value={editingProduct.category || ''}
                       onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
                       className="w-full px-3 py-2 border border-slate-200 rounded-xl outline-none focus:border-blue-500 bg-white"
                     >
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.slug}>{c.name}</option>
+                      <option value="" disabled>Select a category…</option>
+                      {categoryOptions.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
                       ))}
                     </select>
                   </div>
