@@ -12,7 +12,6 @@ import {
   ChevronRight,
   Shield,
   LogOut,
-  Sparkles,
   BarChart3,
   BookOpen,
 } from 'lucide-react';
@@ -91,7 +90,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 text-white font-medium tracking-wide">
-              <Sparkles className="w-3.5 h-3.5 text-white" />
               Verified Amazon India deals
             </span>
             <span className="hidden sm:inline text-white/60">•</span>
