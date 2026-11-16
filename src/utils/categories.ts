@@ -169,6 +169,98 @@ export function productMatchesCategory(
   return normalizeCategoryKey(productCategory) === normalizeCategoryKey(slugOrKey);
 }
 
+export interface AdminCategoryOption {
+  /** Exact string written back to product.category on save. */
+  value: string;
+  /** What the admin sees in the dropdown. */
+  label: string;
+}
+
+/**
+ * Options for the Admin Edit Product category dropdown.
+ *
+ * BUG IT FIXES (2026-11-16): the dialog used to offer only the 8 hardcoded
+ * mock categories from mockData.ts, whose option values are slugs. A stored
+ * category like "Home & Kitchen" matched NO option, so saving a non-tech
+ * product silently overwrote its category (proven live: a "Home & Kitchen"
+ * desk lamp came back as "cameras"). The `categories` Firestore collection
+ * is empty, so there is no registry to fall back on — the live catalogue
+ * itself is the source of truth.
+ *
+ * Guarantees:
+ * - Every canonical category derived from the live catalogue is offered
+ *   (value = the group's display name, the exact string stored on most of
+ *   its products).
+ * - Every distinct stored category string gets its own option, including
+ *   legacy slugs ("cameras", "home", "shoes") and typos — so picking any
+ *   option writes back the same string the product already has.
+ * - The product being edited always appears, even if its value matches
+ *   nothing else (e.g. just fetched from Amazon) — saving can never
+ *   silently change a category.
+ */
+export function buildAdminCategoryOptions<T extends { category: string }>(
+  products: T[],
+  currentValue?: string | null
+): AdminCategoryOption[] {
+  const options: AdminCategoryOption[] = [];
+  const seen = new Set<string>();
+
+  // Canonical groups, as derived by deriveCategories (same grouping, same
+  // order — biggest first). The option VALUE is the group's most common
+  // EXACT stored string, not the cleaned group name: the two differ when a
+  // stored spelling has odd whitespace (e.g. "Sleep &  Relaxation"), and
+  // the exact spelling must be the value so a save writes it back unchanged.
+  const derived = deriveCategories(products);
+  for (const d of derived) {
+    let best = '';
+    let bestCount = 0;
+    const counts = new Map<string, number>();
+    for (const p of products) {
+      const raw = p.category || 'General';
+      if (normalizeCategoryKey(cleanCategoryLabel(raw)) !== d.key) continue;
+      const n = (counts.get(raw) || 0) + 1;
+      counts.set(raw, n);
+      if (n > bestCount) {
+        bestCount = n;
+        best = raw;
+      }
+    }
+    const value = best || d.name;
+    if (seen.has(value)) continue;
+    seen.add(value);
+    options.push({ value, label: `${value} (${d.count})` });
+  }
+
+  // Distinct stored strings that are NOT a canonical group name still get
+  // their own option, so their exact spelling round-trips through a save.
+  // Values are used EXACTLY as stored (no whitespace cleanup): even a
+  // double space inside a stored string ("Sleep &  Relaxation") must be
+  // selectable as-is, or saving would silently rewrite it.
+  const rawCounts = new Map<string, number>();
+  for (const p of products) {
+    const raw = p.category || 'General';
+    rawCounts.set(raw, (rawCounts.get(raw) || 0) + 1);
+  }
+  const extras = [...rawCounts.entries()]
+    .filter(([raw]) => !seen.has(raw))
+    .sort((a, b) => a[0].localeCompare(b[0]));
+  for (const [raw, count] of extras) {
+    seen.add(raw);
+    options.push({ value: raw, label: `${raw} (${count})` });
+  }
+
+  // The product being edited: never lose its value, even if it came from
+  // outside the catalogue (e.g. a fresh Amazon fetch). Used exactly as
+  // stored — not trimmed or cleaned — so a save writes it back unchanged.
+  const current = currentValue || '';
+  if (current.trim() && !seen.has(current)) {
+    seen.add(current);
+    options.push({ value: current, label: `${current} (current)` });
+  }
+
+  return options;
+}
+
 /** Display name for a category slug, from the live products if possible. */
 export function categoryNameForSlug<T extends { category: string }>(
   products: T[],
