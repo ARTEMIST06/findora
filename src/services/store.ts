@@ -324,6 +324,39 @@ class FindoraStore {
   private wishlist: string[] = []; // product IDs
   private compareIds: string[] = []; // max 4 product IDs
   private clicks: AffiliateClick[] = [];
+  // Activity buckets are PER ACCOUNT, not per browser: clicks (Store Link
+  // Visits on /profile) and the compare list are stored under
+  // `findora_clicks_v1_<uid>` / `findora_compare_v1_<uid>` ('guest' when
+  // logged out). A fresh account used to inherit the previous browser
+  // session's visits and compare picks on its profile — that leak is what
+  // this scoping fixes (see switchActivityOwner).
+  private activityOwner: string = 'guest';
+
+  private clicksKey(owner: string = this.activityOwner): string {
+    return `${STORAGE_KEYS.CLICKS}_${owner}`;
+  }
+
+  private compareKey(owner: string = this.activityOwner): string {
+    return `${STORAGE_KEYS.COMPARE}_${owner}`;
+  }
+
+  private saveClicks(): void {
+    saveToStorage(this.clicksKey(), this.clicks);
+  }
+
+  private saveCompare(): void {
+    saveToStorage(this.compareKey(), this.compareIds);
+  }
+
+  private switchActivityOwner(owner: string): void {
+    if (owner === this.activityOwner) return;
+    this.activityOwner = owner;
+    // Lists are persisted to the old bucket on every mutation, so switching
+    // is just a load: a fresh account starts empty, never with the previous
+    // account's (or guest's) visits and compare picks.
+    this.clicks = getFromStorage(this.clicksKey(), []);
+    this.compareIds = getFromStorage(this.compareKey(), []);
+  }
   private lastClickTimes = new Map<string, { time: number; click: AffiliateClick }>();
 
   constructor() {
@@ -333,153 +366,160 @@ class FindoraStore {
   private initFirebase() {
     if (typeof window === 'undefined') return;
     
-    // Lazy import to avoid server-side issues
-    import('../lib/firebase').then(({ db, auth }) => {
-      import('firebase/firestore').then(({ collection, onSnapshot, doc, getDoc, setDoc }) => {
-        import('firebase/auth').then(({ onAuthStateChanged }) => {
-          
-          // Products listener
-          onSnapshot(collection(db, 'products'), (snapshot) => {
-            this.products = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Product));
-            // First live snapshot received — the store may have started from
-            // a stale localStorage cache (e.g. 28 products from before the
-            // drafts were published); UI must not show cached counts as live
-            // until this fires.
-            this.productsSynced = true;
-            notifyChange();
-          });
+    // Lazy imports, fetched IN PARALLEL instead of one nested chain:
+    // the serial chain made auth resolve seconds later on cold loads,
+    // so the navbar showed "Sign In" to logged-in users.
+    Promise.all([
+      import('../lib/firebase'),
+      import('firebase/firestore'),
+      import('firebase/auth'),
+    ]).then(([{ db, auth }, { collection, onSnapshot, doc, getDoc, setDoc }, { onAuthStateChanged }]) => {
+      
+      // Products listener
+      onSnapshot(collection(db, 'products'), (snapshot) => {
+        this.products = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Product));
+        // First live snapshot received — the store may have started from
+        // a stale localStorage cache (e.g. 28 products from before the
+        // drafts were published); UI must not show cached counts as live
+        // until this fires.
+        this.productsSynced = true;
+        notifyChange();
+      });
 
-          // Stores listener
-          onSnapshot(collection(db, 'stores'), (snapshot) => {
-            if (!snapshot.empty) {
-              this.stores = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Store));
-            } else {
-              // If empty, auto-seed Amazon so they can at least add Amazon offers
-              const amazon = INITIAL_STORES.find(s => s.id === 'store-amazon');
-              if (amazon) {
-                setDoc(doc(db, 'stores', amazon.id), amazon).catch(console.error);
-                this.stores = [amazon];
+      // Stores listener
+      onSnapshot(collection(db, 'stores'), (snapshot) => {
+        if (!snapshot.empty) {
+          this.stores = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Store));
+        } else {
+          // If empty, auto-seed Amazon so they can at least add Amazon offers
+          const amazon = INITIAL_STORES.find(s => s.id === 'store-amazon');
+          if (amazon) {
+            setDoc(doc(db, 'stores', amazon.id), amazon).catch(console.error);
+            this.stores = [amazon];
+          }
+        }
+        notifyChange();
+      });
+
+      // Offers listener
+      onSnapshot(collection(db, 'offers'), (snapshot) => {
+        this.offers = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as PriceOffer));
+        notifyChange();
+      });
+
+      // Auth state listener
+      let unsubscribeWishlist: (() => void) | null = null;
+      
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          // Scope this browser's activity history to this account
+          // before anything else reads it (see switchActivityOwner).
+          this.switchActivityOwner(user.uid);
+          const emailLower = (user.email || '').toLowerCase().trim();
+          // Operational admin is the Findora account (findorame@gmail.com).
+          // The founder's personal Gmail stays bootstrapped, but it is not
+          // used for day-to-day affiliate work.
+          const isBootstrappedAdmin =
+            emailLower === 'findorame@gmail.com' ||
+            emailLower === 'aryasingh2366@gmail.com' ||
+            emailLower === 'admin@findora.com';
+          const isBootstrappedEditor = emailLower === 'editor@findora.com';
+          const targetRole = isBootstrappedAdmin ? 'admin' : (isBootstrappedEditor ? 'editor' : 'shopper');
+
+          const userRef = doc(db, 'users', user.uid);
+          try {
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+              const existingData = userSnap.data() as User;
+              if ((isBootstrappedAdmin || isBootstrappedEditor) && existingData.role !== targetRole) {
+                existingData.role = targetRole;
+                setDoc(userRef, { role: targetRole, lastLogin: new Date().toISOString() }, { merge: true }).catch(console.error);
+              } else {
+                setDoc(userRef, { lastLogin: new Date().toISOString() }, { merge: true }).catch(console.error);
               }
+              this.currentUser = { ...existingData, id: userSnap.id } as User;
+            } else {
+              const newUser: User = {
+                id: user.uid,
+                email: user.email || '',
+                name: user.displayName || user.email?.split('@')[0] || 'User',
+                role: targetRole,
+                createdAt: new Date().toISOString(),
+                lastLogin: new Date().toISOString(),
+              };
+              if (user.photoURL) {
+                newUser.avatar = user.photoURL;
+              }
+              await setDoc(userRef, newUser);
+              this.currentUser = newUser;
+            }
+
+            // Log privileged audit event for Admin / Editor login
+            if (targetRole === 'admin' || targetRole === 'editor') {
+              import('./audit').then(({ logAuditEvent }) => {
+                logAuditEvent({
+                  actorUid: user.uid,
+                  actorRole: targetRole,
+                  actorEmail: user.email || '',
+                  action: 'LOGIN',
+                  targetType: 'system',
+                  targetName: 'Admin/Editor Console Session',
+                  details: { provider: user.providerData?.[0]?.providerId || 'email_password' },
+                }).catch(() => {});
+              }).catch(() => {});
+            }
+          } catch (userDocErr) {
+            console.error("Error reading/writing user doc:", userDocErr);
+            // Fallback in memory
+            this.currentUser = {
+              id: user.uid,
+              email: user.email || '',
+              name: user.displayName || user.email?.split('@')[0] || 'User',
+              role: targetRole,
+              createdAt: new Date().toISOString(),
+              lastLogin: new Date().toISOString(),
+              avatar: user.photoURL || undefined,
+            };
+          }
+          
+          // Wishlist listener
+          if (unsubscribeWishlist) unsubscribeWishlist();
+          unsubscribeWishlist = onSnapshot(doc(db, 'wishlists', user.uid), (wSnap) => {
+            let remoteWishlist: string[] = [];
+            if (wSnap.exists()) {
+              remoteWishlist = wSnap.data().productIds || [];
+            }
+            
+            // Merge local wishlist if we have one and it hasn't been merged yet
+            const localWishlist = getFromStorage(STORAGE_KEYS.WISHLIST, []);
+            if (localWishlist.length > 0) {
+              const merged = Array.from(new Set([...remoteWishlist, ...localWishlist]));
+              this.wishlist = merged;
+              setDoc(doc(db, 'wishlists', user.uid), { productIds: merged }, { merge: true }).catch(console.error);
+              localStorage.removeItem(STORAGE_KEYS.WISHLIST);
+            } else {
+              this.wishlist = remoteWishlist;
             }
             notifyChange();
           });
-
-          // Offers listener
-          onSnapshot(collection(db, 'offers'), (snapshot) => {
-            this.offers = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as PriceOffer));
-            notifyChange();
-          });
-
-          // Auth state listener
-          let unsubscribeWishlist: (() => void) | null = null;
           
-          onAuthStateChanged(auth, async (user) => {
-            if (user) {
-              const emailLower = (user.email || '').toLowerCase().trim();
-              // Operational admin is the Findora account (findorame@gmail.com).
-              // The founder's personal Gmail stays bootstrapped, but it is not
-              // used for day-to-day affiliate work.
-              const isBootstrappedAdmin =
-                emailLower === 'findorame@gmail.com' ||
-                emailLower === 'aryasingh2366@gmail.com' ||
-                emailLower === 'admin@findora.com';
-              const isBootstrappedEditor = emailLower === 'editor@findora.com';
-              const targetRole = isBootstrappedAdmin ? 'admin' : (isBootstrappedEditor ? 'editor' : 'shopper');
+        } else {
 
-              const userRef = doc(db, 'users', user.uid);
-              try {
-                const userSnap = await getDoc(userRef);
-                if (userSnap.exists()) {
-                  const existingData = userSnap.data() as User;
-                  if ((isBootstrappedAdmin || isBootstrappedEditor) && existingData.role !== targetRole) {
-                    existingData.role = targetRole;
-                    setDoc(userRef, { role: targetRole, lastLogin: new Date().toISOString() }, { merge: true }).catch(console.error);
-                  } else {
-                    setDoc(userRef, { lastLogin: new Date().toISOString() }, { merge: true }).catch(console.error);
-                  }
-                  this.currentUser = { ...existingData, id: userSnap.id } as User;
-                } else {
-                  const newUser: User = {
-                    id: user.uid,
-                    email: user.email || '',
-                    name: user.displayName || user.email?.split('@')[0] || 'User',
-                    role: targetRole,
-                    createdAt: new Date().toISOString(),
-                    lastLogin: new Date().toISOString(),
-                  };
-                  if (user.photoURL) {
-                    newUser.avatar = user.photoURL;
-                  }
-                  await setDoc(userRef, newUser);
-                  this.currentUser = newUser;
-                }
+          this.currentUser = null;
+          // Back to the guest activity bucket — the signed-out
+          // account's visits/compare stay in its own bucket.
+          this.switchActivityOwner('guest');
+          // Keep the guest wishlist in localStorage — signing out must
+          // not delete a shopper's saved products.
+          this.wishlist = getFromStorage(STORAGE_KEYS.WISHLIST, []);
+          if (unsubscribeWishlist) {
 
-                // Log privileged audit event for Admin / Editor login
-                if (targetRole === 'admin' || targetRole === 'editor') {
-                  import('./audit').then(({ logAuditEvent }) => {
-                    logAuditEvent({
-                      actorUid: user.uid,
-                      actorRole: targetRole,
-                      actorEmail: user.email || '',
-                      action: 'LOGIN',
-                      targetType: 'system',
-                      targetName: 'Admin/Editor Console Session',
-                      details: { provider: user.providerData?.[0]?.providerId || 'email_password' },
-                    }).catch(() => {});
-                  }).catch(() => {});
-                }
-              } catch (userDocErr) {
-                console.error("Error reading/writing user doc:", userDocErr);
-                // Fallback in memory
-                this.currentUser = {
-                  id: user.uid,
-                  email: user.email || '',
-                  name: user.displayName || user.email?.split('@')[0] || 'User',
-                  role: targetRole,
-                  createdAt: new Date().toISOString(),
-                  lastLogin: new Date().toISOString(),
-                  avatar: user.photoURL || undefined,
-                };
-              }
-              
-              // Wishlist listener
-              if (unsubscribeWishlist) unsubscribeWishlist();
-              unsubscribeWishlist = onSnapshot(doc(db, 'wishlists', user.uid), (wSnap) => {
-                let remoteWishlist: string[] = [];
-                if (wSnap.exists()) {
-                  remoteWishlist = wSnap.data().productIds || [];
-                }
-                
-                // Merge local wishlist if we have one and it hasn't been merged yet
-                const localWishlist = getFromStorage(STORAGE_KEYS.WISHLIST, []);
-                if (localWishlist.length > 0) {
-                  const merged = Array.from(new Set([...remoteWishlist, ...localWishlist]));
-                  this.wishlist = merged;
-                  setDoc(doc(db, 'wishlists', user.uid), { productIds: merged }, { merge: true }).catch(console.error);
-                  localStorage.removeItem(STORAGE_KEYS.WISHLIST);
-                } else {
-                  this.wishlist = remoteWishlist;
-                }
-                notifyChange();
-              });
-              
-            } else {
-
-              this.currentUser = null;
-              // Keep the guest wishlist in localStorage — signing out must
-              // not delete a shopper's saved products.
-              this.wishlist = getFromStorage(STORAGE_KEYS.WISHLIST, []);
-              if (unsubscribeWishlist) {
-
-                unsubscribeWishlist();
-                unsubscribeWishlist = null;
-              }
-            }
-            this.authLoading = false;
-            notifyChange();
-          });
-          
-        });
+            unsubscribeWishlist();
+            unsubscribeWishlist = null;
+          }
+        }
+        this.authLoading = false;
+        notifyChange();
       });
     }).catch(console.error);
   }
@@ -487,11 +527,11 @@ class FindoraStore {
   private init() {
     // Keep local categories as they might be static
     this.categories = getFromStorage(STORAGE_KEYS.CATEGORIES, INITIAL_CATEGORIES);
-    this.compareIds = getFromStorage(STORAGE_KEYS.COMPARE, []);
+    this.compareIds = getFromStorage(this.compareKey(), []);
     // Guest wishlist: kept in localStorage so shoppers can save products
     // without an account. It is merged into Firestore only on sign-in.
     this.wishlist = getFromStorage(STORAGE_KEYS.WISHLIST, []);
-    this.clicks = getFromStorage(STORAGE_KEYS.CLICKS, []);
+    this.clicks = getFromStorage(this.clicksKey(), []);
     
     // Temporarily load mock data so the UI isn't completely empty before Firebase loads
     this.products = getFromStorage(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS);
@@ -634,7 +674,7 @@ class FindoraStore {
       this.compareIds = this.compareIds.filter((pid) => pid !== id);
       saveToStorage(STORAGE_KEYS.PRODUCTS, this.products);
       saveToStorage(STORAGE_KEYS.OFFERS, this.offers);
-      saveToStorage(STORAGE_KEYS.COMPARE, this.compareIds);
+      this.saveCompare();
       if (this.currentUser && typeof window !== 'undefined') {
         import('../lib/firebase').then(({ db }) => {
           import('firebase/firestore').then(({ doc, setDoc }) => {
@@ -1239,20 +1279,20 @@ class FindoraStore {
         });
       }).catch(() => {});
     }
-    saveToStorage(STORAGE_KEYS.COMPARE, this.compareIds);
+    this.saveCompare();
     notifyChange();
     return true;
   }
 
   removeFromCompare(productId: string): void {
     this.compareIds = this.compareIds.filter((id) => id !== productId);
-    saveToStorage(STORAGE_KEYS.COMPARE, this.compareIds);
+    this.saveCompare();
     notifyChange();
   }
 
   clearCompare(): void {
     this.compareIds = [];
-    saveToStorage(STORAGE_KEYS.COMPARE, this.compareIds);
+    this.saveCompare();
     notifyChange();
   }
 
@@ -1359,7 +1399,7 @@ class FindoraStore {
     }
 
     try {
-      saveToStorage(STORAGE_KEYS.CLICKS, this.clicks);
+      this.saveClicks();
     } catch (e) {
       console.warn('Storage save caught:', e);
     }
@@ -1471,6 +1511,11 @@ class FindoraStore {
       localStorage.removeItem(STORAGE_KEYS.WISHLIST);
       localStorage.removeItem(STORAGE_KEYS.COMPARE);
       localStorage.removeItem(STORAGE_KEYS.CLICKS);
+      // Per-account activity buckets (this account's + guest's).
+      localStorage.removeItem(this.compareKey());
+      localStorage.removeItem(this.clicksKey());
+      localStorage.removeItem(this.compareKey('guest'));
+      localStorage.removeItem(this.clicksKey('guest'));
     }
     this.init();
     notifyChange();

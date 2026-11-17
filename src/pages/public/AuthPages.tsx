@@ -150,6 +150,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
     } catch (error: any) {
       console.error('[Google Auth Error]:', error);
       if (error.code === 'auth/popup-closed-by-user') {
+        // Was silent: the form sat on "Processing..." with both buttons
+        // greyed out until Firebase noticed the closed popup. Say so.
+        showToast('Google sign-in cancelled — try again or use email instead.', 'error');
         return;
       }
       showToast(getAuthErrorMessage(error.code, error.message), 'error');
