@@ -33,6 +33,7 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
   const store = useFindoraStore();
   const currentUser = store.getCurrentUser();
+  const authLoading = store.isAuthLoading();
   const compareList = store.getCompareList();
   const wishlist = store.getWishlist();
 
@@ -307,7 +308,15 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
 
           {/* User Sign In / Profile Menu */}
           <div className="relative">
-            {currentUser ? (
+            {authLoading ? (
+              // Auth state still resolving: show a neutral placeholder,
+              // never a "Sign In" button — a logged-in user must not see
+              // "Sign In" flash on every load while Firebase resolves.
+              <div
+                className="w-9 h-9 rounded-full bg-slate-200 animate-pulse"
+                aria-label="Loading account"
+              />
+            ) : currentUser ? (
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                 className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-1.5 rounded-full border border-slate-300 bg-white hover:bg-slate-100 transition-all"
