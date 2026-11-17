@@ -76,15 +76,6 @@ export interface CategoryAnalyticsMetric {
   ctr: number;
 }
 
-export interface VisitorFunnelMetric {
-  totalVisitors: number;
-  productViews: number;
-  productDetailViews: number;
-  affiliateClicks: number;
-  nonClickingVisitors: number;
-  overallCtr: number;
-}
-
 export interface TrafficSourceMetric {
   source: string;
   visitors: number;
@@ -705,8 +696,10 @@ class AnalyticsService {
 
     return products.map((p) => {
       const pClicks = clickCounts[p.id] || 0;
-      // Views: at least 1 view if clicked, plus recorded views
-      const views = Math.max(localViews[p.id] || 0, pClicks > 0 ? pClicks + 2 : 0);
+      // Views are ONLY what this browser actually recorded. No invented
+      // floor: a clicked product with no recorded view counts 0 views
+      // (CTR 0), it does not get "clicks + 2" free views.
+      const views = localViews[p.id] || 0;
       const isWishlisted = Math.max(localWishlist[p.id] || 0, wishlistProductIds.includes(p.id) ? 1 : 0);
       const compareAdds = localCompare[p.id] || 0;
       const ctr = views > 0 ? Math.min(100, Math.round((pClicks / views) * 100)) : 0;
@@ -725,34 +718,6 @@ class AnalyticsService {
         affiliateCtr: ctr,
       };
     });
-  }
-
-  /**
-   * Computes Visitor Funnel
-   */
-  getVisitorFunnel(
-    totalVisitorsCount: number,
-    productsCount: number,
-    totalClicks: number
-  ): VisitorFunnelMetric {
-    const visitors = Math.max(totalVisitorsCount, totalClicks > 0 ? totalClicks * 3 : 0);
-    const productViews = Math.max(Math.round(visitors * 0.75), totalClicks * 2);
-    const productDetailViews = Math.max(Math.round(visitors * 0.45), totalClicks);
-    const affiliateClicks = totalClicks;
-    const nonClickingVisitors = Math.max(0, productDetailViews - affiliateClicks);
-    const overallCtr =
-      productDetailViews > 0
-        ? Math.min(100, Math.round((affiliateClicks / productDetailViews) * 100))
-        : 0;
-
-    return {
-      totalVisitors: visitors,
-      productViews,
-      productDetailViews,
-      affiliateClicks,
-      nonClickingVisitors,
-      overallCtr,
-    };
   }
 
   /**
@@ -792,7 +757,9 @@ class AnalyticsService {
     });
 
     return Array.from(catMap.entries()).map(([category, stats]) => {
-      const views = Math.max(stats.views, stats.clicks * 2);
+      // Views are ONLY what browsers actually recorded. No invented floor
+      // (the old `clicks * 2` minimum fabricated views out of clicks).
+      const views = stats.views;
       const ctr = views > 0 ? Math.min(100, Math.round((stats.clicks / views) * 100)) : 0;
       return {
         category,

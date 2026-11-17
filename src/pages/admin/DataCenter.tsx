@@ -16,11 +16,13 @@ import {
 import { SEOHead } from '../../components/common/SEOHead';
 import { useFindoraStore } from '../../services/store';
 import { analytics } from '../../services/analytics';
+import { db } from '../../lib/firebase';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import type { SiteEventDoc } from '../../services/realtime';
 import type {
   AggregatedSearchQuery,
   ProductPerformanceMetric,
   UserMetricsRecord,
-  VisitorFunnelMetric,
 } from '../../services/analytics';
 import { fetchAdminLoginHistory } from '../../services/audit';
 import type { AdminLoginHistoryRecord } from '../../services/audit';
@@ -53,6 +55,11 @@ export const DataCenter: React.FC<DataCenterProps> = ({ onNavigate }) => {
   const [userMetrics, setUserMetrics] = useState<UserMetricsRecord | null>(null);
   const [newsletterCount, setNewsletterCount] = useState<number>(0);
   const [draftDocs, setDraftDocs] = useState<any[]>([]);
+  // Measured traffic (Firestore siteEvents + clicks, admin-only reads).
+  // These replace the old modelled funnel — every number below is counted
+  // from real events in the last 7 days, never multiplied or estimated.
+  const [liveEvents, setLiveEvents] = useState<SiteEventDoc[]>([]);
+  const [liveClicks, setLiveClicks] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
 
@@ -113,6 +120,29 @@ export const DataCenter: React.FC<DataCenterProps> = ({ onNavigate }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin, isEditor]);
 
+  // Live traffic listeners (same pattern as /admin/analytics).
+  useEffect(() => {
+    if (!isAdmin && !isEditor) return;
+    const unsubs: Array<() => void> = [];
+    unsubs.push(
+      onSnapshot(
+        query(collection(db, 'siteEvents'), orderBy('ts', 'desc'), limit(500)),
+        (snap) => setLiveEvents(snap.docs.map((d) => d.data() as SiteEventDoc)),
+        (err) => console.warn('DataCenter siteEvents listener failed:', err)
+      )
+    );
+    unsubs.push(
+      onSnapshot(
+        query(collection(db, 'clicks'), orderBy('timestamp', 'desc'), limit(500)),
+        (snap) => setLiveClicks(snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))),
+        (err) => console.warn('DataCenter clicks listener failed:', err)
+      )
+    );
+    return () => {
+      unsubs.forEach((u) => u());
+    };
+  }, [isAdmin, isEditor]);
+
   // --- Inventory (live from the store) ---
   // NOTE: these are computed fresh on EVERY render, deliberately NOT
   // useMemo'd on [store]. The store object is a referentially stable
@@ -167,15 +197,21 @@ export const DataCenter: React.FC<DataCenterProps> = ({ onNavigate }) => {
       };
     })
     .sort((a, b) => b.affiliateClicks - a.affiliateClicks);
-  const funnel: VisitorFunnelMetric = (() => {
-    // Same modelled estimate as AnalyticsDashboard: total visitors is an
-    // estimate from registered users + clicks, NOT a measured count.
-    const totalVisitorsEstimate = Math.max(
-      (userMetrics?.totalUsers || 0) * 4,
-      clicks.length > 0 ? clicks.length * 4 : 48
-    );
-    return analytics.getVisitorFunnel(totalVisitorsEstimate, publishedProducts.length, clicks.length);
-  })();
+  // --- Measured funnel (last 7 days, counted from Firestore) ---
+  // Visitors = distinct sessionIds in siteEvents; product views =
+  // product_view events; clicks = clicks docs. No multipliers, no
+  // estimates — 0 when there is no data yet.
+  const sevenDaysAgoMs = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const events7d = liveEvents.filter((e) => Date.parse(e.ts) >= sevenDaysAgoMs);
+  const measuredVisitors = new Set(events7d.map((e) => e.sessionId)).size;
+  const measuredProductViews = events7d.filter((e) => e.type === 'product_view').length;
+  const measuredClicks = liveClicks.filter(
+    (c) => Date.parse(c.timestamp || '') >= sevenDaysAgoMs
+  ).length;
+  const measuredCtr =
+    measuredProductViews > 0
+      ? Math.min(100, Math.round((measuredClicks / measuredProductViews) * 100))
+      : 0;
   const recentClicks = [...clicks]
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     .slice(0, 10);
@@ -352,24 +388,24 @@ export const DataCenter: React.FC<DataCenterProps> = ({ onNavigate }) => {
         </h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="p-5 rounded-2xl bg-white border border-slate-200">
-            <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Affiliate clicks</span>
-            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">{clicks.length}</div>
-            <span className="text-xs text-slate-600 mt-1 block">Outbound to Amazon (recorded on-site)</span>
+            <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Affiliate clicks · 7 days</span>
+            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">{measuredClicks}</div>
+            <span className="text-xs text-slate-600 mt-1 block">Outbound to Amazon, counted from Firestore</span>
           </div>
           <div className="p-5 rounded-2xl bg-white border border-slate-200">
-            <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Visitors (est.)</span>
-            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">{funnel.totalVisitors.toLocaleString('en-IN')}</div>
-            <span className="text-xs text-slate-600 mt-1 block">Modelled estimate, not a measured count</span>
+            <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Visitors · 7 days</span>
+            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">{measuredVisitors.toLocaleString('en-IN')}</div>
+            <span className="text-xs text-slate-600 mt-1 block">Distinct sessions, measured — not estimated</span>
           </div>
           <div className="p-5 rounded-2xl bg-white border border-slate-200">
-            <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Product views (est.)</span>
-            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">{funnel.productViews.toLocaleString('en-IN')}</div>
-            <span className="text-xs text-slate-600 mt-1 block">From the same funnel model</span>
+            <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Product views · 7 days</span>
+            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">{measuredProductViews.toLocaleString('en-IN')}</div>
+            <span className="text-xs text-slate-600 mt-1 block">Product-page views, counted from site events</span>
           </div>
           <div className="p-5 rounded-2xl bg-white border border-slate-200">
             <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Click-through</span>
-            <div className="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-2">{funnel.overallCtr}%</div>
-            <span className="text-xs text-slate-600 mt-1 block">Clicks ÷ product views (modelled)</span>
+            <div className="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-2">{measuredCtr}%</div>
+            <span className="text-xs text-slate-600 mt-1 block">Clicks ÷ product views, measured</span>
           </div>
         </div>
 
