@@ -602,7 +602,14 @@ Sitemap: ${sitemapUrl}
     );
   });
 
-  // Dynamic production sitemap querying real Firestore published products
+  // Dynamic production sitemap — every published product, live from Firestore.
+  // (Was: a static public/sitemap.xml with 14 URLs shadowed this route on
+  // Vercel, so Google only ever saw 14 URLs for an 800+ product catalogue.
+  // Now served via the /sitemap.xml rewrite in vercel.json; the static
+  // file is deleted. Data comes from the same client-SDK read the
+  // Pinterest feed uses — the REST API-key path returns 403 here. No
+  // mock-data fallback: a failed fetch returns 500 so Google retries,
+  // instead of serving dead seed-product URLs.)
   app.get('/sitemap.xml', async (req, res) => {
     try {
       const proto = req.headers['x-forwarded-proto'] || (req.secure ? 'https' : 'http');
@@ -610,7 +617,25 @@ Sitemap: ${sitemapUrl}
       const baseUrl = `${proto}://${host}`;
       const now = new Date().toISOString().split('T')[0];
 
-      // Static public routes
+      const db = await getFeedDb();
+      if (!db) {
+        return res.status(500).type('text/plain').send('Sitemap unavailable');
+      }
+      const { collection, getDocs } = await import('firebase/firestore');
+      const prodSnap = await getDocs(collection(db, 'products'));
+      const products = prodSnap.docs
+        .map((d: any) => ({ id: d.id, ...(d.data() as any) }))
+        .filter((p: any) => p.published !== false && (p.slug || p.id));
+
+      // Slug rule must match slugifyCategoryLabel in src/utils/categories.ts:
+      // "&" is dropped, anything non-alphanumeric becomes "-".
+      const slugify = (label: string) =>
+        label.toLowerCase().trim().replace(/&/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      const datePart = (v: any): string => {
+        if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v)) return v.slice(0, 10);
+        return now;
+      };
+
       const staticUrls = [
         { loc: `${baseUrl}/`, priority: '1.0', changefreq: 'daily', lastmod: now },
         { loc: `${baseUrl}/products`, priority: '0.9', changefreq: 'daily', lastmod: now },
@@ -624,62 +649,19 @@ Sitemap: ${sitemapUrl}
         { loc: `${baseUrl}/cookie-disclosure`, priority: '0.3', changefreq: 'monthly', lastmod: now },
       ];
 
-      // Public category routes
-      const categories = ['smartphones', 'laptops', 'audio', 'smartwatches', 'televisions', 'tablets', 'gaming', 'cameras'];
-      const categoryUrls = categories.map((cat) => ({
-        loc: `${baseUrl}/category/${cat}`,
+      // Category pages actually in use, derived from the live catalogue —
+      // not the old hardcoded 8 tech categories.
+      const categorySlugs = [...new Set(products.map((p: any) => slugify(p.category || 'General')).filter(Boolean))].sort();
+      const categoryUrls = categorySlugs.map((slug) => ({
+        loc: `${baseUrl}/category/${slug}`,
         priority: '0.8',
         changefreq: 'weekly',
         lastmod: now,
       }));
 
-      // Query published products from Firestore
-      const publishedProductSlugs: { slug: string; updatedAt?: string }[] = [];
-
-      if (firebaseConfig?.projectId && firebaseConfig?.firestoreDatabaseId) {
-        try {
-          const url = `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/${firebaseConfig.firestoreDatabaseId}/documents/products?key=${firebaseConfig.apiKey}`;
-          const resp = await fetch(url);
-          if (resp.ok) {
-            const data: any = await resp.json();
-            const docs = data.documents || [];
-            docs.forEach((doc: any) => {
-              const isPublished = doc.fields?.published?.booleanValue !== false;
-              if (isPublished) {
-                const id = doc.name.split('/').pop();
-                const slug = doc.fields?.slug?.stringValue || id;
-                const updateTime = doc.updateTime ? doc.updateTime.split('T')[0] : now;
-                publishedProductSlugs.push({ slug, updatedAt: updateTime });
-              }
-            });
-          }
-        } catch (firestoreErr) {
-          console.warn('[SITEMAP] Firestore query error:', firestoreErr);
-        }
-      }
-
-      // If Firestore returned 0 products (e.g. database still populating), fallback to published catalog
-      if (publishedProductSlugs.length === 0) {
-        try {
-          const mockPath = path.join(process.cwd(), 'src/data/mockData.ts');
-          if (fs.existsSync(mockPath)) {
-            const content = fs.readFileSync(mockPath, 'utf8');
-            const matches = content.matchAll(/id:\s*'(prod-[^']+)',\s*slug:\s*'([^']+)'/g);
-            for (const match of matches) {
-              const slug = match[2];
-              if (!publishedProductSlugs.some((p) => p.slug === slug)) {
-                publishedProductSlugs.push({ slug, updatedAt: now });
-              }
-            }
-          }
-        } catch (e) {
-          console.error('[SITEMAP] Fallback catalog read error:', e);
-        }
-      }
-
-      const productUrls = publishedProductSlugs.map((p) => ({
-        loc: `${baseUrl}/product/${p.slug}`,
-        lastmod: p.updatedAt || now,
+      const productUrls = products.map((p: any) => ({
+        loc: `${baseUrl}/product/${p.slug || p.id}`,
+        lastmod: datePart(p.updatedAt || p.createdAt),
         priority: '0.8',
         changefreq: 'weekly',
       }));
@@ -708,10 +690,6 @@ ${allUrls
       res.status(500).type('text/plain').send('Error generating sitemap');
     }
   });
-
-  
-
-  
 
   // --- Pinterest catalog feed (TSV) ---
   // Powers Pinterest Catalogs: Pinterest fetches this URL daily and turns
