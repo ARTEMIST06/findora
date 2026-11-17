@@ -17,10 +17,15 @@ export const TrendingProducts: React.FC<TrendingProductsProps> = ({ onNavigate }
   // Phones show 4 cards per page instead of 6: three stacked product
   // sections are the homepage's biggest scroll cost on mobile.
   const isMobile = useIsMobile();
+  // CategoryShowcase renders nothing until the live Firestore snapshot
+  // arrives — Trending used to render straight from the localStorage cache
+  // in that window, so it flashed under the hero before the categories
+  // appeared. Show a skeleton in the same shape until live data lands.
+  const liveSynced = store.hasLiveProducts();
 
-  // Ranked by real engagement (Amazon clicks + product views from the
-  // tracker). With no engagement data yet, newest first — never a fixed
-  // arbitrary slice of the catalogue.
+  // Ranked by real engagement (recorded Amazon clicks + recorded product
+  // views from this browser). No invented views: with no engagement data
+  // yet, newest first — never a fixed arbitrary slice of the catalogue.
   const trendingList = useMemo(() => {
     const clicks = store.getAffiliateClicks();
     const perf = analytics.getProductPerformanceData(products, clicks, []);
@@ -41,6 +46,28 @@ export const TrendingProducts: React.FC<TrendingProductsProps> = ({ onNavigate }
   useEffect(() => {
     setPage((p) => Math.min(p, Math.max(0, maxPages - 1)));
   }, [maxPages]);
+
+  if (!liveSynced) {
+    return (
+      <section className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6" aria-hidden="true">
+        <div className="mb-5 sm:mb-6">
+          <div className="h-3 w-40 bg-slate-200 rounded animate-pulse" />
+          <div className="h-9 sm:h-12 w-72 max-w-full bg-slate-200 rounded mt-3 animate-pulse" />
+          <div className="h-4 w-96 max-w-full bg-slate-200 rounded mt-3 animate-pulse" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 sm:gap-5">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="rounded-2xl border border-slate-200 bg-white p-3">
+              <div className="aspect-square bg-slate-200 rounded-xl animate-pulse" />
+              <div className="h-3 w-3/4 bg-slate-200 rounded mt-3 animate-pulse" />
+              <div className="h-3 w-1/2 bg-slate-200 rounded mt-2 animate-pulse" />
+              <div className="h-8 w-full bg-slate-200 rounded-lg mt-4 animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   if (trendingList.length === 0) return null;
 
