@@ -13,7 +13,9 @@ import { ProductCard } from '../../components/common/ProductCard';
 import { useFindoraStore } from '../../services/store';
 import { analytics } from '../../services/analytics';
 import {
+  deriveBrands,
   deriveCategories,
+  productMatchesBrand,
   productMatchesCategory,
   categoryNameForSlug,
 } from '../../utils/categories';
@@ -54,17 +56,17 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
   const [sortBy, setSortBy] = useState<string>('relevance');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  // Extract all unique brands
-  const allBrands = useMemo(() => {
-    const brandsSet = new Set<string>();
-    allProducts.forEach((p) => brandsSet.add(p.brand));
-    return Array.from(brandsSet).sort();
-  }, [allProducts]);
+  // Brand list, deduped by normalised key: one checkbox per brand, named
+  // after its most common stored spelling ("Zebronics", not "Zebronics" +
+  // "ZEBRONICS"). selectedBrands holds normalised keys.
+  const allBrands = useMemo(() => deriveBrands(allProducts), [allProducts]);
 
   // Handle brand toggle
-  const toggleBrand = (brand: string) => {
+  const toggleBrand = (brandKey: string) => {
     setSelectedBrands((prev) =>
-      prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand]
+      prev.includes(brandKey)
+        ? prev.filter((b) => b !== brandKey)
+        : [...prev, brandKey]
     );
   };
 
@@ -94,8 +96,12 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
           return false;
         }
 
-        // Brand filter
-        if (selectedBrands.length > 0 && !selectedBrands.includes(product.brand)) {
+        // Brand filter (normalised: ticking "Zebronics" also matches
+        // products stored as "ZEBRONICS" or "Zebronics ").
+        if (
+          selectedBrands.length > 0 &&
+          !selectedBrands.some((k) => productMatchesBrand(product.brand, k))
+        ) {
           return false;
         }
 
@@ -360,16 +366,16 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
             <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1 scrollbar-thin">
               {allBrands.map((brand) => (
                 <label
-                  key={brand}
+                  key={brand.key}
                   className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer hover:text-slate-900"
                 >
                   <input
                     type="checkbox"
-                    checked={selectedBrands.includes(brand)}
-                    onChange={() => toggleBrand(brand)}
+                    checked={selectedBrands.includes(brand.key)}
+                    onChange={() => toggleBrand(brand.key)}
                     className="rounded bg-white border-slate-300 text-black focus:ring-black/20"
                   />
-                  <span>{brand}</span>
+                  <span>{brand.name}</span>
                 </label>
               ))}
             </div>
@@ -418,7 +424,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
                   key={b}
                   className="inline-flex items-center gap-1.5 text-xs bg-black/5 border border-black/20 text-black px-2.5 py-1 rounded-full"
                 >
-                  {b}
+                  {allBrands.find((ab) => ab.key === b)?.name ?? b}
                   <button onClick={() => toggleBrand(b)}>
                     <X className="w-3 h-3 text-black hover:text-slate-900" />
                   </button>
