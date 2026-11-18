@@ -22,6 +22,7 @@ import {
   Download,
 } from 'lucide-react';
 import { Product, ProductWithPrices, ProductDraft, PriceOffer, Category, Brand, Store } from '../../types';
+import { deriveBrands, normalizeBrandKey } from '../../utils/categories';
 import { OpenAmazonButton } from './OpenAmazonButton';
 import { AmazonQuickActions } from './AmazonQuickActions';
 
@@ -268,18 +269,24 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
     };
   }, [unifiedItems]);
 
-  // Unique brands list for filter dropdown
+  // Unique brands list for filter dropdown — deduped by normalised key, so
+  // one brand is one option ("Zebronics", not "Zebronics" + "ZEBRONICS").
+  // Registry brands (Firestore `brands` collection) are folded in by key.
+  // Values are the canonical display names; the filter match below is
+  // case-insensitive, so all stored spellings still match.
   const uniqueBrands = useMemo(() => {
-    const set = new Set<string>();
-    for (const item of unifiedItems) {
-      if (item.brand && item.brand.trim().length > 0) {
-        set.add(item.brand.trim());
-      }
-    }
+    const derived = deriveBrands(unifiedItems);
+    const seen = new Set(derived.map((b) => b.key));
+    const names = derived.map((b) => b.name);
     for (const b of brands) {
-      if (b.name) set.add(b.name.trim());
+      const name = (b.name || '').trim();
+      if (!name) continue;
+      const key = normalizeBrandKey(name);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      names.push(name);
     }
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
+    return names.sort((a, b) => a.localeCompare(b));
   }, [unifiedItems, brands]);
 
   // Unique categories list for filter dropdown
@@ -351,9 +358,10 @@ export const ProductManagement: React.FC<ProductManagementProps> = ({
           if (item.category !== selectedCategory) return false;
         }
 
-        // 4. Brand Filter
+        // 4. Brand Filter (normalised: trailing spaces / case variants in
+        // stored data still match the canonical option).
         if (selectedBrand !== 'all') {
-          if (item.brand.toLowerCase() !== selectedBrand.toLowerCase()) return false;
+          if (normalizeBrandKey(item.brand) !== normalizeBrandKey(selectedBrand)) return false;
         }
 
         // 5. Store Filter

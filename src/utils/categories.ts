@@ -107,6 +107,72 @@ export function prettifySlug(slug: string): string {
     .join(' ');
 }
 
+/**
+ * Brand key: trimmed + lowercased, so "Zebronics", "ZEBRONICS" and
+ * "Zebronics " are the same brand. Stored data is never rewritten —
+ * grouping happens at display/filter time only.
+ */
+export function normalizeBrandKey(brand: string | undefined | null): string {
+  return (brand || '').trim().toLowerCase();
+}
+
+export interface DerivedBrand {
+  /** Normalised key used for matching, e.g. "zebronics". */
+  key: string;
+  /** Display name: the most common stored spelling, trimmed. */
+  name: string;
+  /** Number of products in this brand. */
+  count: number;
+}
+
+/**
+ * Build the brand list from the products that actually exist.
+ * Groups by normalised key, names each brand after its most common raw
+ * spelling, and sorts by product count (biggest first).
+ *
+ * BUG IT FIXES (2026-11-18): the ProductsPage filter built its list from a
+ * plain Set of raw `product.brand` strings, so one brand appeared as
+ * several checkboxes ("Zebronics" + "ZEBRONICS", "Puma" + "puma" + "PUMA" +
+ * "Puma ") and ticking one spelling missed the others' products (exact
+ * string match). Live audit 2026-11-18: 30 such variant groups across 379
+ * raw brand strings (e.g. Zebronics 21+6, Milton 14+4, Puma 6+1+2+1).
+ */
+export function deriveBrands<T extends { brand?: string }>(
+  products: T[]
+): DerivedBrand[] {
+  const groups = new Map<
+    string,
+    { spellings: Map<string, number>; count: number }
+  >();
+  for (const p of products) {
+    const raw = (p.brand || '').trim();
+    if (!raw) continue;
+    const key = raw.toLowerCase();
+    let g = groups.get(key);
+    if (!g) {
+      g = { spellings: new Map(), count: 0 };
+      groups.set(key, g);
+    }
+    g.count += 1;
+    g.spellings.set(raw, (g.spellings.get(raw) || 0) + 1);
+  }
+  return [...groups.entries()]
+    .map(([key, g]) => ({
+      key,
+      name: [...g.spellings.entries()].sort((a, b) => b[1] - a[1])[0][0],
+      count: g.count,
+    }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+}
+
+/** Does this product belong to the brand identified by a normalised key? */
+export function productMatchesBrand(
+  productBrand: string | undefined | null,
+  brandKey: string
+): boolean {
+  return normalizeBrandKey(productBrand) === normalizeBrandKey(brandKey);
+}
+
 export interface DerivedCategory {
   /** Normalised key used for matching, e.g. "homekitchen". */
   key: string;
@@ -130,7 +196,11 @@ export function deriveCategories<T extends { category: string; brand?: string }>
 ): DerivedCategory[] {
   const groups = new Map<
     string,
-    { rawCounts: Map<string, number>; count: number; brands: Map<string, number> }
+    {
+      rawCounts: Map<string, number>;
+      count: number;
+      brands: Map<string, { spellings: Map<string, number>; count: number }>;
+    }
   >();
   for (const p of products) {
     const raw = cleanCategoryLabel(p.category || 'General');
@@ -142,7 +212,22 @@ export function deriveCategories<T extends { category: string; brand?: string }>
     }
     g.count += 1;
     g.rawCounts.set(raw, (g.rawCounts.get(raw) || 0) + 1);
-    if (p.brand) g.brands.set(p.brand, (g.brands.get(p.brand) || 0) + 1);
+    // Brands grouped by normalised key, so "Zebronics" and "ZEBRONICS"
+    // count as one brand (see deriveBrands); display name is the most
+    // common stored spelling.
+    if (p.brand) {
+      const bRaw = p.brand.trim();
+      if (bRaw) {
+        const bKey = bRaw.toLowerCase();
+        let bg = g.brands.get(bKey);
+        if (!bg) {
+          bg = { spellings: new Map(), count: 0 };
+          g.brands.set(bKey, bg);
+        }
+        bg.count += 1;
+        bg.spellings.set(bRaw, (bg.spellings.get(bRaw) || 0) + 1);
+      }
+    }
   }
   return [...groups.entries()]
     .map(([key, g]) => {
@@ -152,10 +237,13 @@ export function deriveCategories<T extends { category: string; brand?: string }>
         slug: slugifyCategoryLabel(name),
         name,
         count: g.count,
-        brands: [...g.brands.entries()]
-          .sort((a, b) => b[1] - a[1])
+        brands: [...g.brands.values()]
+          .sort((a, b) => b.count - a.count)
           .slice(0, 5)
-          .map(([b]) => b),
+          .map(
+            (bg) =>
+              [...bg.spellings.entries()].sort((a, b) => b[1] - a[1])[0][0]
+          ),
       };
     })
     .sort((a, b) => b.count - a.count);
