@@ -262,6 +262,45 @@ export const app = express();
 
   // API routes
   app.get("/api/health", (req, res) => res.json({ status: "ok" }));
+
+  // Public catalogue as CDN-cached JSON. The storefront used to open
+  // three full-collection Firestore listeners per visitor (~2,400
+  // document reads per new visitor), so ~20 new visitors/day exhausted
+  // the Spark plan's 50k reads/day quota and the catalogue stopped
+  // loading. This route reads Firestore once per cache window (2h edge
+  // cache + stale-while-revalidate) no matter how many visitors
+  // arrive — visitor count no longer touches the read quota. Only
+  // published products (and their offers) are served; drafts never
+  // leave the server. Admin sessions keep their own live Firestore
+  // listeners client-side and are unaffected.
+  app.get('/api/catalog', async (req, res) => {
+    try {
+      const db = await getFeedDb();
+      if (!db) {
+        return res.status(500).json({ error: 'Catalog unavailable' });
+      }
+      const { collection, getDocs } = await import('firebase/firestore');
+      const [prodSnap, offerSnap, storeSnap] = await Promise.all([
+        getDocs(collection(db, 'products')),
+        getDocs(collection(db, 'offers')),
+        getDocs(collection(db, 'stores')),
+      ]);
+      const products = prodSnap.docs
+        .map((d: any) => ({ ...(d.data() as any), id: d.id }))
+        .filter((p: any) => p.published !== false);
+      const publishedIds = new Set(products.map((p: any) => p.id));
+      const offers = offerSnap.docs
+        .map((d: any) => ({ ...(d.data() as any), id: d.id }))
+        .filter((o: any) => publishedIds.has(o.productId));
+      const stores = storeSnap.docs.map((d: any) => ({ ...(d.data() as any), id: d.id }));
+
+      res.setHeader('Cache-Control', 'public, s-maxage=7200, stale-while-revalidate=86400');
+      res.json({ products, offers, stores, generatedAt: new Date().toISOString() });
+    } catch (e) {
+      console.error('Catalog fetch failed:', e);
+      res.status(500).json({ error: 'Catalog unavailable' });
+    }
+  });
   
   // Account cleanup route (trusted backend workflow)
   app.post("/api/delete-account-cleanup", async (req, res) => {

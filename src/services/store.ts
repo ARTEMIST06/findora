@@ -375,37 +375,92 @@ class FindoraStore {
       import('firebase/auth'),
     ]).then(([{ db, auth }, { collection, onSnapshot, doc, getDoc, setDoc }, { onAuthStateChanged }]) => {
       
-      // Products listener
-      onSnapshot(collection(db, 'products'), (snapshot) => {
-        this.products = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Product));
-        // First live snapshot received — the store may have started from
-        // a stale localStorage cache (e.g. 28 products from before the
-        // drafts were published); UI must not show cached counts as live
-        // until this fires.
-        this.productsSynced = true;
-        notifyChange();
-      });
-
-      // Stores listener
-      onSnapshot(collection(db, 'stores'), (snapshot) => {
-        if (!snapshot.empty) {
-          this.stores = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Store));
-        } else {
-          // If empty, auto-seed Amazon so they can at least add Amazon offers
-          const amazon = INITIAL_STORES.find(s => s.id === 'store-amazon');
-          if (amazon) {
-            setDoc(doc(db, 'stores', amazon.id), amazon).catch(console.error);
-            this.stores = [amazon];
+      // PUBLIC CATALOGUE: loaded from the CDN-cached /api/catalog JSON
+      // instead of three full-collection Firestore listeners. The old
+      // listeners cost ~2,400 document reads per new visitor (1,200+
+      // products + 1,200+ offers), so ~20 new visitors/day exhausted
+      // the Spark plan's 50k reads/day quota and the catalogue stopped
+      // loading. The API route reads Firestore once per cache window
+      // (2h edge cache) no matter how many visitors arrive — visitor
+      // count no longer touches the read quota. Admin/editor sessions
+      // still get the live listeners below (they need drafts + realtime).
+      const loadCatalogueFromApi = async () => {
+        try {
+          const res = await fetch('/api/catalog');
+          if (!res.ok) throw new Error(`catalog ${res.status}`);
+          const data = await res.json();
+          if (Array.isArray(data.products) && data.products.length > 0) {
+            this.products = data.products as Product[];
+          }
+          if (Array.isArray(data.offers)) this.offers = data.offers as PriceOffer[];
+          if (Array.isArray(data.stores) && data.stores.length > 0) this.stores = data.stores as Store[];
+          // First live catalogue received — the store may have started
+          // from a stale localStorage cache; UI must not show cached
+          // counts as live until this fires.
+          this.productsSynced = true;
+          notifyChange();
+        } catch (e) {
+          // Fallback: one-time Firestore reads (not live listeners) so
+          // the site still loads if the API route is down.
+          console.warn('Catalog API failed, falling back to Firestore reads:', e);
+          try {
+            const { getDocs } = await import('firebase/firestore');
+            const [prodSnap, offerSnap, storeSnap] = await Promise.all([
+              getDocs(collection(db, 'products')),
+              getDocs(collection(db, 'offers')),
+              getDocs(collection(db, 'stores')),
+            ]);
+            const published = prodSnap.docs
+              .map(d => ({ ...d.data(), id: d.id } as Product))
+              .filter(p => (p as any).published !== false);
+            if (published.length > 0) this.products = published;
+            const publishedIds = new Set(published.map(p => p.id));
+            this.offers = offerSnap.docs
+              .map(d => ({ ...d.data(), id: d.id } as PriceOffer))
+              .filter(o => publishedIds.has(o.productId));
+            if (!storeSnap.empty) this.stores = storeSnap.docs.map(d => ({ ...d.data(), id: d.id } as Store));
+            this.productsSynced = true;
+            notifyChange();
+          } catch (e2) {
+            console.error('Catalog fallback failed:', e2);
           }
         }
-        notifyChange();
-      });
+      };
+      loadCatalogueFromApi();
 
-      // Offers listener
-      onSnapshot(collection(db, 'offers'), (snapshot) => {
-        this.offers = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as PriceOffer));
-        notifyChange();
-      });
+      // ADMIN LIVE LISTENERS: attached only after an admin/editor
+      // sign-in (see the auth handler). Admin needs drafts + realtime
+      // updates; shoppers never pay for them.
+      let adminListenersAttached = false;
+      const attachAdminListeners = () => {
+        if (adminListenersAttached) return;
+        adminListenersAttached = true;
+
+        onSnapshot(collection(db, 'products'), (snapshot) => {
+          this.products = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Product));
+          this.productsSynced = true;
+          notifyChange();
+        });
+
+        onSnapshot(collection(db, 'stores'), (snapshot) => {
+          if (!snapshot.empty) {
+            this.stores = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Store));
+          } else {
+            // If empty, auto-seed Amazon so they can at least add Amazon offers
+            const amazon = INITIAL_STORES.find(s => s.id === 'store-amazon');
+            if (amazon) {
+              setDoc(doc(db, 'stores', amazon.id), amazon).catch(console.error);
+              this.stores = [amazon];
+            }
+          }
+          notifyChange();
+        });
+
+        onSnapshot(collection(db, 'offers'), (snapshot) => {
+          this.offers = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as PriceOffer));
+          notifyChange();
+        });
+      };
 
       // Auth state listener
       let unsubscribeWishlist: (() => void) | null = null;
@@ -480,6 +535,13 @@ class FindoraStore {
               lastLogin: new Date().toISOString(),
               avatar: user.photoURL || undefined,
             };
+          }
+
+          // Admin/editor sessions need the full live catalogue (drafts
+          // included) — attach the Firestore listeners for them only.
+          // Shoppers stay on the CDN-cached /api/catalog snapshot.
+          if (this.currentUser && (this.currentUser.role === 'admin' || this.currentUser.role === 'editor')) {
+            attachAdminListeners();
           }
           
           // Wishlist listener
