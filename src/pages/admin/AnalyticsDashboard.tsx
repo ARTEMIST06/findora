@@ -560,24 +560,28 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
   }, [clicksInRange]);
 
   // Clicks Over Time Breakdown (Past 7 Days timeline, Firestore clicks)
+  // Day buckets use LOCAL dates, matching the KPI "today" definition
+  // (local midnight). Clicks outside the 7-day window are ignored — they
+  // used to be dumped into the "Today" bar, inventing clicks that never
+  // happened today (PR #53).
   const clicksOverTime = useMemo(() => {
+    const localDateStr = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
+        d.getDate()
+      ).padStart(2, '0')}`;
     const days: { date: string; label: string; count: number }[] = [];
     const now = new Date();
     for (let i = 6; i >= 0; i--) {
-      const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-      const dateStr = d.toISOString().split('T')[0];
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
       const label = i === 0 ? 'Today' : i === 1 ? 'Yesterday' : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-      days.push({ date: dateStr, label, count: 0 });
+      days.push({ date: localDateStr(d), label, count: 0 });
     }
 
     liveClicks.forEach((c) => {
-      const cDate = (c.timestamp || '').split('T')[0];
-      const match = days.find((d) => d.date === cDate);
-      if (match) {
-        match.count += 1;
-      } else if (days.length > 0) {
-        days[days.length - 1].count += 1;
-      }
+      const t = Date.parse(c.timestamp || '');
+      if (Number.isNaN(t)) return;
+      const match = days.find((d) => d.date === localDateStr(new Date(t)));
+      if (match) match.count += 1;
     });
 
     return days;
