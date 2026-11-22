@@ -11,6 +11,10 @@
 export const GA_MEASUREMENT_ID: string =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GA_MEASUREMENT_ID) || 'G-Z5NJ9TQMC6';
 
+// Internal-traffic guard (PR #52): admin/automated visits are excluded from
+// GA4 too, so GA4 and the on-site dashboard report the same real audience.
+import { isInternalTraffic } from './realtime';
+
 // Storage keys for analytics metrics
 const STORAGE_KEYS = {
   PRODUCT_VIEWS: 'findora_analytics_prod_views_v1',
@@ -256,6 +260,7 @@ class AnalyticsService {
    * Page View tracking with React deduplication and session campaign attribution
    */
   trackPageView(path: string, title?: string) {
+    if (isInternalTraffic(path)) return;
     this.captureUtmFromUrl();
     const cleanPath = path.split('?')[0] || '/';
 
@@ -349,6 +354,7 @@ class AnalyticsService {
     price?: number;
   }) {
     if (!product?.id) return;
+    if (typeof window !== 'undefined' && isInternalTraffic(window.location.pathname)) return;
 
     if (this.isDuplicate(`view_product:${product.id}`, 1500)) {
       return;

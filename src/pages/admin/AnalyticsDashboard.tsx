@@ -239,7 +239,14 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
       onSnapshot(
         query(collection(db, 'siteEvents'), orderBy('ts', 'desc'), limit(QUERY_LIMIT)),
         (snap) => {
-          setSiteEvents(snap.docs.map((d) => d.data() as SiteEventDoc));
+          // Internal-traffic cleanup (PR #52): events recorded before the
+          // write-side guard shipped include /admin page views from our own
+          // runs. Drop them at read time so historical counts are honest too.
+          setSiteEvents(
+            snap.docs
+              .map((d) => d.data() as SiteEventDoc)
+              .filter((e) => !(e.path === '/admin' || e.path?.startsWith('/admin/')))
+          );
           setLiveBlocked((prev) => (prev === 'siteEvents' ? null : prev));
         },
         (err) => {
@@ -312,6 +319,26 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
     () =>
       siteEvents.filter((e) => e.type === 'view' && Date.parse(e.ts) >= Date.now() - SEVEN_DAYS_MS)
         .length,
+    [siteEvents]
+  );
+  // Unique visitors = distinct sessions (people, not page loads). Shown next
+  // to views so "47 views" is never misread as "47 people".
+  const visitorsToday = useMemo(
+    () =>
+      new Set(
+        siteEvents
+          .filter((e) => e.type === 'view' && Date.parse(e.ts) >= startOfTodayMs)
+          .map((e) => e.sessionId)
+      ).size,
+    [siteEvents, startOfTodayMs]
+  );
+  const visitors7d = useMemo(
+    () =>
+      new Set(
+        siteEvents
+          .filter((e) => e.type === 'view' && Date.parse(e.ts) >= Date.now() - SEVEN_DAYS_MS)
+          .map((e) => e.sessionId)
+      ).size,
     [siteEvents]
   );
   const clicksToday = useMemo(
@@ -427,6 +454,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
   const sourceRows: SourceRow[] = useMemo(() => {
     const map = new Map<string, { sessions: Set<string>; views: number }>();
     for (const e of eventsInRange) {
+      // Views here = page views only, same definition as the KPI cards
+      // (product views are counted in Product Analytics, not here).
+      if (e.type !== 'view') continue;
       const cur = map.get(e.source) || { sessions: new Set<string>(), views: 0 };
       cur.sessions.add(e.sessionId);
       cur.views += 1;
@@ -907,7 +937,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
               <div className="text-2xl sm:text-3xl font-black text-slate-900">
                 {viewsToday.toLocaleString()}
               </div>
-              <div className="text-[11px] text-slate-600">Page views recorded today</div>
+              <div className="text-[11px] text-slate-600">Page views recorded today · internal visits excluded</div>
             </div>
 
             {/* Views Last 7 Days */}
@@ -920,6 +950,20 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ onNaviga
                 {views7d.toLocaleString()}
               </div>
               <div className="text-[11px] text-slate-600">Page views, last 7 days</div>
+            </div>
+
+            {/* Visitors Today (unique sessions = people, not page loads) */}
+            <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2">
+              <div className="flex items-center justify-between text-slate-600">
+                <span className="text-xs font-bold uppercase tracking-wider">Visitors Today</span>
+                <Users className="w-4 h-4 text-blue-600" />
+              </div>
+              <div className="text-2xl sm:text-3xl font-black text-slate-900">
+                {visitorsToday.toLocaleString()}
+              </div>
+              <div className="text-[11px] text-slate-600">
+                Unique visitors (sessions) · 7 days: {visitors7d.toLocaleString()}
+              </div>
             </div>
 
             {/* Clicks Today */}
