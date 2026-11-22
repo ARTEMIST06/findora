@@ -131,6 +131,43 @@ function cleanPath(path: string): string {
   return (path || '/').split('?')[0].split('#')[0].slice(0, 200) || '/';
 }
 
+// --- Internal-traffic exclusion (PR #52) ---
+// The dashboard must show ACTUAL shopper traffic. Our own visits — the
+// admin's browsing and the automated runs that operate the store (product
+// batches, pin URL resolution, sweeps) — happen signed in as the admin or
+// on /admin routes, and used to be counted as "visitors". Internal traffic
+// is never recorded:
+//   - any /admin route,
+//   - any session signed in as admin/editor (cached user in localStorage),
+//   - the internal test shopper account.
+// The same guard gates GA4 page/product views (services/analytics.ts) so
+// both systems report the same real audience.
+const CURRENT_USER_KEY = 'findora_current_user_v1'; // store.ts STORAGE_KEYS.CURRENT_USER
+const INTERNAL_EMAILS = new Set([
+  'findorame@gmail.com',
+  'aryasingh2366@gmail.com',
+  'admin@findora.com',
+  'editor@findora.com',
+  'jarvis-test-shopper@findora.in',
+]);
+
+export function isInternalTraffic(path: string): boolean {
+  if (typeof window === 'undefined') return false;
+  const clean = cleanPath(path);
+  if (clean === '/admin' || clean.startsWith('/admin/')) return true;
+  try {
+    const raw = window.localStorage.getItem(CURRENT_USER_KEY);
+    if (raw) {
+      const u = JSON.parse(raw) as { role?: string; email?: string };
+      if (u?.role === 'admin' || u?.role === 'editor') return true;
+      if (u?.email && INTERNAL_EMAILS.has(u.email.toLowerCase().trim())) return true;
+    }
+  } catch {
+    // Unreadable cache → treat as a normal visitor.
+  }
+  return false;
+}
+
 // --- Firestore plumbing (dynamic imports, same pattern as analytics.ts) ---
 
 async function addSiteEvent(doc: SiteEventDoc): Promise<void> {
@@ -173,8 +210,10 @@ export function startRealtimeHeartbeat(): void {
   if (heartbeatStarted || typeof window === 'undefined') return;
   heartbeatStarted = true;
   window.setInterval(() => {
+    const path = cleanPath(window.location.pathname);
+    if (isInternalTraffic(path)) return;
     const { source } = deriveSource();
-    touchSession(cleanPath(window.location.pathname), source, true);
+    touchSession(path, source, true);
   }, HEARTBEAT_MS);
 }
 
@@ -200,6 +239,7 @@ function isDuplicate(key: string): boolean {
 // existing GA4 page_view call, which stays untouched.
 export function logPageView(path: string): void {
   if (typeof window === 'undefined') return;
+  if (isInternalTraffic(path)) return;
   const clean = cleanPath(path);
   if (isDuplicate(`view:${clean}`)) return;
   startRealtimeHeartbeat();
@@ -221,6 +261,7 @@ export function logPageView(path: string): void {
 // every existing call site benefits without being touched.
 export function logProductView(product: { id: string; name: string; category?: string }): void {
   if (typeof window === 'undefined' || !product?.id) return;
+  if (isInternalTraffic(window.location.pathname)) return;
   if (isDuplicate(`product_view:${product.id}`)) return;
   startRealtimeHeartbeat();
   const { source, utmSource } = deriveSource();
