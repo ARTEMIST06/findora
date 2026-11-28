@@ -14,6 +14,9 @@ export const DraftsDashboard: React.FC = () => {
   const { showToast } = useToast();
   const [drafts, setDrafts] = useState<ProductDraft[]>([]);
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
+  // In-app delete confirmation — native confirm() is suppressed in some
+  // browsers, which silently swallowed Admin deletes.
+  const [pendingDeleteDraft, setPendingDeleteDraft] = useState<ProductDraft | null>(null);
 
   const [activeTab, setActiveTab] = useState<'active' | 'ready' | 'published'>('active');
   const [filterAddedBy, setFilterAddedBy] = useState('All');
@@ -35,6 +38,19 @@ export const DraftsDashboard: React.FC = () => {
       return { ...d, draftStatus };
     });
     setDrafts(migrated);
+  };
+
+  const handleConfirmDeleteDraft = async () => {
+    if (!pendingDeleteDraft) return;
+    const draft = pendingDeleteDraft;
+    setPendingDeleteDraft(null);
+    try {
+      await store.deleteDraft(draft.id);
+      showToast(`Draft "${draft.title}" deleted`, 'success');
+      loadDrafts();
+    } catch (err: any) {
+      showToast(err.message || 'Error deleting draft', 'error');
+    }
   };
 
   const handleDuplicateDraft = async (d: ProductDraft) => {
@@ -268,12 +284,7 @@ export const DraftsDashboard: React.FC = () => {
                       )}
 
                       <button
-                        onClick={async () => {
-                          if (confirm('Delete this draft?')) {
-                            await store.deleteDraft(d.id);
-                            loadDrafts();
-                          }
-                        }}
+                        onClick={() => setPendingDeleteDraft(d)}
                         className="p-1.5 text-slate-600 hover:text-red-600 transition-colors rounded-md hover:bg-red-50"
                         title="Delete draft"
                       >
@@ -297,6 +308,41 @@ export const DraftsDashboard: React.FC = () => {
           </table>
         </div>
       </div>
+      {pendingDeleteDraft && (
+        <div className="fixed inset-0 bg-slate-50/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900 text-base">Delete draft?</h3>
+              <button
+                onClick={() => setPendingDeleteDraft(null)}
+                className="p-1 rounded-md text-slate-600 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-sm text-slate-600">
+              Are you sure you want to delete &ldquo;{pendingDeleteDraft.title}&rdquo;? This cannot
+              be undone.
+            </p>
+            <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setPendingDeleteDraft(null)}
+                className="px-4 py-2 border border-slate-200 rounded-xl text-slate-700 font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteDraft}
+                className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
