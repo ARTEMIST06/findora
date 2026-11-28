@@ -90,6 +90,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
 
   // Modals state
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  // In-app delete confirmation (native confirm() dialogs are suppressed in
+  // some browsers, which silently swallowed Admin deletes — see FERIO draft).
+  const [pendingDelete, setPendingDelete] = useState<{ type: 'draft' | 'product'; id: string; name: string } | null>(null);
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
   const [editingProductOffers, setEditingProductOffers] = useState<Partial<PriceOffer>[]>([]);
 
@@ -408,10 +411,18 @@ if (authLoading) {
     }
   };
 
-  const handleDeleteDraft = async (draftId: string) => {
-    if (confirm('Are you sure you want to delete this draft?')) {
+  const handleDeleteDraft = (draftId: string) => {
+    const draft = drafts.find((d) => d.id === draftId);
+    setPendingDelete({ type: 'draft', id: draftId, name: draft?.title || `Draft ${draftId}` });
+  };
+
+  const confirmPendingDelete = async () => {
+    if (!pendingDelete) return;
+    const { type, id, name } = pendingDelete;
+    setPendingDelete(null);
+    if (type === 'draft') {
       try {
-        await store.deleteDraft(draftId);
+        await store.deleteDraft(id);
         showToast('Draft deleted', 'success');
         loadDrafts();
         if (currentUser) {
@@ -421,12 +432,26 @@ if (authLoading) {
             actorEmail: currentUser.email,
             action: 'PRODUCT_DELETED',
             targetType: 'draft',
-            targetId: draftId,
-            targetName: `Draft ${draftId}`,
+            targetId: id,
+            targetName: `Draft ${id}`,
           }).catch(() => {});
         }
       } catch (err: any) {
         showToast(err.message || 'Error deleting draft', 'error');
+      }
+    } else {
+      store.deleteProduct(id);
+      showToast(`Deleted "${name}"`, 'info');
+      if (currentUser) {
+        logAuditEvent({
+          actorUid: currentUser.id,
+          actorRole: (currentUser.role as any) || 'admin',
+          actorEmail: currentUser.email,
+          action: 'PRODUCT_DELETED',
+          targetType: 'product',
+          targetId: id,
+          targetName: name,
+        }).catch(() => {});
       }
     }
   };
@@ -534,21 +559,7 @@ if (authLoading) {
   };
 
   const handleDeleteProduct = (id: string, name: string) => {
-    if (confirm(`Are you sure you want to delete "${name}"?`)) {
-      store.deleteProduct(id);
-      showToast(`Deleted "${name}"`, 'info');
-      if (currentUser) {
-        logAuditEvent({
-          actorUid: currentUser.id,
-          actorRole: (currentUser.role as any) || 'admin',
-          actorEmail: currentUser.email,
-          action: 'PRODUCT_DELETED',
-          targetType: 'product',
-          targetId: id,
-          targetName: name,
-        }).catch(() => {});
-      }
-    }
+    setPendingDelete({ type: 'product', id, name });
   };
 
   // --- Offers Management Handlers ---
@@ -1780,6 +1791,43 @@ if (authLoading) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {pendingDelete && (
+        <div className="fixed inset-0 bg-slate-50/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900 text-base">
+                Delete {pendingDelete.type === 'draft' ? 'draft' : 'product'}?
+              </h3>
+              <button
+                onClick={() => setPendingDelete(null)}
+                className="p-1 rounded-md text-slate-600 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-sm text-slate-600">
+              Are you sure you want to delete &ldquo;{pendingDelete.name}&rdquo;? This cannot be
+              undone.
+            </p>
+            <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setPendingDelete(null)}
+                className="px-4 py-2 border border-slate-200 rounded-xl text-slate-700 font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmPendingDelete}
+                className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}
